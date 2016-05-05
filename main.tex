@@ -1,0 +1,52 @@
+% book example for classicthesis.sty
+\documentclass[
+  % Replace twoside with oneside if you are printing your thesis on a single side
+  % of the paper, or for viewing on screen.
+  oneside,
+  %twoside, TODO anpassen
+  11pt, a4paper,
+  footinclude=true,
+  headinclude=true,
+  cleardoublepage=empty
+]{scrbook}
+
+\usepackage{lipsum}
+\usepackage[linedheaders,parts,pdfspacing]{classicthesis}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{acronym}
+\usepackage[utf8]{inputenc}
+\usepackage{ngerman}
+\usepackage[binary-units=true]{siunitx} % Einheiten in Formeln
+
+\input{0_hyphenation}
+
+\title{Entwicklung eines Software Defined GNSS Empfängers für den Dragsail-Cubesat}
+\author{Stefan Dröge}
+
+\begin{document}
+
+\maketitle
+
+\include{FrontBackMatter/abstract}
+\include{FrontBackMatter/dedication}
+\include{FrontBackMatter/acknowledgements}
+\include{FrontBackMatter/declaration}
+\include{FrontBackMatter/contents}
+
+%\part{First Part of My Thesis}
+
+\part{Einführung}
+\include{1_Einleitung/0_Einleitung_main}
+\include{2_Grundlagen/0_Grundlagen_main}
+
+\part{Hauptteil} % TODO Besserer Name?
+\include{3_Entwurf/0_Entwurf_main}
+\include{4_Implementierung/0_Implementierung_main}
+
+\appendix
+\part{Appendix}
+\include{5_Appendix/0_Appendix_main}
+
+    
+\end{document}

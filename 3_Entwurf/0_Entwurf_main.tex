@@ -1,0 +1,30 @@
+\chapter{Entwurf}
+Einleitung zum Entwurf
+
+\section{Systemhardware}
+Etwas über die Hardware des Comboards
+
+\section{Planung}
+Etwas über die Planung?
+
+\subsection{Prozessablauf der Demodulation}
+\subsubsection{Acquisition}
+\subsubsection{Tracking}
+%\subsubsection{NAV Daten Auswertung}
+%Präambel usw
+
+\subsection{Arbeitsteilung FPGA/DSP}
+% Acquisition im DSP
+% Erfordert große Mengen Speicher und hoher Rechenaufwand
+% Tracking im FPGA. Tracking erfordert hohe Parallelität bei moderatem Rechenaufwand und hat harte Echtzeitanforderungen.
+% Softcore Prozessor. Auswahl. Aufgabe
+
+\subsection{Softwareschnittstelle FPGA/DSP}
+%Character Device Treiber
+%Je Kanal ein FIFO
+
+\subsection{Matlab Simulation}
+%Trackingloop in Simulink
+
+%High Level Simulation sukzessive angepasst an Implementierung in Hardware
+%Acquisition Skripte

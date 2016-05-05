@@ -1,0 +1,59 @@
+\chapter{Festkomma Arithmetik}
+In dieser Arbeit wird an mehreren Stellen von Berechnungen mit Festkommazahlen Gebrauch gemacht. Dieser Abschnitt erläutert einige Grundlagen zur Darstellung von Festkommazahlen und Berechnungen damit. Der Entwurf von Algorithmen mit Festkommazahlen ist zwar deutlich aufwändiger, weil der darstellbare Dynamikbereich begrenzt ist. Aber die Berechnung mit Festkommazahlen bringt deutliche Leistungsvorteile die den höheren Entwurfsaufwand rechtfertigen. Dies gilt insbesondere auf Rechnern ohne Fließkommaeinheit die Fließkommaberechnungen in Software emulieren müssen.
+
+
+\section{Nomenklatur}
+
+In dieser Arbeit wird für das Format von Festkommazahlen die Notation $Qm.n$ verwendet. Mit dem Format ist gemeint wie viele Bits für die Vor- bzw. Nachkommastellen verwendet werden. Dabei benennt $m$ die Anzahl der Bits die für den Vorkommaanteil verwendet werden. Die Anzahl der Bits die für den Nachkommaanteil verwendet werden ist mit $n$ bezeichnet (TODO Bild link).
+Außerdem sind alle Zahlen in dieser Arbeit vorzeichenbehaftet, wofür ein zusätzliches Bit reserviert werden muss. Das heißt zum Speichern einer $Qm.n$ Festkommazahl werden insgesamt $(m+n+1)\,\si{\bit}$ benötigt. Negative Zahlen werden über ihr Zweierkomplement dargestellt. Bild (TODO Link) zeigt beispielhaft die Umwandlung einer Zahl in Festkommazahl und die Darstellung im Speicher.
+Mathematisch lässt sich die Umwandlung als Abbildung beschreiben: 
+\[Q_{m,n}: X \rightarrow Y^{m,n}\] 
+mit \[X =\left\{x \in \mathbb{R}| -2^{m+1}\leq x<2^{m+1}+1/2\right\}\] und \[Y^{m,n} =\left\{y \in \mathbb{Z} | 0 \leq y \leq 2^{m+n+1}-1\right\}\]
+
+Wie man sieht ist die Abbildung surjektiv, da eine überabzählbare Menge X auf eine abzählbare Menge Y abgebildet wird. Dies macht sich in der Praxis bei der Rückumwandlung als Quantisierungsfehler bemerkbar.
+
+Die Zahl $Q_{m,n}(z)$ die sich durch anwenden der Abbildungsvorschrift auf die Zahl $z$ ergibt, soll im Folgenden abkürzend als $z^{m,n}$ bezeichnet werden:
+\[z^{m,n}:=Q_{m,n}(z)\]
+
+\section{Auswahl des geeigneten Q-Formats}
+Wie erwähnt haben Festkommazahlen einen begrenzten Dynamikumfang. Das heißt im Vergleich zu Berechnungen mit Fließkommazahlen kommt es eher zu Überläufen, und höheren Quantisierungsfehlern. Deshalb ist eine der wichtigsten Aufgaben während der Entwurfsphase die Auswahl des geeigneten Q-Formats für die Variablen. Dies wird im Folgenden beschrieben.
+
+
+
+\section{Rechenoperationen}
+Bei der Berechnungen mit Festkommazahlen sind einige Besonderheiten zu beachten, die im Folgenden erläutert werden.
+
+\subsection{Arithmerische Schiebeoperation}
+Für Arithmetische Schiebeoperationen werden die Operatoren $>>$ bzw $<<$ definiert \footnote{Der Operator $\lfloor \cdot \rfloor$ bezeichnet das Abrunden bzw. das Extrahieren des Ganzzahlanteils}:
+\[x >> p := \lfloor x/2^p \rfloor\]
+\[x << p := \lfloor x/2^p \rfloor\]
+
+Auf Registerebene wird dies durch Schieben der binären Ziffern nach links ($<<$) bzw. rechts ($>>$) realisiert. Bei negativen Zahlen ist zu beachten, dass bei der $>>$ Operation an der höchstwertigen Stelle $1$en eingeschoben werden.
+
+\subsection{Umwandlung von $Q_{m_1,n_1}$ zu  $Q_{m_2,n_2}$}
+Für einige der Standardrechenoperationen ist es erforderlich, dass die Zahlen im selben Q-Format vorliegen. Die Umwandlung von einem Q-Format in ein anderes Q-Format geschieht auf Registerebene sehr einfach durch Schieben der Stellen der binären Zahl nach links bzw. rechts:
+\[z_1^{m_1,n_1} >> p = z_1^{m_1+p,n_1-p}\]
+\[z_1^{m_1,n_1} << p = z_1^{m_1-p,n_1+p}\]
+
+\subsection{Addition und Subtraktion}
+Zur Addition von Festkommazahlen müssen die Zahlen im selben Q-Format vorliegen, damit die Zahlen stellenwertmäßig korrekt addiert werden. Gegebenenfalls müssen die Zahlen mit daher umgewandelt (s.o.) werden und die damit vergrößerten Quantisierungsfehler berücksichtigt werden. Des Weiteren kann es bei der Addition zu einem Überlauf kommen. Das heißt, dass bei der Addition zweier Zahlen im $Q_{m,n}$ Format das Ergebnis im Allgemeinen im $Q_{m+1,n}$ Format vorliegen wird.
+
+\[z_1^{m,n}+z_2^{m,n} := Q_{m+1,n}(z_1+z_2) = (z_1+z_2)^{m+1,n}\]
+
+Die Subtraktion erfolgt durch Addition des Zweierkomplements. Falls zwei negative Zahlen addiert werden, kann es auch bei der Subtraktion zu einem Überlauf kommen.
+
+\subsection{Multiplikation}
+Für die Multiplikation ist es nicht erforderlich, dass die Festkommazahlen \emph{nicht} im selben Q-Format vorliegen. Jedoch hat auch bei dieser Operation das Ergebnis ein anderes Q-Format:
+\[z_1^{m_1,n_1}\cdot z_2^{m_2,n_2} := Q_{m_1+m_2,n_1+n_2}(z_1\cdot z_2) = (z_1\cdot z_2)^{m_1+m_1,n_1+n_2}\]
+
+In der Implementierung von Algorithmen, die Multiplikationen verwenden, ist deshalb darauf zu achten den Typ der Zielvariablen so zu wählen, dass das Produkt die Wortbreite nicht überschreitet. Gegebenenfalls müssen die Operanden vor der Multiplikation verkürzt werden.
+
+\subsection{Division}
+Die Division folgt ähnlichen Regeln wie die Multiplikation, was sich aus der Regel \emph{Division entspricht der Multiplikation mit dem Kehrwert} ergibt:
+\[\frac{z_1^{m_1,n_1}}{z_2^{m_2,n_2}} := Q_{m_1-m_2,n_1-n_2}\left(\frac{z_1}{z_2}\right) = \left(\frac{z_1}{z_2}\right)^{m_1-m_1,n_1-n_2}\]
+
+Wie man sieht hat der Quotient ein Q-Format mit weniger Stellen für Ganzzahl- und Bruchanteil. Das bedeutet, dass für ein sinnvolles Ergebnis der Dividend vor der Division auf das Q-Format der Zielvariablen skaliert werden muss. In der Praxis erfolgt die Division deshalb wie folgt:
+
+\[\frac{z_1^{m_1,n_1}<<(w-(m_1+n_1))}{z_2^{m_2,n_2}} = \frac{z_1^{m_1,w-m_1}}{z_2^{m_2,n_2}} \]
+
+mit $w=m_3+n_3$ die Parameter des Q-Formats der Zielvariablen.
