@@ -4,7 +4,7 @@ In dieser Arbeit wird an mehreren Stellen von Berechnungen mit Festkommazahlen G
 
 \section{Nomenklatur}
 
-In dieser Arbeit wird für das Format von Festkommazahlen die Notation $Qm.n$ verwendet. Mit dem Format ist gemeint wie viele Bits für die Vor- bzw. Nachkommastellen verwendet werden. Dabei benennt $m$ die Anzahl der Bits die für den Vorkommaanteil verwendet werden. Die Anzahl der Bits die für den Nachkommaanteil verwendet werden ist mit $n$ bezeichnet (TODO Bild link).
+In dieser Arbeit wird für das Format von Festkommazahlen die Notation $Qm.n$ verwendet. Mit dem Format ist gemeint wie viele Bits für die Vor- bzw. Nachkommastellen verwendet werden. Dabei benennt $m \in \mathbb{Z}$ die Anzahl der Bits die für den Vorkommaanteil verwendet werden. Die Anzahl der Bits die für den Nachkommaanteil verwendet werden ist mit $n \in \mathbb{Z}$ bezeichnet (TODO Bild link).
 Außerdem sind alle Zahlen in dieser Arbeit vorzeichenbehaftet, wofür ein zusätzliches Bit reserviert werden muss. Das heißt zum Speichern einer $Qm.n$ Festkommazahl werden insgesamt $(m+n+1)\,\si{\bit}$ benötigt. Negative Zahlen werden über ihr Zweierkomplement dargestellt. Bild (TODO Link) zeigt beispielhaft die Umwandlung einer Zahl in Festkommazahl und die Darstellung im Speicher.
 Mathematisch lässt sich die Umwandlung als Abbildung beschreiben: 
 \[Q_{m,n}: X \rightarrow Y^{m,n}\] 
@@ -18,13 +18,23 @@ Die Zahl $Q_{m,n}(z)$ die sich durch anwenden der Abbildungsvorschrift auf die Z
 \section{Auswahl des geeigneten Q-Formats}
 Wie erwähnt haben Festkommazahlen einen begrenzten Dynamikumfang. Das heißt im Vergleich zu Berechnungen mit Fließkommazahlen kommt es eher zu Überläufen, und höheren Quantisierungsfehlern. Deshalb ist eine der wichtigsten Aufgaben während der Entwurfsphase die Auswahl des geeigneten Q-Formats für die Variablen. Dies wird im Folgenden beschrieben.
 
+Zur Auswahl des geeigneten Formats muss bekannt sein, welche maximalen und minimalen Werte das Ergebnis einer Berechnung annehmen kann. Beispielsweise kann $\sin(x)$ nur Werte im Intervall $[-1, +1]$ annehmen. Mit diesem Wissen lässt sich $m$ wie folgt berechnen\footnote{Der Operator $\lceil \cdot \rceil$ bezeichnet das Aufrunden des Ergebnisses zur nächsten Ganzzahl}:
 
+\[m=\lceil \log_2(\max(|y_{min}|,|y_{max}|)) \rceil \]
+
+Zu bemerken ist, dass auch negative $m$ möglich sind, was kein Fehler ist. Beispielsweise für Variablen deren Wert immer im Intervall im Intervall $[-0.25, 0.25]$ liegen ergibt sich $m=-2$. Das heißt, dass mehr Stellen für den Nachkommanteil zur Verfügung stehen.
+
+Desweiteren muss bekannt sein, welche Anforderung an den zulässigen Quantisierungsfehler bestehen. Beispielsweise kann sich aus der Spezifikation für einen Filter die Anforderung ergeben, dass die Filterkoeffizienten mit einer Genauigkeit von $q=\num{\pm1e-5}$ quantisiert werden müssen. Aus dieser Anforderung lässt sich $n$ berechnen:
+
+\[n=\lceil -\log_2(|q|) \rceil \]
+
+Auch hier sind wieder negative Werte für $n$ zulässig: Wenn beispielsweise eine Zahl Werte im Intervall $[-10000, 10000]$ annehmen kann, aber lediglich mit einer Genauigkeit von \num{\pm200} quantisiert werden muss. Dann ergibt sich $m=14$ und $n=-7$ und lässt sich somit in einem \SI{8}{\bit} Datentyp abspeichern. 
 
 \section{Rechenoperationen}
 Bei der Berechnungen mit Festkommazahlen sind einige Besonderheiten zu beachten, die im Folgenden erläutert werden.
 
 \subsection{Arithmerische Schiebeoperation}
-Für Arithmetische Schiebeoperationen werden die Operatoren $>>$ bzw $<<$ definiert \footnote{Der Operator $\lfloor \cdot \rfloor$ bezeichnet das Abrunden bzw. das Extrahieren des Ganzzahlanteils}:
+Für Arithmetische Schiebeoperationen werden die Operatoren $>>$ bzw $<<$ definiert\footnote{Der Operator $\lfloor \cdot \rfloor$ bezeichnet das Abrunden zur nächsten Ganzzahl bzw. das Extrahieren des Ganzzahlanteils}:
 \[x >> p := \lfloor x/2^p \rfloor\]
 \[x << p := \lfloor x/2^p \rfloor\]
 
