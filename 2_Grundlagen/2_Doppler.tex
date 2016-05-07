@@ -1,5 +1,5 @@
 \section{Dopplerverschiebung}
-GPS ist ein satellitengestütztes Navigationssystem, die Navigationssignale also von Satelliten in einer Umlaufbahn ausgesendet werden. Dabei bewegen sich die Satelliten mit einer hohen Bahngeschwindigkeit. Dies hat den bekannten Dopplereffekt zur Folge
+Da das GPS bekanntlich ein satellitengestütztes Navigationssystem ist werden die Navigationssignale von Sendern in einer Umlaufbahn ausgesendet. Dabei bewegen sich die Satelliten mit einer hohen Bahngeschwindigkeit was eine Frequenzverschiebung durch den Dopplereffekt zur Folge hat. Wie im Abschnitt \ref{Grundlagen_Acquisition} beschrieben ist die maximal mögliche Dopplerverschiebung ein wichtiger Parameter bei der Acquisition. Deshalb wird in diesem Abschnitt eine Gleichung hergeleitet, mit der die maximal mögliche Dopplerverschiebung und die maximal mögliche Änderungsrate der Dopplerverschiebung berechnet werden kann.
 
 Der Empfänger nimmt aufgrund der begrenzten Ausbreitungsgeschwindigkeit der elektromagnetischen Wellen das Signal auf einer anderen Frequenz war. Dieser relativistische Doppler-Effekt ist durch die folgende Gleichung beschrieben:
 \begin{equation}
@@ -46,7 +46,7 @@ und $\vec{b}$ die Position des GPS Satelliten:
     \end{bmatrix}
 \end{equation}
 
-wobei $\theta_{A,B}(t)=\omega_{A,B} \cdot t$ mit der Winkelgeschwindigkeit $\omega_{A,B}$. Desweiteren sei $\theta = \theta_A - \theta_B$.
+wobei $\theta_{A,B}(t)=\omega_{A,B} \cdot t$ mit der Winkelgeschwindigkeit $\omega_{A,B}$. Desweiteren sei $\theta = \theta_B-\theta_A$.
 
 Der Betrag der Winkelgeschwindigkeit $\omega$ eines Flugkörpers auf einem Kreisorbit mit Radius $r$ lässt sich über das Kräftegleichgewicht von Erdbeschleunigungskraft $F_g$ und Zentrifugalkraft $F_{Zf}$ berechnen:
 
@@ -77,16 +77,16 @@ Analog ergibt sich $\vv{b}$ wobei hier die im Gegensatz zu $A$ entgegengesetzte 
 
 Für die Dopplerverschiebung ist die Relativgeschwindigkeit in Ausbreitungsrichtung $v_{rel}$ der beiden Flugkörper gesucht. Diese kann mit 
 \begin{eqnarray}
-    v_{rel} &=&(\vv*{v}{B}-\vv*{v}{A} ) \cdot \frac{\vv{AB}}{|\vv{AB}|}\\
-     v_{rel} &=& \frac{(r_B v_A + r_A v_B) \cdot \sin{(\overbrace{\theta_A-\theta_B}^{\theta}})}{\sqrt{r_A^2-2 r_A r_B \cos(\theta_A-\theta_B)+r_B^2}}
+    v_{rel} &=&(\vv*{v}{A}-\vv*{v}{B} ) \cdot \frac{\vv{AB}}{|\vv{AB}|}\\
+     v_{rel} &=& \frac{(r_B v_A + r_A v_B) \cdot \sin{(\overbrace{\theta_A-\theta_B}^{-\theta}})}{\sqrt{r_A^2-2 r_A r_B \cos(\theta_A-\theta_B)+r_B^2}}
 \end{eqnarray}
 
 bestimmt werden. Die Maxima und Minima dieser Funktion sind
 \begin{eqnarray}
     \theta_{v_{rel,max}}&=&\frac{(4n+1)\pi}{2}-\arcsin\left(\frac{r_A}{r_B}\right)\\
-    \theta_{v_{rel,min}}&=&\frac{(4n+3)\pi}{2}+\arcsin\left(\frac{r_A}{r_B}\right)
+    \theta_{v_{rel,min}}&=&\frac{(4n-1)\pi}{2}+\arcsin\left(\frac{r_A}{r_B}\right)
 \end{eqnarray}
-mit $n\in \mathbb{N}$ und $r_A<r_B$. Damit ergibt sich nach einigen Vereinfachungen
+mit $n\in \mathbb{N}$ und $r_A<r_B$. Anschaulich sind dies genau die Punkte an denen der $\vv{v}{A}$ in Richtung des GPS Satelliten zeigt. Damit ergibt sich nach einigen Umformungen
 \begin{equation}
     v_{rel,max}=\frac{r_A}{r_B}\cdot \sqrt{\frac{G \cdot M}{r_B}} + \sqrt{\frac{G\cdot M}{r_A}}
 \end{equation}
@@ -94,30 +94,36 @@ Eingesetzt in Gl.\ref{EqDoppler} erhält man folgende Gleichung für die maximal
 \begin{equation}
 	f_{d,max} = f_S \cdot \left(\sqrt{\frac{c+\left(\frac{r_A}{r_B}\cdot \sqrt{\frac{G \cdot M}{r_B}} + \sqrt{\frac{G\cdot M}{r_A}}\right)}{c-\left(\frac{r_A}{r_B}\cdot \sqrt{\frac{G \cdot M}{r_B}} + \sqrt{\frac{G\cdot M}{r_A}}\right)}}-1\right)
 \end{equation}
-In \FR{doppler.png} ist Beispielhaft für einen \gls{LEO} Satelliten mit $r_A=\SI{120}{\km}$ die Dopplerverschiebung in Abhängigkeit des Winkels $\theta$ dargestellt. 
+\FR{maxdoppler.png} stellt die maximale Dopplerverschiebung des GPS Signals in Abhängigkeit von der Höhe des Kreisorbits über Grund dar.
 
-\FGimg{doppler.png}{Dopplerverschiebung des \SI{1575,42}{\MHz} GPS Signals für einen LEO Satelliten auf einem Kreisorbit mit $r_A=\SI{120}{\km}$ in Abhängigkeit des Winkels $\theta$ zwischen Cubesat GPS Satellit. Der Funkschatten der Erde ist nicht berücksichtigt worden.}{.9\textwidth}
+\FGimg{maxdoppler.png}{Maximale Dopplerverschiebung des GPS L1 Signals in Abhängigkeit der Höhe des Orbits (über Grund)}{.9\textwidth}
 
-Außerdem ist noch die maximale Änderungsrate der Dopplerverschiebung  $\dot f_{d,max}=max\left(\frac{\partial f_d}{\partial t}\right)$ interessant. Wie man in \FR{doppler.png} sehen kann tritt die Maximale Änderung bei $\theta=0$ auf. Ohne Beschränkung der Allgemeinheit kann die Forderung $\theta(t=0)\overset{!}{=}0$ gemacht werden. Damit ergibt sich $\dot f_{d,max}$ nach einigen Umformungen zu
+In \FR{doppler.png} ist exemplarisch die Dopplerverschiebung auf dem Weg des Cubesat auf einem Orbit mit der Höhe \SI{120}{\km} dargestellt. 
+
+\FGimg{doppler.png}{Dopplerverschiebung des \SI{1575,42}{\MHz} GPS Signals für einen LEO Satelliten auf einem Kreisorbit mit $r_A=\SI{120}{\km}+r_E$ in Abhängigkeit des Winkels $\theta$ zwischen Cubesat GPS Satellit ($r_E$ bezeichnet den Erdradius). Der Funkschatten der Erde ist nicht berücksichtigt worden.}{.9\textwidth}
+
+Es ist noch die maximale Änderungsrate der Dopplerverschiebung  $\dot f_{d,max}=max\left(\frac{\partial f_d}{\partial t}\right)$ interessant.  Wie man in \FR{doppler.png} sehen kann tritt die Maximale Änderung bei $\theta=0$ auf. Ohne Beschränkung der Allgemeinheit kann die Forderung $\theta(t=0)\overset{!}{=}0$ gemacht werden. Damit ergibt sich $\dot f_{d,max}$ nach einigen Umformungen zu
 \begin{equation}
-	\dot f_{d,max}= \frac{G \cdot  M \cdot  f_S \cdot  (r_A^3-r_B^3)}{c \cdot  r_A^2 \cdot  r_B^2\cdot  (r_A-r_B)}
+	\dot f_{d,max}= \frac{G \cdot  M \cdot  f_S \cdot  (r_B^3-r_A^3)}{c \cdot  r_A^2 \cdot  r_B^2\cdot  (r_B-r_A)}
 \end{equation}
 mit $r_B>r_A$.
+
+Tabelle \ref{TabDoppler} gibt die Zahlenwerte für ein Beispiel mit einer Orbithöhe eines Cubesat von \SI{400}{km} an.
 
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption{Zusammenfassung der Auswirkungen des Dopplereffekts auf den Empfang des GPS Signals im L1 Band für den Dragsail Cubesat. Die Ergebnisse wurden mit $r_A=\SI{400}{\km}$ und $r_B=\SI{20000}{\km}$ berechnet}
+        \caption{Zusammenfassung der Auswirkungen des Dopplereffekts auf den Empfang des GPS Signals im L1 Band für den Dragsail Cubesat. Die Ergebnisse wurden mit $r_A=r_E+\SI{400}{\km}$ und $r_B=r_E+\SI{20000}{\km}$ berechnet ($r_E$ ist der Erdradius)}
         \label{TabDoppler}
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c c p{7.5cm}}
+    \begin{tabular}{c c p{5.5cm}}
         \toprule
         Name             & Wert & Beschreibung \\
         \midrule
-        $f_{d,max}$ &  &  Maximale Dopplerverscheibung des GPS Signals\\
-        $\dot f_{d,max}$ & & Maximale Änderungsrate der Dopplerverschiebung \\
+        $f_{d,max}$ & \SI{45.846}{\kHz} &  Maximale Dopplerverschiebung des GPS Signals\\
+        $\dot f_{d,max}$ & \SI{61}{\Hz/\s}& Maximale Änderungsrate der Dopplerverschiebung \\
         \bottomrule
     \end{tabular}
 }
