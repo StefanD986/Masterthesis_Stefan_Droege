@@ -1,0 +1,53 @@
+
+\definecolor{ffqqqq}{rgb}{1.,0.,0.}
+\definecolor{wwzzqq}{rgb}{0.4,0.6,0.}
+\definecolor{qqzzqq}{rgb}{0.,0.6,0.}
+\definecolor{qqwuqq}{rgb}{0.,0.39215686274509803,0.}
+\definecolor{yqyqyq}{rgb}{0.5019607843137255,0.5019607843137255,0.5019607843137255}
+\definecolor{xdxdff}{rgb}{0.49019607843137253,0.49019607843137253,1.}
+\definecolor{wwccff}{rgb}{0.4,0.8,1.}
+\begin{tikzpicture}[line cap=round,
+line join=round,
+>=latex,
+x=1.0cm,
+y=1.0cm,
+scale=0.33]
+\clip(-9.000538895651262,-8.263398664396856) rectangle (17.54560932381556,14.786079074638986);
+\draw [color=wwccff,fill=wwccff,fill opacity=1.0] (0.,0.) circle (6.371cm);
+
+\draw [shift={(0.,0.)},color=qqwuqq,fill=qqwuqq,fill opacity=0.1] (0,0) -- (19.70477730908857:1.0704092023978558) arc (19.70477730908857:64.83252160013762:1.0704092023978558) -- cycle;
+
+\draw [dash pattern=on 9pt off 9pt] (0.,0.) circle (7.571cm);
+
+\draw [dash pattern=on 9pt off 9pt] (0.,0.) circle (14.571cm);
+
+\draw [->,line width=1.0pt] (0.,0.) -- (3.2196861227748,6.852274240776662);
+
+\draw [->,line width=1.0pt] (0.,0.) -- (13.717757714750551,4.912958811083371);
+
+\draw [->,line width=1.0pt,color=yqyqyq] (3.2196861227748,6.852274240776662) -- (13.717757714750551,4.912958811083371);
+
+\draw [->,line width=1.6pt,color=qqzzqq] (3.2196861227748,6.852274240776662) -- (8.574339911888435,4.336276793611063);
+
+\draw [->,line width=1.6pt,color=wwzzqq] (13.717757714750551,4.912958811083371) -- (12.655894103817905,7.877849888131114);
+
+\draw [->,line width=1.6pt,color=ffqqqq] (3.2196861227748,6.852274240776662) -- (10.403539611993423,5.525196425176084);
+\draw [->,line width=0.8pt] (0.,0.) -- (1.5,0.);
+\draw [->,line width=0.8pt] (0.,0.) -- (0.,1.5);
+\begin{scriptsize}
+%\draw[color=wwccff] (-2.7921655217436987,5.009675203902419) node {$Erde$};
+\draw [fill=xdxdff] (3.2196861227748,6.852274240776662) circle (6.5pt);
+\draw[color=xdxdff] (2.310118343019414,6.829370814878932) node {$A$};
+\draw [fill=xdxdff] (13.717757714750551,4.912958811083371) circle (6.5pt);
+\draw[color=xdxdff] (14.405742330115183,4.68855244902421) node {$B$};
+\draw[color=black] (1.0256273001419869,3.8679054087799005) node {$\vv{a}$};
+\draw[color=black] (9.16073723836569,2.619094695364646) node {$\vv{b}$};
+\draw[color=yqyqyq] (11.337235949907996,5.9730434685370435) node {$\vv{AB}$};
+\draw[color=qqwuqq] (1.6678728215807004,1.1918824514614976) node {$\theta$};
+\draw[color=qqzzqq] (7.426484048262097,4.15334785756053) node {$\vv*{v}{A}$};
+\draw[color=wwzzqq] (13.727816501929874,7.614337549025665) node {$\vv*{v}{B}$};
+\draw[color=ffqqqq] (8.340090183194,6.936411733171669) node {$\vv*{v}{rel}$};
+\draw[color=black] (0.9045045394226302,-0.76396918024649298) node {$\hat{e}_x$};
+\draw[color=black] (-0.5443061967082014,0.9064400026808681) node {$\hat{e}_y$};
+\end{scriptsize}
+\end{tikzpicture}

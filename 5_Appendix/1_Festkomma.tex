@@ -40,7 +40,7 @@ Für Arithmetische Schiebeoperationen werden die Operatoren $>>$ bzw $<<$ defini
 
 Auf Registerebene wird dies durch Schieben der binären Ziffern nach links ($<<$) bzw. rechts ($>>$) realisiert. Bei negativen Zahlen ist zu beachten, dass bei der $>>$ Operation an der höchstwertigen Stelle $1$en eingeschoben werden.
 
-\subsection{Umwandlung von $Q_{m_1,n_1}$ zu  $Q_{m_2,n_2}$}
+\subsection{Umwandlung von \texorpdfstring{$Q_{m_1,n_1}$ zu  $Q_{m_2,n_2}$}{Qm1.n1 zu Qm2.n2}}
 Für einige der Standardrechenoperationen ist es erforderlich, dass die Zahlen im selben Q-Format vorliegen. Die Umwandlung von einem Q-Format in ein anderes Q-Format geschieht auf Registerebene sehr einfach durch Schieben der Stellen der binären Zahl nach links bzw. rechts:
 \[z_1^{m_1,n_1} >> p = z_1^{m_1+p,n_1-p}\]
 \[z_1^{m_1,n_1} << p = z_1^{m_1-p,n_1+p}\]

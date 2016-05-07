@@ -10,14 +10,29 @@
   cleardoublepage=empty
 ]{scrbook}
 
+\usepackage{etex}
+\reserveinserts{28}
 \usepackage{lipsum}
+\usepackage[dvipsnames,usenames]{xcolor}
+\usepackage[unicode=true]{hyperref}
 \usepackage[linedheaders,parts,pdfspacing]{classicthesis}
+\usepackage[style=alphabetic, date=long, urldate=long, backend=biber]{biblatex}
+\addbibresource[]{./thesis.bib}
 \usepackage{amsmath}
 \usepackage{amsthm}
-\usepackage{acronym}
 \usepackage[utf8]{inputenc}
+\usepackage{csquotes} % has to come after inputenc
 \usepackage{ngerman}
 \usepackage[binary-units=true]{siunitx} % Einheiten in Formeln
+
+\usepackage[nolist,style=clong]{glossaries}
+\usepackage{graphicx} % To insert figures  - for PDF-LaTeX: .pdf and .png (.jpg possible, but should be avoided)
+\usepackage{esvect}
+\input{0_Einstellungen}
+\input{tikz_settings.tex}
+
+\makeglossaries % This has to come before the first glossary entry
+\loadglsentries{0_Glossar} % This has to come after \makeglossaries
 
 \input{0_hyphenation}
 
@@ -48,5 +63,6 @@
 \part{Appendix}
 \include{5_Appendix/0_Appendix_main}
 
-    
+\printbibliography
+
 \end{document}

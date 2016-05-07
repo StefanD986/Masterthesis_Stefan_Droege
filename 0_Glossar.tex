@@ -1,0 +1,92 @@
+%\newglossaryentry{⟨label⟩}{%
+%name={⟨name⟩}, 
+%description={⟨description⟩}, 
+%⟨other options⟩
+%}
+
+%\newacronym{⟨label⟩}{⟨short⟩}{⟨long⟩}
+
+
+\newacronym{DSP}{DSP}{Digitaler Signal Prozessor}
+\newacronym{FPGA}{FPGA}{Field Programmable Gate Array}
+
+
+\newglossaryentry{Softcore}{%
+name={Softcore},
+description={Vorgefertigter, wiederverwendbarer Funktionsblock der als Quellcode vorliegt und für ein \gls{FPGA} synthetisiert werden kann}
+}
+
+\newacronym{EBIU}{EBIU}{\gls{l_EBIU}}
+\newglossaryentry{l_EBIU}{
+name={External Bus Interface Unit},
+description={Ein Speicherinterface des Blackfing \gls{DSP}}
+}
+
+\newglossaryentry{l_NCO}{%
+name={Numerically Controlled Oscillator}, 
+description={Ein digital steuerbarer Funktionsblock der ein digitales Signal mit einstellbarer Frequenz erzeugt. Er wird im \gls{FPGA} zur zur Realisierung des \gls{LO} genutzt}
+}
+\newacronym{NCO}{NCO}{\gls{l_NCO}}
+
+
+\newglossaryentry{Chip}{%
+name={Chip}, 
+description={Bezeichnung für ein Bit des CA Codewortes, um es von den Bits des Informationswortes zu unterscheiden}
+}
+
+\newglossaryentry{Codephase}{%
+name={Codephase}, 
+description={Die zeitliche Differenz zwischen dem Empfangszeitpunkt, und dem nächsten Beginn der Codesequenz. Für die C/A Codes ist der Beginn der Codesequenz der Zeitpunkt an dem die erzeugenden LFSR den Zustand „1111111111“ haben}
+}
+
+\newglossaryentry{Firmware}{%
+name={Firmware}, 
+description={Im Kontext dieser Arbeit die auf dem Softcore Prozessor im FPGA laufende Software}
+}
+
+\newacronym{LFSR}{LFSR}{\gls{l_LFSR}}
+\newglossaryentry{l_LFSR}{%
+name={Linear Feedback Shift Register}, 
+description={Linear rückgekoppeltes Schieberegister. Eine Methode zur Erzeugung von pseudozufälligen Bitsequenzen}
+}
+
+\newacronym{SV}{SV}{\gls{l_SV}}
+\newglossaryentry{l_SV}{%
+name={Space Vehicle}, 
+description={Im GPS Kontext Bezeichnung für einen GPS Satellit}
+}
+
+\newacronym{PRN}{PRN}{\gls{l_PRN}}
+\newglossaryentry{l_PRN}{%
+name={Pseudo Random Number}, 
+description={Im GPS Kontext eine Nummer die eine bestimmte \gls{CA} bzw. \gls{PY} Sequenz identifiziert. Jedem aktiven GPS \gls{SV} ist eine eindeutige PRN zwischen 1 und 32 zugewiesen}
+}
+
+\newglossaryentry{l_Acq}{%
+name={Acquisiton}, 
+description={Die Acquisition bestimmt die Werte der unbekannten Variablen die zur Demodulation benötigt werden}
+}
+
+\newacronym{IF}{IF}{\gls{ZF}}
+\newglossaryentry{ZF}{%
+name={Zwischenfrequenz}, 
+description={Die Differenz aus LO Frequenz und der Mittenfrequenz des empfangenen Signals}
+}
+
+\newglossaryentry{LO}{%
+name={Lokaloszillator}, 
+description={Der Oszillator der auf der Empfängerseite eine Kopie des Trägersignals erzeugt}
+}
+
+\newacronym{SNR}{SNR}{Signal to Noise Ratio}
+
+\newglossaryentry{CA}{%
+name={C/A Code}, 
+description={Ein Code dessen Codewörter die Eigenschaft haben Orthogonal zueinander zu sein (d.h. geringe Kreuzkorrelation der Codewörter). Der C/A Code verwendet sogenannte \emph{Gold Folgen} die durch \gls{LFSR} erzeugt werden. C/A steht hierbei für \emph{Coarse/Acquisition}. Der C/A Code wird zur Spreizung des zivil nutzbaren GPS Signals benutzt. (TODO Referenz GPS Spezifikation)}
+}
+
+\newglossaryentry{PY}{%
+name={P(Y) Code}, 
+description={Ein Code mit orthogonalen Codeworten, ähnlich wie der \gls{CA}. Jedoch sind die Codeworte im Unterschied zum \gls{CA} deutlich länger. Dadurch ist er weniger anfällig für Interferenzen, und das Codewort lässt sich nicht erraten. Er wird für Anwendungen die hohe Genauigkeit oder geringe Störanfälligkeit erfordern (Landvermessung, Militär) benutzt}
+}
+

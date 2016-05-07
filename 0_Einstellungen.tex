@@ -1,0 +1,160 @@
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Abbildungen %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[small,bf,format=plain]{caption}
+%\usepackage{caption}[2008/08/24]							% Abbildungsunterschrift verändern
+	%\renewcommand{\captionfont}{\footnotesize}				% Setzt die Bildunterschrift kleiner (funktioniert, ist aber kleiner als small bei {caption})
+	%\renewcommand{\figurename}{{Abb.}}						% Umbennenung Bildunterschrift von Abbildung (Standard) zu Abb., funktioniert hier nicht?!?!?!?!?!?!?!?!?!?!
+%\usepackage{caption}
+\usepackage{subcaption}									% mehrere Bilder in einer Abbildung	
+\usepackage{wrapfig}										% textumfließende Graphik
+	
+%\newcommand{\FG}[3]{										% Makro zum einfachen Einbinden von Bildern
+%	\vspace{2mm}											%\FG{RAR.jpg}{100mm}{Freifeldraum}  Bsp.
+%	\begin{figure}[htbp]
+%		\begin{center}
+%		\includegraphics[width=#2]{#1} \\[1mm]
+%		\begin{minipage}{110mm}
+%		\caption{#3}
+%		\label{#1}
+%		\end{minipage}
+%		\end{center}
+%	\end{figure}
+%}
+
+%% ########## Settings and Shortcuts for Graphics:
+%% Search path for images
+\graphicspath{{./figures/}}
+
+
+% Shortcut to include images using the graphicx package:
+% \FGimg{filename}{caption}{width}
+% filename is at the same time used as label
+\newcommand{\FGimg}[3]
+{    \vspace{2mm}
+    \begin{figure}
+    \ffigbox[\FBwidth]
+    {\caption{#2}\label{#1}}
+    {\includegraphics[width=#3]{#1}}
+    \end{figure}
+}
+
+% Another Shortcut to include more other graphics. Insert command to include graphic as parameter #1:
+% \FG{command}{caption}{label}
+\newcommand{\FG}[3]
+{
+    \vspace{2mm}
+    \begin{figure}
+    \ffigbox[\FBwidth]
+        {\caption{#2}\label{#3}}
+        {#1}
+    \end{figure}
+}
+
+
+% Makro zum Verweisen auf Bilder
+% \FR{RAR.jpg}  Bsp.
+% \renewcommand{\figurename}{Abb.}
+\newcommand{\FR}[1]{Abb.~\ref{#1}}
+
+% Makro zum verweisen auf Tabellen
+\newcommand{\TR}[1]{Tab.~\ref{#1}}
+
+
+%\renewcommand{\arraystretch}{1.1} % Größerer Abstand zwischen Tabellenzeilen. Default = 1.0
+\definecolor{light-gray}{gray}{0.95}
+\definecolor{semigray}{gray}{0.8}
+\definecolor{IntLinkColor}{gray}{0.90}
+
+\hypersetup{
+%    bookmarks=true,         % show bookmarks bar?
+%    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+%    pdftoolbar=true,        % show Acrobat’s toolbar?
+%    pdfmenubar=true,        % show Acrobat’s menu?
+%    pdffitwindow=true,     % window fit to page when opened
+    pdfstartview={FitV},    % fits the width of the page to the window
+%    pdftitle={???TODO},    % title
+    pdfauthor={Stefan Dröge},     % author
+%    pdfsubject={Subject},   % subject of the document
+    pdfcreator={Stefan Dröge},   % creator of the document
+    pdfproducer={Stefan Dröge}, % producer of the document
+    pdfkeywords={Thesis} {Masterarbeit} {GPS} {GNSS} {Software Defined Radio}, % list of keywords
+%    pdfnewwindow=true,      % links in new window
+    colorlinks=false,       % false: boxed links; true: colored links
+    linkbordercolor=IntLinkColor,          % color of internal links
+%    citecolor=blue,        % color of links to bibliography
+%    filecolor=magenta,      % color of file links
+%    urlcolor=cyan           % color of external links
+}
+
+\usepackage{floatrow}
+\floatsetup[table]{style=plaintop}
+
+\newenvironment{myitemize}{\begin{itemize}\itemsep -5pt}{\end{itemize}}
+\newenvironment{mydescription}{\begin{description}\itemsep -5pt}{\end{description}}
+\newenvironment{myenumerate}{\begin{enumerate}\itemsep -5pt}{\end{enumerate}}
+
+\usepackage{listings}
+\usepackage[usenames,dvipsnames]{xcolor}
+\lstset{ %
+    language=VHDL,
+    basicstyle=\footnotesize\ttfamily,
+    prebreak=\mbox{$\hookleftarrow$},
+    numberblanklines=true, 
+    breaklines=true, 
+    numbers=left, 
+    stepnumber=1, 
+    frame=tlRB,
+    keywordstyle=\color{purple}\bfseries,
+    commentstyle=\color{ForestGreen},
+    identifierstyle=\color{Brown},
+    stringstyle=\color{blue},
+    rulecolor=\color{black},
+    lineskip={-1.5pt}
+    %  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+    %  basicstyle=\footnotesize,        % the size of the fonts that are used for the code
+    %  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+    %  breaklines=true,                 % sets automatic line breaking
+    %  captionpos=b,                    % sets the caption-position to bottom
+    %  commentstyle=\color{mygreen},    % comment style
+    %  deletekeywords={...},            % if you want to delete keywords from the given language
+    %  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+    %  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+    %  frame=single,                    % adds a frame around the code
+    %  keywordstyle=\color{blue},       % keyword style
+    %  language=Octave,                 % the language of the code
+    %  morekeywords={*,...},            % if you want to add more keywords to the set
+    %  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+    %  numbersep=5pt,                   % how far the line-numbers are from the code
+    %  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+    %  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+    %  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+    %  showstringspaces=false,          % underline spaces within strings only
+    %  showtabs=false,                  % show tabs within strings adding particular underscores
+    %  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+    %  stringstyle=\color{mymauve},     % string literal style
+    %  tabsize=2,                       % sets default tabsize to 2 spaces
+    %  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+%\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\newcommand{\ThesisTitle}{Entwicklung eines Software Defined GNSS Empfängers für den Dragsail-Cubesat}
+
+\interfootnotelinepenalty=10000
+
+% ####### Glossary Settings ###########
+% Better for long glossary description entries
+\newglossarystyle{clong}{%
+ \renewenvironment{theglossary}%
+     {\begin{longtable}{p{.3\linewidth}p{\glsdescwidth}}}%
+     {\end{longtable}}%
+  \renewcommand*{\glossaryheader}{}%
+  \renewcommand*{\glsgroupheading}[1]{}%
+  \renewcommand*{\glossaryentryfield}[5]{%
+    \glstarget{##1}{##2} & ##3\glspostdescription\space ##5\\}%
+  \renewcommand*{\glossarysubentryfield}[6]{%
+     & \glstarget{##2}{\strut}##4\glspostdescription\space ##6\\}%
+  %\renewcommand*{\glsgroupskip}{ & \\}%
+}
+\renewcommand*{\glossaryname}{Glossar} % German Glossary Chapter title
+
+\endinput
