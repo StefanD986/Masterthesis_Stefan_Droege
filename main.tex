@@ -13,7 +13,11 @@
 \usepackage{etex}
 \reserveinserts{28}
 \usepackage{lipsum}
-\usepackage[dvipsnames,usenames]{xcolor}
+% Better tables
+\usepackage{booktabs}
+\usepackage{tabularx}
+% Colors with names. And colored tables
+\usepackage[dvipsnames,usenames,table]{xcolor}
 \usepackage[unicode=true]{hyperref}
 \usepackage[linedheaders,parts,pdfspacing]{classicthesis}
 \usepackage[style=alphabetic, date=long, urldate=long, backend=biber]{biblatex}
@@ -25,7 +29,7 @@
 \usepackage{ngerman}
 \usepackage[binary-units=true]{siunitx} % Einheiten in Formeln
 
-\usepackage[nolist,style=clong]{glossaries}
+\usepackage[nolist,style=long]{glossaries}
 \usepackage{graphicx} % To insert figures  - for PDF-LaTeX: .pdf and .png (.jpg possible, but should be avoided)
 \usepackage{esvect}
 \input{0_Einstellungen}

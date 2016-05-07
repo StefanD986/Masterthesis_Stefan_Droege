@@ -1,4 +1,4 @@
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Abbildungen %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Abbildungen %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[small,bf,format=plain]{caption}
 %\usepackage{caption}[2008/08/24]							% Abbildungsunterschrift verändern
 	%\renewcommand{\captionfont}{\footnotesize}				% Setzt die Bildunterschrift kleiner (funktioniert, ist aber kleiner als small bei {caption})
@@ -6,19 +6,6 @@
 %\usepackage{caption}
 \usepackage{subcaption}									% mehrere Bilder in einer Abbildung	
 \usepackage{wrapfig}										% textumfließende Graphik
-	
-%\newcommand{\FG}[3]{										% Makro zum einfachen Einbinden von Bildern
-%	\vspace{2mm}											%\FG{RAR.jpg}{100mm}{Freifeldraum}  Bsp.
-%	\begin{figure}[htbp]
-%		\begin{center}
-%		\includegraphics[width=#2]{#1} \\[1mm]
-%		\begin{minipage}{110mm}
-%		\caption{#3}
-%		\label{#1}
-%		\end{minipage}
-%		\end{center}
-%	\end{figure}
-%}
 
 %% ########## Settings and Shortcuts for Graphics:
 %% Search path for images
@@ -135,7 +122,7 @@
     %  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
 }
 
-%\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 \newcommand{\ThesisTitle}{Entwicklung eines Software Defined GNSS Empfängers für den Dragsail-Cubesat}
 

@@ -11,6 +11,7 @@ Hier bezeichnet $v_{rel}$ die relative Geschwindkeit von Empfänger und Sender z
 Mit der Dopplerverschiebung $f_d$ sei die Differenz zwischen wahrgenommener Empfangsfrequenz und Sendefrequenz gemeint:
 
 \begin{equation}
+\label{EqDoppler}
     f_d=f_r-f_s=f_s \left( \sqrt{\frac{c+v_{rel}}{c-v_{rel}}}-1 \right)
 \end{equation}
 
@@ -76,17 +77,48 @@ Analog ergibt sich $\vv{b}$ wobei hier die im Gegensatz zu $A$ entgegengesetzte 
 
 Für die Dopplerverschiebung ist die Relativgeschwindigkeit in Ausbreitungsrichtung $v_{rel}$ der beiden Flugkörper gesucht. Diese kann mit 
 \begin{eqnarray}
-    v_{rel} &=&(\vv*{v}{A} - \vv*{v}{B}) \cdot \frac{\vv{AB}}{|\vv{AB}|}\\
+    v_{rel} &=&(\vv*{v}{B}-\vv*{v}{A} ) \cdot \frac{\vv{AB}}{|\vv{AB}|}\\
      v_{rel} &=& \frac{(r_B v_A + r_A v_B) \cdot \sin{(\overbrace{\theta_A-\theta_B}^{\theta}})}{\sqrt{r_A^2-2 r_A r_B \cos(\theta_A-\theta_B)+r_B^2}}
 \end{eqnarray}
 
 bestimmt werden. Die Maxima und Minima dieser Funktion sind
-\begin{equation}
-    \theta_{v_{rel,max}}=\frac{(4n+1)\pi}{2}\pm\arcsin\left(\frac{r_A}{r_B}\right)
-\end{equation}
+\begin{eqnarray}
+    \theta_{v_{rel,max}}&=&\frac{(4n+1)\pi}{2}-\arcsin\left(\frac{r_A}{r_B}\right)\\
+    \theta_{v_{rel,min}}&=&\frac{(4n+3)\pi}{2}+\arcsin\left(\frac{r_A}{r_B}\right)
+\end{eqnarray}
 mit $n\in \mathbb{N}$ und $r_A<r_B$. Damit ergibt sich nach einigen Vereinfachungen
 \begin{equation}
     v_{rel,max}=\frac{r_A}{r_B}\cdot \sqrt{\frac{G \cdot M}{r_B}} + \sqrt{\frac{G\cdot M}{r_A}}
 \end{equation}
+Eingesetzt in Gl.\ref{EqDoppler} erhält man folgende Gleichung für die maximale Dopplerverschiebung:
+\begin{equation}
+	f_{d,max} = f_S \cdot \left(\sqrt{\frac{c+\left(\frac{r_A}{r_B}\cdot \sqrt{\frac{G \cdot M}{r_B}} + \sqrt{\frac{G\cdot M}{r_A}}\right)}{c-\left(\frac{r_A}{r_B}\cdot \sqrt{\frac{G \cdot M}{r_B}} + \sqrt{\frac{G\cdot M}{r_A}}\right)}}-1\right)
+\end{equation}
+In \FR{doppler.png} ist Beispielhaft für einen \gls{LEO} Satelliten mit $r_A=\SI{120}{\km}$ die Dopplerverschiebung in Abhängigkeit des Winkels $\theta$ dargestellt. 
 
-Außerdem ist noch die maximale Änderungsrate der Dopplerverschiebung interessant:
+\FGimg{doppler.png}{Dopplerverschiebung des \SI{1575,42}{\MHz} GPS Signals für einen LEO Satelliten auf einem Kreisorbit mit $r_A=\SI{120}{\km}$ in Abhängigkeit des Winkels $\theta$ zwischen Cubesat GPS Satellit. Der Funkschatten der Erde ist nicht berücksichtigt worden.}{.9\textwidth}
+
+Außerdem ist noch die maximale Änderungsrate der Dopplerverschiebung  $\dot f_{d,max}=max\left(\frac{\partial f_d}{\partial t}\right)$ interessant. Wie man in \FR{doppler.png} sehen kann tritt die Maximale Änderung bei $\theta=0$ auf. Ohne Beschränkung der Allgemeinheit kann die Forderung $\theta(t=0)\overset{!}{=}0$ gemacht werden. Damit ergibt sich $\dot f_{d,max}$ nach einigen Umformungen zu
+\begin{equation}
+	\dot f_{d,max}= \frac{G \cdot  M \cdot  f_S \cdot  (r_A^3-r_B^3)}{c \cdot  r_A^2 \cdot  r_B^2\cdot  (r_A-r_B)}
+\end{equation}
+mit $r_B>r_A$.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption{Zusammenfassung der Auswirkungen des Dopplereffekts auf den Empfang des GPS Signals im L1 Band für den Dragsail Cubesat. Die Ergebnisse wurden mit $r_A=\SI{400}{\km}$ und $r_B=\SI{20000}{\km}$ berechnet}
+        \label{TabDoppler}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c p{7.5cm}}
+        \toprule
+        Name             & Wert & Beschreibung \\
+        \midrule
+        $f_{d,max}$ &  &  Maximale Dopplerverscheibung des GPS Signals\\
+        $\dot f_{d,max}$ & & Maximale Änderungsrate der Dopplerverschiebung \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
