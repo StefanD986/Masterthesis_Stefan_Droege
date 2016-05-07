@@ -7,71 +7,7 @@ Etwas über die Hardware des Comboards
 \section{Planung}
 Um die Arbeitspakete und Anforderungen zu identifizieren ist es zunächst wichtig zu verstehen wie die Demodulation des GPS Signals prinzipiell abläuft. Dies wird deshalb im ersten Abschnitt beschrieben. Im zweiten Abschnitt werden die Arbeitspakete dann den einzelnen Hardware Komponenten zugeordnet. Da die COM Hardware mit dem DSP und dem FPGA zwei komplexe Datenverarbeitende Komponenten besitzt, die Daten miteinander austauschen wird im dritten Abschnitt der Entwurf der Software Schnittstelle zwischen DSP und FPGA beschrieben. Der letzte Abschnitt beschreibt die Simulation, von der während des Entwurfs und Implementierung viel Gebrauch gemacht wurde, um Konzepte und Ideen zu prüfen.
 
-\subsection{Prozessablauf der Demodulation}
-In diesem Abschnitt wird der prinzipielle Ablauf der Demodulation des GPS Signals beschrieben. Es wird hier davon ausgegangen, dass das von der Antenne kommende Signal bereits auf eine Zwischenfrequenz $f_{ZF}$ heruntergemischt wurde und digitalisert wurde. Damit gestaltet sich die Demodulation eigentlich einfach: Es werden einfach die Schritte der Modulation erneut durchgeführt: Multiplikation mit dem Träger und Multiplikation mit dem CA Code (TODO Grafik). Am Ausgang des Demodulators liegt dann das ursprüngliche Informationssignal an. Im Detail ist der Prozess jedoch komplexer und kann in drei Schritte aufgeteilt werden, die im Folgenden beschrieben werden.
 
-\subsubsection{Acquisition}
-Die zuvor beschriebene Demodulation hängt von mehreren, zunächst unbekannten, Variablen ab. Diese Unbekannten zu bestimmen ist Aufgabe der Acquisition.
-Wie in Abschnitt (TODO Link) beschrieben wird zum Multiplexen der Signale der über 30 Satelliten das Signal CDMA kodiert, wobei jeder aktive Satellit einen anderen Code verwendet. Deshalb und weil der Signalpegel beim Empfang unter dem thermischen Rauschen liegt, ist aus den Rohdaten erst einmal nicht ersichtlich welche Satelliten überhaupt in Sicht sind. Die erste zu bestimmende Unbekannte ist also welche GPS Satelliten überhaupt in Sicht sind. Jeder Satellit ist dabei durch eine Nummer, die PRN identifiziert.
-
-Die zweite Unbekannte ist die Codephase (TODO Link Glossar): Wie beschrieben (TODO Link) haben die verwendeten Codes eine geringe Autokorrelation für Verschiebungen („Codephase“ TODO Format) ungleich Null. Wenn also bei der Demodulation die Code Replika eine zu große Verschiebung aufweist wird am Ausgang des Demodulators lediglich Rauschen zu sehen sein.
-Die dritte Unbekannte ist die exakte Trägerfrequenz (bzw., da das Signal im HF Frontend herabgemischt wird, die exakte Zwischenfrequenz). Die Trägerfrequenz ist zwar spezifiziert, und die ZF aus dem Systemdesign bekannt. Aber mehrere Faktoren sorgen in der Realität für Abweichungen: Zum einen sorgt der in Kapitel (TODO Link) beschriebene Dopplereffekt für eine zeitabhängige Frequenzverschiebung. Weitere Faktoren sind Jitter und Drift des Quarzoszillators auf der Empfängerseite, die ebenfalls Zeit- und Temperaturabhängig sind. Da der Acquisition Algorithmus nicht zwischen den Ursachen der Trägerfrequenzabweichung unterscheidet und die Abweichung größtenteils durch die Doppler Verschiebung bestimmt wird, wird im Weiteren nur von der Bestimmung des Dopplershifts gesprochen. 
-
-Es ist zu betonen, dass alle drei genannten Unbekannten gleichzeitig gefunden werden müssen. Denn wenn zum Beispiel die korrekte Trägerfrequenz bekannt ist, aber die Codephase oder PRN falsch ist, wird der Demodulator lediglich wiederum ein Rauschsignal liefern. Es wird also ein Korrelationsmaximum im dreidimensionalen Raum aus PRN, Frequenz, und Codephase gesucht.
-
-\paragraph{Suchalgorithmus}
-Es gibt verschiedene Möglichkeiten zur Suche. Die einfachste, aber auch langsamste Methode ist die serielle Suche. Dabei wird das Eingangssignal (TODO variable) punktweise mit einer Kopie des Codes und des Trägers multiplizier, wobei nacheinander verschiedene Kombinationen von PRN, Dopplershift und Codephase ausprobiert werden. Aufgrund der großen Anzahl möglicher Kombinationen und Rechenoperationen ist dies jedoch äußerst zeitaufwändig. (TODO Beispielrechnung Tabelle?)
-Effizienter sind Methoden die sich die Fourier Transformation zunutze machen, um die aufwändige Berechnung der Kreuzkorrelation zu vereinfachen. Diese Suche muss zwar immer noch für jede PRN ausgeführt werden. Aber der Rechenaufwand bei den weiteren Schritten ist deutlich geringer. 
-In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Suche und paralleler Frequenzsuche verwendet. Im ersten Schritt wird der Dopplershift lediglich grob bestimmt (TODO +-500 Hz), dafür die Codephase aber mit hoher Genauigkeit bestimmt. Im zweiten Schritt ist dann die Codephase bekannt, und es kann eine parallele Suche im Frequenzbereich durchgeführt werden um den Dopplershift genauer zu bestimmen.
-
-Bei der parallelen Codephasen Suche werden zuerst für den zu durchsuchenden Frequenzbereich Kopien des Trägers (jeweils I und Q Anteil) in einem groben Raster (TODO z.B. 500 Hz) generiert. Außerdem wird für jede PRN die Fouriertransformierte des Codes berechnet (Da sich diese nicht ändern können sie auch in einer Look Up Table abgelegt werden). Nacheinander wird dann für jede Trägerfrequenz das Eingangssignal mit dem Träger multipliziert. Im Unterschied zur seriellen Suche wird dann das Signal (TODO Variable) Fourier Transformiert. Die TODO FT wird dann mit jeder Code TODO FT punktweise multipliziert und anschließend zurücktransformiert. Im Ergebnisvektor wird dann eine Suche nach dem Maximum durchgeführt und TODO max() und argmax(f(codephase)) gespeichert. Dieser Vorgang wird für alle Dopplershifts wiederholt, und anschließend das globale TODO max() und argmax(f(codephase,dopplershift) gesucht. Das gefundene argmax() ist dann die Codephase und Dopplershift für diese PRN.
-
-Dieser Vorgang wird für alle PRN wiederholt. Das Finden des Maximums ist allerdings noch nicht hinreichend um sagen zu können, dass der Satellit in Sicht ist, denn es existiert immer ein Maximum. Deshalb wird zusätzlich noch das Peak to Average Ratio untersucht. Wenn dies über einem im Design festgelegten Wert liegt, wird die PRN zu der Liste der PRN in Sicht hinzugefügt.
-
-Für jede der PRN in Sicht wird dann der Dopplershift mit einer parallelen Frequenzbereich Suche genauer bestimmt. Dazu wird das Eingangssignal mit dem Code (dessen Codephase nun bekannt ist) punktweise multipliziert, und somit entspreizt. Das Ergebnis wird anschließend Fourier transformiert und das Maximum im Frequenzbereich gesucht. Das TODO argmax() ist der gesuchte Dopplershift.
-
-\paragraph{Entwurf der Parameter für die Acquisition}
-Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums.
-Die derzeit aktiven Satelliten haben die Codes mit den PRN 1-32 zugewiesen. Der Bereich der möglichen Codephasen ergibt sich aus der Dauer einer Codeperiode (Codelänge/Chippingrate TODO), und der Sampling Frequenz des Frontend ICs (TODO Formel): N=fs/(fchip/Lcode)=16.369MHz/(1.023Mchip/s/1023) = 16369 MHz *TODO Fußnote: Die Samplingfrequenz im Flugmodell beträgt 16.368 MHz).
-
-Da der Doppler Shift die Hauptursache ist entspricht die Abweichung dem maximal erwarteten Doppler Shift. Wie in Kapitel (todo link) besprochen, ist der erwartete Doppler Shift (TODO +-)45 kHz.
-
-Die Schwelle ab der ein Signal nach dem ersten Schritt der Acquisition als „vorhanden“ bewertet wird wird auf ein Peak-to-Average Ratio von 2,5 festgelegt. Dieser Wert wurde durch Simulation für Signale gefunden, die ein gerade noch ausreichendes SNR haben.
-
-\subsubsection{Tracking}
-Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird lediglich durchgeführt, wenn neue GPS Satelliten gesucht werden, beispielsweise nach dem Systemstart, oder wenn das Signal verloren wird. Sobald die Parameter (PRN, Codephase, Dopplershift) durch die Acquisition bekannt sind, werden diese an den eigentlichen Demodulator, den Trackingloop, weitergegeben. Der Begriff Trackingloop kommt daher, dass die Codephase und Dopplershift die bei der Acquisition bestimmt werden jeweils nur Momentaufnahmen sind. Dopplershift und Codephase ändern sich ständig und auch Ungenauigkeiten der Takterzeugung beim Empfänger müssen ausgeglichen werden. Der Trackingloop hat die Aufgabe die in der Acquisitonphase bestimmten Werte mittels eines Regelkreises („control loop“) nachzuführen („to track“). 
-Die Funktion des Trackingloops wird im Folgenden nur grob diskutiert. Es werden stattdessen die wichtigen Entwurfsparameter und Entscheidungen beschrieben. 
-Der Trackingloop hat wie erwähnt die Aufgabe die Frequenz des LO und die Codephase anzupassen. Zuerst soll die Regelschleife für den Träger, der Carrier Trackingloop, beschrieben werden.
-
-Bild (TODO Ref) zeigt ein Blockschaltbild des Trackingloops. Im folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Eine detaillierte Beschreibung des Trackingloops ist in (TODO Referenz GPS Buch) zu finden.
-
-\paragraph{Carrier NCO} Der Carrier \gls{NCO} 
-
-\paragraph{Carrier Mischer} Der Carrier Mischer mischt das Eingangssignal (TODO passend Zeichnung) $x$ mit dem LO Signal. Bei korrekter Einstellung des LO wird das Eingangssignal von der ersten ZF $f_{ZF}$ herunter auf \SI{0}{\Hz} gemischt.
-
-\paragraph{Tiefpass Filter} Der Tiefpass Filter entfernt di
-
-\paragraph{Carrier Diskriminator}
-
-\paragraph{Carrier Loop Filter}
-
-
-\paragraph{Code Mischer}
-\paragraph{Integrate \& Dump}
-\paragraph{Code Diskriminator}
-\paragraph{Code Loop Filter}
-\paragraph{Code NCO}
-
-
-\paragraph{Carrier Tracking}
-Zum Synchronisieren der LO Frequenz mit der Trägerfrequenz des Empfangssignals wird im Allgemeinen ein Phase Locked Loop (PLL) verwendet, der versucht die Phasendifferenz zwischen Eingangssignal und LO Signal auf null zu halten. Im Falle des GPS Signals ist jedoch zu beachten, dass der Träger BPSK moduliert ist, also Phasendifferenzen von \SI{0}{\degree} oder \SI{180}{\degree} gewollt ist. Eine Variante von PLL die diesen \SI{180}{\degree} Phasenfehler ignoriert ist der Costas Loop (TODO Grafik).
-Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} verschoben sind: $c_I=\cos(\omega_{LO} t)$ $c_Q=\sin(\omega_{LO} t)$ (TODO Bezeichnung an Zeichnung anpassen). Das Signal wird im jeweiligen Arm mit dem $I$ bzw $Q$ Träger gemischt, und Tiefpassgefiltert. (TODO Formel Multiplikation der Signale). Beim Costas Loop wertet der Loopdiskriminator die Energie im I und Q Arm aus, wobei das Ziel des Regelkreises ist gesamte Energie im I Arm zu halten. Als Loopdiskriminator bietet sich $\arctan\left(\frac{Q}{I}\right)$ an. Die Charakteristik des TODO arctan Diskriminators ist in Grafik TODO dargestellt. Wie man sieht hat die $\arctan()$ Funktion Nullstellen für \SI{0}{\degree} und \SI{180}{\degree}, woraus sich die Immunität gegen die BPSK Modulation ergibt.
-
-\paragraph{Code Tracking}
-Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. In dieser Arbeit wurde dafür ein \emph{Early-Late-Gate} verwendet. Bei diesem wird das Signal parallel mit drei Kopien des Codes multipliziert, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips. Die drei Kopien werden mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Bei korrekter Codephase wird die Energie im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
-
-\paragraph{Loop Filter}
-Der Ausgang der Carrier- bzw. Code Loop Diskriminatoren ist der Wert des Phasenfehlers. Zur Ansteuerung des (TODO Glossar) NCO wird .
 
 
 Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad und Bandbreite des Loopfilters. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO.

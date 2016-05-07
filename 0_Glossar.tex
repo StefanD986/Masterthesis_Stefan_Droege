@@ -87,12 +87,42 @@ description={Der Oszillator der auf der Empfängerseite eine Kopie des Trägersi
 \newacronym{SNR}{SNR}{Signal to Noise Ratio}
 
 \newglossaryentry{CA}{%
-name={C/A Code}, 
+name={C/A}, 
 description={Ein Code dessen Codewörter die Eigenschaft haben Orthogonal zueinander zu sein (d.h. geringe Kreuzkorrelation der Codewörter). Der C/A Code verwendet sogenannte \emph{Gold Folgen} die durch \gls{LFSR} erzeugt werden. C/A steht hierbei für \emph{Coarse/Acquisition}. Der C/A Code wird zur Spreizung des zivil nutzbaren GPS Signals benutzt. (TODO Referenz GPS Spezifikation)}
 }
 
 \newglossaryentry{PY}{%
-name={P(Y) Code}, 
+name={P(Y)}, 
 description={Ein Code mit orthogonalen Codeworten, ähnlich wie der \gls{CA}. Jedoch sind die Codeworte im Unterschied zum \gls{CA} deutlich länger. Dadurch ist er weniger anfällig für Interferenzen, und das Codewort lässt sich nicht erraten. Er wird für Anwendungen die hohe Genauigkeit oder geringe Störanfälligkeit erfordern (Landvermessung, Militär) benutzt}
 }
 
+\newacronym{MAC}{MAC}{\gls{l_MAC}}
+\newglossaryentry{l_MAC}{%
+name={Medium Access Control}, 
+description={Verfahren die die gemeinsame Nutzung des Übertragungsmediums regeln}
+}
+
+
+\newacronym{GPS}{GPS}{\gls{l_GPS}}
+\newglossaryentry{l_GPS}{%
+name={Global Positioning System}, 
+description={Satellitengestütztes Navigationssystem zur Positionsbestimmung, entwickelt und betrieben durch das US Air Force Space Command}
+}
+
+\newacronym{GNSS}{GNSS}{\gls{l_GNSS}}
+\newglossaryentry{l_GNSS}{%
+name={Global Navigation Satellite System}, 
+description={Allgemeine Bezeichnung für Satellitengestützte Navigationssysteme. Beispiele sind \gls{GPS}, Galileo und GLONASS}
+}
+
+\newacronym{SDR}{SDR}{\gls{l_SDR}}
+\newglossaryentry{l_SDR}{%
+name={Software Defined Radio}, 
+description={Funkübertragungssysteme bei denen wichtige Teile des Systems wie (De)Modulation, Mischer, Oszillatoren und Filter in Software realisiert werden}
+}
+
+\newacronym{BPSK}{BPSK}{\gls{l_BPSK}}
+\newglossaryentry{l_BPSK}{%
+name={Binary Phase Shift Keying}, 
+description={Digitales Modulationsverfahren bei dem '1' und '0' durch die jeweils \SI{180}{\degree} unterschiedliche Phasenlage des Trägers symbolisiert werden}
+}
