@@ -1,0 +1,74 @@
+\definecolor{qqwuqq}{rgb}{0.,0.39215686274509803,0.}
+\definecolor{qqzzff}{rgb}{0.,0.6,1.}
+\definecolor{ffqqqq}{rgb}{1.,0.,0.}
+\definecolor{qqccqq}{rgb}{0.,0.8,0.}
+\begin{tikzpicture}[line cap=round,
+line join=round,
+>=latex,
+x=1.0cm,
+y=1.0cm,
+scale=2.5]
+
+\draw[->,color=black] (-1.4179421301831812,0.) -- (1.5320124928341259,0.);
+
+\foreach \x in {-1.4,-1.2,-1.,-0.8,-0.6,-0.4,-0.2,0.2,0.4,0.6,0.8,1.,1.2,1.4}
+	\draw[shift={(\x,0)},color=black] (0pt,1pt) -- (0pt,-1pt);
+
+\draw[->,color=black] (0.,-1.2176630477463106) -- (0.,1.293102020064641);
+
+\foreach \y in {-1.2,-1.,-0.8,-0.6,-0.4,-0.2,0.2,0.4,0.6,0.8,1.,1.2}
+	\draw[shift={(0,\y)},color=black] (1pt,0pt) -- (-1pt,0pt);
+
+\clip(-1.4179421301831812,-1.2176630477463106) rectangle (1.5320124928341259,1.493102020064641);
+
+\draw [shift={(0.,0.)},color=qqwuqq,fill=qqwuqq,fill opacity=0.1] (0,0) -- (0.014235420690942465:0.11659899695720582) arc (0.014235420690942465:109.48545605518163:0.11659899695720582) -- cycle;
+\draw(0.,0.) circle (1.cm);
+
+\draw(0.,0.) circle (0.7071067811865475cm);
+
+\draw [->] (0.,0.) -- (-0.40853516893812,1.1545990714272647);
+
+\begin{scriptsize}
+
+\draw[color=black] (-0.4890367877574414,0.8033862328445482) node {$d$};
+
+\draw[color=black] (-0.34523135817688755,0.5546417060025964) node {$c$};
+
+\draw [fill=qqccqq] (0.40810483232589984,0.5774516826819791) circle (1.5pt);
+
+\draw[color=qqccqq] (0.4437551879002052,0.6673540697278559) node {$P_0$};
+
+\draw [fill=ffqqqq] (-0.8166400012640198,0.5771473887452856) circle (1.5pt);
+
+\draw[color=ffqqqq] (-0.9126798100352892,0.6945605023511943) node {$C_1$};
+
+\draw [fill=ffqqqq] (0.8166400012640198,-0.5771473887452856) circle (1.5pt);
+
+\draw[color=ffqqqq] (0.8751714766418667,-0.572481931249998) node {$C_0$};
+
+\draw [fill=qqccqq] (-0.40810483232589984,-0.5774516826819791) circle (1.5pt);
+
+\draw[color=qqccqq] (-0.37243779080023554,-0.486976000148077) node {$P_1$};
+
+\draw[color=black] (-0.1625595962772651,0.6012813047854624) node {$b$};
+
+\draw [fill=qqzzff] (-0.40853516893812,1.1545990714272647) circle (1.5pt);
+
+\draw[color=qqzzff] (-0.353571458481167,1.2581223209774914) node {$P_0+C_1$};
+
+\draw [fill=qqzzff] (1.2247448335899196,3.0429393669351157E-4) circle (1.5pt);
+
+\draw[color=qqzzff] (1.267154599223994,0.10824571817393667) node {$P_0+C_0$};
+
+\draw [fill=qqzzff] (0.40853516893812,-1.1545990714272647) circle (1.5pt);
+
+\draw[color=qqzzff] (0.47096162052355317,-1.0460843517019962) node {$P_1+C_0$};
+
+\draw [fill=qqzzff] (-1.2247448335899196,-3.0429393669351157E-4) circle (1.5pt);
+
+\draw[color=qqzzff] (-1.1814243368773283,0.08824571817393667) node {$P_1+C_1$};
+
+\draw[color=qqwuqq] (0.2810834260005827,0.15820511634823564) node {$\alpha = \SI{109.5}{\degree}$};
+
+\end{scriptsize}
+\end{tikzpicture}
