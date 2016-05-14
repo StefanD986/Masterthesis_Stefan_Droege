@@ -14,16 +14,55 @@ Es ist zu betonen, dass alle drei genannten Unbekannten gleichzeitig gefunden we
 Es gibt verschiedene Möglichkeiten zur Suche. Die einfachste, aber auch langsamste Methode ist die serielle Suche. Dabei wird das Eingangssignal $\gpsin$ punktweise mit einer Kopie des Codes $\gpsca$ und des Trägers $\gpslo$ multipliziert, wobei nacheinander verschiedene Kombinationen von \gls{PRN}, Dopplershift und Codephase ausprobiert werden. Aufgrund der großen Anzahl möglicher Kombinationen und Rechenoperationen ist dies jedoch äußerst zeitaufwändig.
 
 Effizienter sind Methoden die sich die Fourier Transformation zunutze machen, um die aufwändige Berechnung der Kreuzkorrelation zu vereinfachen. Diese Suche muss zwar immer noch für jede PRN ausgeführt werden. Aber der Rechenaufwand bei den weiteren Schritten ist deutlich geringer. 
-In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Suche und paralleler Frequenzsuche verwendet. Im ersten Schritt wird der Dopplershift lediglich grob bestimmt (\SI{\pm500}{\Hz}), dafür die Codephase aber mit hoher Genauigkeit bestimmt. Im zweiten Schritt ist dann die Codephase bekannt, und es kann eine parallele Suche im Frequenzbereich durchgeführt werden um den Dopplershift genauer zu bestimmen.
+In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Suche und paralleler Frequenzsuche verwendet. Im ersten Schritt wird der Dopplershift lediglich grob bestimmt (\SI{\pm500}{\Hz}), dafür die Codephase aber mit hoher Genauigkeit bestimmt. Im zweiten Schritt ist dann die Codephase bekannt, und es kann eine parallele Suche im Frequenzbereich durchgeführt werden um den Dopplershift genauer zu bestimmen. 
+
+\FGimg{acquisition_activity.png}{Die Acquisition bestimmt in einem ersten Schritt die genaue Codephase. Wenn diese Suche erfolgreich ist (die \emph{Peak Metric} über einem bestimmten Schwellwert liegt), wird in einem zweiten Schritt die Dopplerverschiebung genauer bestimmt }{0.6\textwidth}
+
+\FGimg{parallelCodephase.png}{Bei der parallelen Codephasensuche müssen nur alle möglichen Dopplerverschiebungen seriell durchsucht werden. Die Bestimmung der Codephase kann sehr einfach durch eine Maximumsuche nach der Multiplikation im Frequenzbereich und anschließende Rücktransformation bestimmt werden.}{0.9\textwidth}
+
+\FGimg{parallelfreqspace.png}{Bei der parallelen Frequenzbereichsuche müssen nur die möglichen Codephasen seriell durchsucht werden. Die Bestimmung der Dopplerverschiebung erfolgt durch eine Maximumsuche im Frequenzbereich. In dieser Arbeit wird die parallele Frequenzsuche nach einer ersten parallelen Codephasensuche eingesetzt um die Dopplerverschiebung genauer zu bestimmen.}{0.6\textwidth}
 
 \paragraph{parallele Codephasensuche}
-Bei der parallelen Codephasen Suche werden zuerst Kopien des Trägers $\gpslo$ (jeweils I und Q Anteil) für den zu durchsuchenden Frequenzbereich in einem groben Raster (z.B. \SI{500}{\Hz}) generiert. Außerdem wird für jede PRN die Fouriertransformierte des Codes $\gpsCA$ berechnet. Nacheinander wird dann für jede Trägerfrequenz das Eingangssignal mit dem Träger multipliziert:
+Bei der parallelen Codephasen Suche werden Kopien des Trägers $\gpslo$ (jeweils I und Q Anteil) für den zu durchsuchenden Frequenzbereich $\textbf{D}$ in einem groben Raster (z.B. \SI{500}{\Hz}) generiert. Außerdem wird für jede PRN die Fouriertransformierte des Codes $\gpsCA$ berechnet. Nacheinander wird dann für jede Trägerfrequenz das Eingangssignal mit dem Träger multipliziert:
+\begin{equation}
+	\gpsmx=\gpsin(t) \cdot (\gpslo_I(t) + j \gpslo_Q(t))
+\end{equation}
 
-Im Unterschied zur seriellen Suche wird dann das Signal  fouriertransformiert. Die TODO FT wird dann mit jeder Code TODO FT punktweise multipliziert und anschließend zurücktransformiert. Im Ergebnisvektor wird dann eine Suche nach dem Maximum durchgeführt und TODO max() und argmax(f(codephase)) gespeichert. Dieser Vorgang wird für alle Dopplershifts wiederholt, und anschließend das globale TODO max() und argmax(f(codephase,dopplershift) gesucht. Das gefundene argmax() ist dann die Codephase und Dopplershift für diese PRN.
+Im Unterschied zur seriellen Suche wird dann das Signal  fourier-transformiert:
+\begin{equation}
+	\gpsMX=\fft{\gpsmx}
+\end{equation}
 
-Dieser Vorgang wird für alle PRN wiederholt. Das Finden des Maximums ist allerdings noch nicht hinreichend um sagen zu können, dass der Satellit in Sicht ist, denn es existiert immer ein Maximum. Deshalb wird zusätzlich noch das Peak to Average Ratio untersucht. Wenn dies über einem im Design festgelegten Wert liegt, wird die PRN zu der Liste der PRN in Sicht hinzugefügt.
+$\gpsMX$ wird dann mit $\gpsCA$ punktweise multipliziert und anschließend zurücktransformiert: 
+\begin{equation}
+	\gpsxc=\ifft{\gpsMX \cdot \gpsCA}
+\end{equation}
 
-Für jede der PRN in Sicht wird dann der Dopplershift mit einer parallelen Frequenzbereich Suche genauer bestimmt. Dazu wird das Eingangssignal mit dem Code (dessen Codephase nun bekannt ist) punktweise multipliziert, und somit entspreizt. Das Ergebnis wird anschließend Fourier transformiert und das Maximum im Frequenzbereich gesucht. Das TODO argmax() ist der gesuchte Dopplershift.
+Im Ergebnisvektor $\gpsxc$ wird dann eine Suche nach dem Maximum durchgeführt und 
+\begin{equation}
+	\gpsxc_{k,\max}=\max(\gpsxc)
+\end{equation}
+und
+\begin{equation}
+     l_{\max}=\argmax_{x\in \textbf{L}}(\gpsxc)
+\end{equation} 
+gespeichert\footnote{$\textbf{L}=[0, N-1]$ und $N$ gleich der Anzahl der Samples pro Codewort}. Dieser Vorgang wird für alle Dopplershifts $d\in \textbf{D}$ wiederholt, und anschließend das globale 
+\begin{equation}
+	\hat{\gpsxc}_{l,\max}=\max(\gpsxc)
+\end{equation}
+\begin{equation}
+	\left[l_{\max}, d_{\max}\right]=\argmax_{x,\in \bf{L} \times \bf{D}}(\gpsxc)
+\end{equation}
+und gesucht. Der Vektor $\left[l_{\max}, d_{\max}\right]$ gibt dann die genaue Codephase und den groben Dopplershift für diese PRN an der Stelle des globalen Korrelationsmaximums $\hat{\gpsxc}_{l,\max}$ an. 
+
+Das Finden des Maximums ist allerdings noch nicht hinreichend um sagen zu können, dass der Satellit in Sicht ist, denn es existiert immer ein Maximum. Um Entscheiden zu können ob ein Satellit in Sicht ist, muss deshalb überprüft werden wie hoch Korrelationsmaximum relativ gesehen ist. Dazu gibt es verschiedene Möglichkeiten. Es kann zum Beispiel das \emph{Peak to Average Ratio} bestimmt werden. Eine weitere Möglichkeit ist, außerhalb eines gewissen Bereichs um das globale Maximum nach einem zweiten lokalen Maximum zu suchen, und das Verhältnis der beiden zu bestimmen.
+Wenn dies über einem im Design festgelegten Wert liegt, wird die PRN zu der Liste der Satelliten in Sicht hinzugefügt. Dieser Vorgang wird für alle PRN wiederholt. 
+
+Für jede der PRN in Sicht wird dann der genaue Dopplershift mit einer parallelen Frequenzbereich Suche bestimmt. Dazu wird das Eingangssignal mit dem Code (dessen Codephase nun bekannt ist) punktweise multipliziert, und somit entspreizt. Damit besteht das Signal nur noch aus dem (sehr niederfrequenten) Datensignal $\gpsdat$ und dem ZF-Trägersignal mit unbekannter Frequenz:
+\begin{equation}
+	\gpsdat \cos(\omega_x \cdot t) = \gpsin \cdot \gpsca
+\end{equation}
+Das Ergebnis wird anschließend Fourier transformiert und das Maximum im Frequenzbereich gesucht, wodurch $\omega_x$ und damit der Dopplershift bestimmt wird.
 
 \paragraph{Entwurf der Parameter für die Acquisition}
 Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums.
