@@ -1,0 +1,34 @@
+\subsection{Tracking}
+Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird lediglich durchgeführt, wenn neue GPS Satelliten gesucht werden, beispielsweise nach dem Systemstart, oder wenn das Signal verloren wird. Sobald die Parameter (PRN, Codephase, Dopplershift) durch die Acquisition bestimmt wurden, werden diese an den eigentlichen Demodulator, den Trackingloop, weitergegeben. Der Begriff Trackingloop kommt daher, dass die bei der Acquisition bestimmte Codephase bzw. Dopplershift jeweils nur Momentaufnahmen sind. Dopplershift und Codephase ändern sich ständig und auch Ungenauigkeiten der Takterzeugung beim Empfänger müssen ausgeglichen werden. Der Trackingloop hat die Aufgabe die in der Acquisitonphase bestimmten Werte mittels eines Regelkreises (\emph{control loop}) nachzuführen (\emph{to track}). 
+
+\FGimg{Trackingloop.png}{Blockschaltbild des GPS Trackingloops. Der Trackingloop besteht aus zwei Regelkreisen, die die LO-Frequenz bzw. die Codefrequenz nachführen.}{0.9\textwidth}
+
+\FR{Trackingloop.png} zeigt ein Blockschaltbild des Trackingloops. Im folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Anschließend wird ein Überblick über die Funktion des gesamten Trackingloops gegeben. Eine detaillierte Beschreibung des ist in \cite{borre2007software} zu finden.
+
+\paragraph{Carrier \gls{NCO}} Der Carrier \gls{NCO} generiert eine lokale Kopie des Trägers (bzw. des ZF-Trägers). Die Frequenz des NCOs ist digital einstellbar.  
+
+\paragraph{Carrier Mischer} Der Carrier Mischer mischt das Eingangssignal \gpsin mit dem LO Signal \gpslo_I bzw. \gpslo_Q. Bei korrekter Einstellung des LO wird das Eingangssignal von der ersten ZF $f_{ZF}$ herunter auf \SI{0}{\Hz} gemischt.
+
+\paragraph{Tiefpass Filter} Der Tiefpass Filter entfernt di
+
+\paragraph{Carrier Diskriminator}
+
+\paragraph{Carrier Loop Filter}
+
+
+\paragraph{Code Mischer}
+\paragraph{Integrate \& Dump}
+\paragraph{Code Diskriminator}
+\paragraph{Code Loop Filter}
+\paragraph{Code NCO}
+
+
+\paragraph{Carrier Tracking}
+Zum Synchronisieren der LO Frequenz mit der Trägerfrequenz des Empfangssignals wird im Allgemeinen ein Phase Locked Loop (PLL) verwendet, der versucht die Phasendifferenz zwischen Eingangssignal und LO Signal auf null zu halten. Im Falle des GPS Signals ist jedoch zu beachten, dass der Träger BPSK moduliert ist, also Phasendifferenzen von \SI{0}{\degree} oder \SI{180}{\degree} gewollt ist. Eine Variante von PLL die diesen \SI{180}{\degree} Phasenfehler ignoriert ist der Costas Loop (TODO Grafik).
+Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} verschoben sind: $c_I=\cos(\omega_{LO} t)$ $c_Q=\sin(\omega_{LO} t)$ (TODO Bezeichnung an Zeichnung anpassen). Das Signal wird im jeweiligen Arm mit dem $I$ bzw $Q$ Träger gemischt, und Tiefpassgefiltert. (TODO Formel Multiplikation der Signale). Beim Costas Loop wertet der Loopdiskriminator die Energie im I und Q Arm aus, wobei das Ziel des Regelkreises ist gesamte Energie im I Arm zu halten. Als Loopdiskriminator bietet sich $\arctan\left(\frac{Q}{I}\right)$ an. Die Charakteristik des TODO arctan Diskriminators ist in Grafik TODO dargestellt. Wie man sieht hat die $\arctan()$ Funktion Nullstellen für \SI{0}{\degree} und \SI{180}{\degree}, woraus sich die Immunität gegen die BPSK Modulation ergibt.
+
+\paragraph{Code Tracking}
+Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. In dieser Arbeit wurde dafür ein \emph{Early-Late-Gate} verwendet. Bei diesem wird das Signal parallel mit drei Kopien des Codes multipliziert, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips. Die drei Kopien werden mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Bei korrekter Codephase wird die Energie im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
+
+\paragraph{Loop Filter}
+Der Ausgang der Carrier- bzw. Code Loop Diskriminatoren ist der Wert des Phasenfehlers. Zur Ansteuerung des (TODO Glossar) NCO wird .

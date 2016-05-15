@@ -20,7 +20,7 @@ In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Such
 
 \FGimg{parallelCodephase.png}{Bei der parallelen Codephasensuche müssen nur alle möglichen Dopplerverschiebungen seriell durchsucht werden. Die Bestimmung der Codephase kann sehr einfach durch eine Maximumsuche nach der Multiplikation im Frequenzbereich und anschließende Rücktransformation bestimmt werden.}{0.9\textwidth}
 
-\FGimg{parallelfreqspace.png}{Bei der parallelen Frequenzbereichsuche müssen nur die möglichen Codephasen seriell durchsucht werden. Die Bestimmung der Dopplerverschiebung erfolgt durch eine Maximumsuche im Frequenzbereich. In dieser Arbeit wird die parallele Frequenzsuche nach einer ersten parallelen Codephasensuche eingesetzt um die Dopplerverschiebung genauer zu bestimmen.}{0.6\textwidth}
+\FGimg{parallelfreqspace.png}{Bei der parallelen Frequenzbereichsuche müssen nur die möglichen Codephasen seriell durchsucht werden. Die Bestimmung der Dopplerverschiebung erfolgt durch eine Maximumsuche im Frequenzbereich.}{0.6\textwidth}
 
 \paragraph{parallele Codephasensuche}
 Bei der parallelen Codephasen Suche werden Kopien des Trägers $\gpslo$ (jeweils I und Q Anteil) für den zu durchsuchenden Frequenzbereich $\textbf{D}$ in einem groben Raster (z.B. \SI{500}{\Hz}) generiert. Außerdem wird für jede PRN die Fouriertransformierte des Codes $\gpsCA$ berechnet. Nacheinander wird dann für jede Trägerfrequenz das Eingangssignal mit dem Träger multipliziert:
@@ -55,7 +55,7 @@ gespeichert\footnote{$\textbf{L}=[0, N-1]$ und $N$ gleich der Anzahl der Samples
 \end{equation}
 und gesucht. Der Vektor $\left[l_{\max}, d_{\max}\right]$ gibt dann die genaue Codephase und den groben Dopplershift für diese PRN an der Stelle des globalen Korrelationsmaximums $\hat{\gpsxc}_{l,\max}$ an. 
 
-Das Finden des Maximums ist allerdings noch nicht hinreichend um sagen zu können, dass der Satellit in Sicht ist, denn es existiert immer ein Maximum. Um Entscheiden zu können ob ein Satellit in Sicht ist, muss deshalb überprüft werden wie hoch Korrelationsmaximum relativ gesehen ist. Dazu gibt es verschiedene Möglichkeiten. Es kann zum Beispiel das \emph{Peak to Average Ratio} bestimmt werden. Eine weitere Möglichkeit ist, außerhalb eines gewissen Bereichs um das globale Maximum nach einem zweiten lokalen Maximum zu suchen, und das Verhältnis der beiden zu bestimmen.
+Das Finden des Maximums ist allerdings noch nicht hinreichend um sagen zu können, dass der Satellit in Sicht ist, denn es existiert immer ein Maximum. Um Entscheiden zu können ob ein Satellit in Sicht ist, muss deshalb überprüft werden wie hoch das Korrelationsmaximum relativ gesehen ist, die sogenannte \emph{Peak Metric}. Dazu gibt es verschiedene Möglichkeiten. Es kann zum Beispiel das \emph{Peak to Average Ratio} bestimmt werden. Eine weitere Möglichkeit ist, außerhalb eines gewissen Bereichs um das globale Maximum, nach einem zweiten lokalen Maximum zu suchen und das Verhältnis der beiden Maxima zu bestimmen.
 Wenn dies über einem im Design festgelegten Wert liegt, wird die PRN zu der Liste der Satelliten in Sicht hinzugefügt. Dieser Vorgang wird für alle PRN wiederholt. 
 
 Für jede der PRN in Sicht wird dann der genaue Dopplershift mit einer parallelen Frequenzbereich Suche bestimmt. Dazu wird das Eingangssignal mit dem Code (dessen Codephase nun bekannt ist) punktweise multipliziert, und somit entspreizt. Damit besteht das Signal nur noch aus dem (sehr niederfrequenten) Datensignal $\gpsdat$ und dem ZF-Trägersignal mit unbekannter Frequenz:
@@ -64,45 +64,3 @@ Für jede der PRN in Sicht wird dann der genaue Dopplershift mit einer parallele
 \end{equation}
 Das Ergebnis wird anschließend Fourier transformiert und das Maximum im Frequenzbereich gesucht, wodurch $\omega_x$ und damit der Dopplershift bestimmt wird.
 
-\paragraph{Entwurf der Parameter für die Acquisition}
-Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums.
-Die derzeit aktiven Satelliten haben die Codes mit den PRN 1-32 zugewiesen. Der Bereich der möglichen Codephasen ergibt sich aus der Dauer einer Codeperiode (Codelänge/Chippingrate TODO), und der Sampling Frequenz des Frontend ICs (TODO Formel): N=fs/(fchip/Lcode)=16.369MHz/(1.023Mchip/s/1023) = 16369 MHz *TODO Fußnote: Die Samplingfrequenz im Flugmodell beträgt 16.368 MHz).
-
-Da der Doppler Shift die Hauptursache ist entspricht die Abweichung dem maximal erwarteten Doppler Shift. Wie in Kapitel (todo link) besprochen, ist der erwartete Doppler Shift (TODO +-)45 kHz.
-
-Die Schwelle ab der ein Signal nach dem ersten Schritt der Acquisition als „vorhanden“ bewertet wird wird auf ein Peak-to-Average Ratio von 2,5 festgelegt. Dieser Wert wurde durch Simulation für Signale gefunden, die ein gerade noch ausreichendes SNR haben.
-
-\subsubsection{Tracking}
-Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird lediglich durchgeführt, wenn neue GPS Satelliten gesucht werden, beispielsweise nach dem Systemstart, oder wenn das Signal verloren wird. Sobald die Parameter (PRN, Codephase, Dopplershift) durch die Acquisition bekannt sind, werden diese an den eigentlichen Demodulator, den Trackingloop, weitergegeben. Der Begriff Trackingloop kommt daher, dass die Codephase und Dopplershift die bei der Acquisition bestimmt werden jeweils nur Momentaufnahmen sind. Dopplershift und Codephase ändern sich ständig und auch Ungenauigkeiten der Takterzeugung beim Empfänger müssen ausgeglichen werden. Der Trackingloop hat die Aufgabe die in der Acquisitonphase bestimmten Werte mittels eines Regelkreises („control loop“) nachzuführen („to track“). 
-Die Funktion des Trackingloops wird im Folgenden nur grob diskutiert. Es werden stattdessen die wichtigen Entwurfsparameter und Entscheidungen beschrieben. 
-Der Trackingloop hat wie erwähnt die Aufgabe die Frequenz des LO und die Codephase anzupassen. Zuerst soll die Regelschleife für den Träger, der Carrier Trackingloop, beschrieben werden.
-
-Bild (TODO Ref) zeigt ein Blockschaltbild des Trackingloops. Im folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Eine detaillierte Beschreibung des Trackingloops ist in (TODO Referenz GPS Buch) zu finden.
-
-\paragraph{Carrier NCO} Der Carrier \gls{NCO} 
-
-\paragraph{Carrier Mischer} Der Carrier Mischer mischt das Eingangssignal (TODO passend Zeichnung) $x$ mit dem LO Signal. Bei korrekter Einstellung des LO wird das Eingangssignal von der ersten ZF $f_{ZF}$ herunter auf \SI{0}{\Hz} gemischt.
-
-\paragraph{Tiefpass Filter} Der Tiefpass Filter entfernt di
-
-\paragraph{Carrier Diskriminator}
-
-\paragraph{Carrier Loop Filter}
-
-
-\paragraph{Code Mischer}
-\paragraph{Integrate \& Dump}
-\paragraph{Code Diskriminator}
-\paragraph{Code Loop Filter}
-\paragraph{Code NCO}
-
-
-\paragraph{Carrier Tracking}
-Zum Synchronisieren der LO Frequenz mit der Trägerfrequenz des Empfangssignals wird im Allgemeinen ein Phase Locked Loop (PLL) verwendet, der versucht die Phasendifferenz zwischen Eingangssignal und LO Signal auf null zu halten. Im Falle des GPS Signals ist jedoch zu beachten, dass der Träger BPSK moduliert ist, also Phasendifferenzen von \SI{0}{\degree} oder \SI{180}{\degree} gewollt ist. Eine Variante von PLL die diesen \SI{180}{\degree} Phasenfehler ignoriert ist der Costas Loop (TODO Grafik).
-Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} verschoben sind: $c_I=\cos(\omega_{LO} t)$ $c_Q=\sin(\omega_{LO} t)$ (TODO Bezeichnung an Zeichnung anpassen). Das Signal wird im jeweiligen Arm mit dem $I$ bzw $Q$ Träger gemischt, und Tiefpassgefiltert. (TODO Formel Multiplikation der Signale). Beim Costas Loop wertet der Loopdiskriminator die Energie im I und Q Arm aus, wobei das Ziel des Regelkreises ist gesamte Energie im I Arm zu halten. Als Loopdiskriminator bietet sich $\arctan\left(\frac{Q}{I}\right)$ an. Die Charakteristik des TODO arctan Diskriminators ist in Grafik TODO dargestellt. Wie man sieht hat die $\arctan()$ Funktion Nullstellen für \SI{0}{\degree} und \SI{180}{\degree}, woraus sich die Immunität gegen die BPSK Modulation ergibt.
-
-\paragraph{Code Tracking}
-Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. In dieser Arbeit wurde dafür ein \emph{Early-Late-Gate} verwendet. Bei diesem wird das Signal parallel mit drei Kopien des Codes multipliziert, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips. Die drei Kopien werden mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Bei korrekter Codephase wird die Energie im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
-
-\paragraph{Loop Filter}
-Der Ausgang der Carrier- bzw. Code Loop Diskriminatoren ist der Wert des Phasenfehlers. Zur Ansteuerung des (TODO Glossar) NCO wird .

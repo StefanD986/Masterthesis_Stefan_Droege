@@ -7,6 +7,14 @@ Etwas über die Hardware des Comboards
 \section{Planung}
 Um die Arbeitspakete und Anforderungen zu identifizieren ist es zunächst wichtig zu verstehen wie die Demodulation des GPS Signals prinzipiell abläuft. Dies wird deshalb im ersten Abschnitt beschrieben. Im zweiten Abschnitt werden die Arbeitspakete dann den einzelnen Hardware Komponenten zugeordnet. Da die COM Hardware mit dem DSP und dem FPGA zwei komplexe Datenverarbeitende Komponenten besitzt, die Daten miteinander austauschen wird im dritten Abschnitt der Entwurf der Software Schnittstelle zwischen DSP und FPGA beschrieben. Der letzte Abschnitt beschreibt die Simulation, von der während des Entwurfs und Implementierung viel Gebrauch gemacht wurde, um Konzepte und Ideen zu prüfen.
 
+\paragraph{Entwurf der Parameter für die Acquisition}
+Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums.
+Die derzeit aktiven Satelliten haben die Codes mit den PRN 1-32 zugewiesen. Der Bereich der möglichen Codephasen ergibt sich aus der Dauer einer Codeperiode (Codelänge/Chippingrate TODO), und der Sampling Frequenz des Frontend ICs (TODO Formel): N=fs/(fchip/Lcode)=16.369MHz/(1.023Mchip/s/1023) = 16369 MHz *TODO Fußnote: Die Samplingfrequenz im Flugmodell beträgt 16.368 MHz).
+
+Da der Doppler Shift die Hauptursache ist entspricht die Abweichung dem maximal erwarteten Doppler Shift. Wie in Kapitel (todo link) besprochen, ist der erwartete Doppler Shift (TODO +-)45 kHz.
+
+Die Schwelle ab der ein Signal nach dem ersten Schritt der Acquisition als „vorhanden“ bewertet wird wird auf ein Peak-to-Average Ratio von 2,5 festgelegt. Dieser Wert wurde durch Simulation für Signale gefunden, die ein gerade noch ausreichendes SNR haben.
+
 
 
 
