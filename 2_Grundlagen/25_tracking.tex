@@ -5,26 +5,29 @@ Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird l
 
 \FR{Trackingloop.png} zeigt ein Blockschaltbild des Trackingloops. Im folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Anschließend wird ein Überblick über die Funktion des gesamten Trackingloops gegeben. Eine detaillierte Beschreibung des ist in \cite{borre2007software} zu finden.
 
-\paragraph{Carrier \gls{NCO}} Der Carrier \gls{NCO} generiert eine lokale Kopie des Trägers (bzw. des ZF-Trägers). Die Frequenz des NCOs ist digital einstellbar.  
+\paragraph{Carrier NCO} Der Carrier \gls{NCO} generiert eine lokale Kopie des (ZF-)Trägers (unter Berücksichtigung der Dopplerverschiebung). Die Frequenz des NCOs ist digital einstellbar.
 
-\paragraph{Carrier Mischer} Der Carrier Mischer mischt das Eingangssignal \gpsin mit dem LO Signal \gpslo_I bzw. \gpslo_Q. Bei korrekter Einstellung des LO wird das Eingangssignal von der ersten ZF $f_{ZF}$ herunter auf \SI{0}{\Hz} gemischt.
+\paragraph{Carrier Mischer} Die zwei Carrier Mischer mischen das Eingangssignal $\gpsin$ mit dem von dem NCO erzeugten LO Signal $\gpslo_I$ bzw. $\gpslo_Q$. Bei korrekter Einstellung des NCO wird das Eingangssignal von  $f_{ZF}+f_{Doppler}$ herunter auf \SI{0}{\Hz} gemischt.
 
-\paragraph{Tiefpass Filter} Der Tiefpass Filter entfernt di
+\paragraph{Carrier Loop Diskriminator} Der Carrier Loop Discriminator analysiert das heruntergemischte Signal, und generiert eine Signal, dass den Phasenfehler angibt.
 
-\paragraph{Carrier Diskriminator}
+\paragraph{Carrier Loop Filter} Der Carrier Loop Filter wirkt als \emph{PI-Glied} (\emph{Proportional, Integral}) in dem Regelkreis: Der NCO erwartet eine Frequenz als Steuersignal. Das Ausgangssignal des Carrier Loop Discriminator ist aber ein Phasenfehler. Der Carrier Loop Filter integriert (\emph{I-Glied}) den Phasenfehler, denn $\omega(t)=\frac{\partial \phi(t)}{\partial t}$ und addiert dazu (\emph{P-Glied}) den in der Acquisition bestimmten Wert für die Trägerfrequenz.
 
-\paragraph{Carrier Loop Filter}
+\paragraph{C/A Code Generator} Der \gls{CA} Code Generator erzeugt eine drei Kopien des Codes. Dabei ist die Codefrequenz, also die Geschwindigkeit mit der die Codesequenz \enquote{abgespielt} wird, digital einstellbar. Vereinfacht gesagt  funktioniert der C/A Code Generator intern als \gls{NCO} der ein Taktsignal für die erzeugenden \gls{LFSR} generiert. Die drei Kopien unterscheiden sich leicht in der Codephase, üblicherweise um die Dauer eines $\frac{1}{2}$ Chips. Deshalb werden die Kopien mit \emph{Early}, \emph{Prompt} und \emph{Late} bezeichnet. Der Zweck dieser drei Pfade wird weiter unten erläutert (TODO Link?).
 
+\paragraph{Code Mischer} Nach der Mischung mit dem LO Signal wird das Signal $\gpsmx_I$ bzw. $\gpsmx_Q$ mit den Kopien des Codes gemischt. Nach der Mischung mit dem Code entspricht das Signal $\gpsxc_{I,P}$ theoretisch bereits wieder dem Datensignal $\gpsdat$.
 
-\paragraph{Code Mischer}
-\paragraph{Integrate \& Dump}
-\paragraph{Code Diskriminator}
-\paragraph{Code Loop Filter}
-\paragraph{Code NCO}
+\paragraph{Integrate \& Dump} Für die Funktion des Regelkreises werden die Signal $\gpsxc$ jeweils über eine Code Periode gemittelt (integriert). Der \emph{Dump}, also das Speichern des Integrationswerts und Zurücksetzen des Integrators auf null, muss dabei Synchron zu den Code Perioden erfolgen. Die Integratoren wirken gleichzeitig als Tiefpassfilter für die PLL.
 
+\paragraph{Code Diskriminator} Der Code Diskriminator berechnet aus seinen Eingangswerten ein Steuersignal, das bestimmt ob die Codephase erhöht oder verringert werden muss.
 
-\paragraph{Carrier Tracking}
-Zum Synchronisieren der LO Frequenz mit der Trägerfrequenz des Empfangssignals wird im Allgemeinen ein Phase Locked Loop (PLL) verwendet, der versucht die Phasendifferenz zwischen Eingangssignal und LO Signal auf null zu halten. Im Falle des GPS Signals ist jedoch zu beachten, dass der Träger BPSK moduliert ist, also Phasendifferenzen von \SI{0}{\degree} oder \SI{180}{\degree} gewollt ist. Eine Variante von PLL die diesen \SI{180}{\degree} Phasenfehler ignoriert ist der Costas Loop (TODO Grafik).
+\paragraph{Code Loop Filter} Genau wie der Carrier Loop Filter ist der Code Loop Filter ein \emph{PI-Glied} und erzeugt aus dem Phasenfehlersignal des Code Diskriminators ein Steuersignal für den NCO im C/A Code Generator.
+
+\subsubsection{Carrier Tracking}
+Zum Synchronisieren der LO Frequenz mit der Trägerfrequenz des Empfangssignals wird im Allgemeinen ein Phase Locked Loop (PLL) verwendet, der versucht die Phasendifferenz zwischen Eingangssignal und LO Signal auf null zu halten. Im Falle des GPS Signals ist jedoch zu beachten, dass der Träger BPSK moduliert ist, also Phasendifferenzen von \SI{0}{\degree} oder \SI{180}{\degree} gewollt sind. Eine Variante von PLL die diesen \SI{180}{\degree} Phasenfehler ignoriert ist der Costas Loop (\FR{Costasloop.png}).
+
+\FGimg{Costasloop.png}{Der Costas Loop ist eine PLL Variante, die \gls{BPSK} modulierte Signale }{}
+
 Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} verschoben sind: $c_I=\cos(\omega_{LO} t)$ $c_Q=\sin(\omega_{LO} t)$ (TODO Bezeichnung an Zeichnung anpassen). Das Signal wird im jeweiligen Arm mit dem $I$ bzw $Q$ Träger gemischt, und Tiefpassgefiltert. (TODO Formel Multiplikation der Signale). Beim Costas Loop wertet der Loopdiskriminator die Energie im I und Q Arm aus, wobei das Ziel des Regelkreises ist gesamte Energie im I Arm zu halten. Als Loopdiskriminator bietet sich $\arctan\left(\frac{Q}{I}\right)$ an. Die Charakteristik des TODO arctan Diskriminators ist in Grafik TODO dargestellt. Wie man sieht hat die $\arctan()$ Funktion Nullstellen für \SI{0}{\degree} und \SI{180}{\degree}, woraus sich die Immunität gegen die BPSK Modulation ergibt.
 
 \paragraph{Code Tracking}
