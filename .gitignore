@@ -8,3 +8,9 @@
 *.lof
 main.pdf
 *.rel
+*.bbl
+*.bcf
+*.blg
+*.glo
+*.ist
+*.run.xml
