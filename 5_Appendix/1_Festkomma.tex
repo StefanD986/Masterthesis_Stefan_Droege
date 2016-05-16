@@ -4,15 +4,15 @@ In dieser Arbeit wird an mehreren Stellen von Berechnungen mit Festkommazahlen G
 
 \section{Nomenklatur}
 
-In dieser Arbeit wird für das Format von Festkommazahlen die Notation $Qm.n$ verwendet. Mit dem Format ist gemeint wie viele Bits für die Vor- bzw. Nachkommastellen verwendet werden. Dabei benennt $m \in \mathbb{Z}$ die Anzahl der Bits die für den Vorkommaanteil verwendet werden. Die Anzahl der Bits die für den Nachkommaanteil verwendet werden ist mit $n \in \mathbb{Z}$ bezeichnet (TODO Bild link).
-Außerdem sind alle Zahlen in dieser Arbeit vorzeichenbehaftet, wofür ein zusätzliches Bit reserviert werden muss. Das heißt zum Speichern einer $Qm.n$ Festkommazahl werden insgesamt $(m+n+1)\,\si{\bit}$ benötigt. Negative Zahlen werden über ihr Zweierkomplement dargestellt. Bild (TODO Link) zeigt beispielhaft die Umwandlung einer Zahl in Festkommazahl und die Darstellung im Speicher.
+In dieser Arbeit wird für das Format von Festkommazahlen die Notation $Qm.n$ verwendet. Mit dem Format ist gemeint wie viele Bits für die Vor- bzw. Nachkommastellen verwendet werden. Dabei benennt $m \in \mathbb{Z}$ die Anzahl der Bits die für den Vorkommaanteil verwendet werden. Die Anzahl der Bits die für den Nachkommaanteil verwendet werden ist mit $n \in \mathbb{Z}$ bezeichnet.
+Außerdem sind alle Zahlen in dieser Arbeit vorzeichenbehaftet, wofür ein zusätzliches Bit reserviert werden muss. Das heißt zum Speichern einer $Qm.n$ Festkommazahl werden insgesamt $(m+n+1)\,\si{\bit}$ benötigt. Negative Zahlen werden über ihr Zweierkomplement dargestellt. \FR{FixkommaBsp1Positiv.png} zeigt anhand eines Beispiels die Umwandlung einer Zahl in Festkommazahl und die Darstellung im Speicher.
 Mathematisch lässt sich die Umwandlung als Abbildung beschreiben: 
 \[Q_{m,n}: X \rightarrow Y^{m,n}\] 
 mit \[X =\left\{x \in \mathbb{R}| -2^{m+1}\leq x<2^{m+1}+1/2\right\}\] und \[Y^{m,n} =\left\{y \in \mathbb{Z} | 0 \leq y \leq 2^{m+n+1}-1\right\}\]
 
 Wie man sieht ist die Abbildung surjektiv, da eine überabzählbare Menge X auf eine abzählbare Menge Y abgebildet wird. Dies macht sich in der Praxis bei der Rückumwandlung als Quantisierungsfehler bemerkbar.
 
-Die Zahl $Q_{m,n}(z)$ die sich durch anwenden der Abbildungsvorschrift auf die Zahl $z$ ergibt, soll im Folgenden abkürzend als $z^{m,n}$ bezeichnet werden:
+Die Zahl $Q_{m,n}(z)$ die sich durch Anwenden der Abbildungsvorschrift auf die Zahl $z$ ergibt, soll im Folgenden abkürzend als $z^{m,n}$ bezeichnet werden:
 \[z^{m,n}:=Q_{m,n}(z)\]
 
 \section{Auswahl des geeigneten Q-Formats}
@@ -22,23 +22,29 @@ Zur Auswahl des geeigneten Formats muss bekannt sein, welche maximalen und minim
 
 \[m=\lceil \log_2(\max(|y_{min}|,|y_{max}|)) \rceil \]
 
-Zu bemerken ist, dass auch negative $m$ möglich sind, was kein Fehler ist. Beispielsweise für Variablen deren Wert immer im Intervall im Intervall $[-0.25, 0.25]$ liegen ergibt sich $m=-2$. Das heißt, dass mehr Stellen für den Nachkommanteil zur Verfügung stehen.
+Zu bemerken ist, dass auch negative $m$ möglich sind, was kein Fehler ist. Beispielsweise für Variablen, deren Wert immer im Intervall $[-0.25, 0.25]$ liegen, ergibt sich $m=-2$. Das heißt, dass mehr Stellen für die Nachkommastellen zur Verfügung stehen.
 
-Desweiteren muss bekannt sein, welche Anforderung an den zulässigen Quantisierungsfehler bestehen. Beispielsweise kann sich aus der Spezifikation für einen Filter die Anforderung ergeben, dass die Filterkoeffizienten mit einer Genauigkeit von $q=\num{\pm1e-5}$ quantisiert werden müssen. Aus dieser Anforderung lässt sich $n$ berechnen:
+Des Weiteren muss bekannt sein, welche Anforderung an den zulässigen Quantisierungsfehler bestehen. Beispielsweise kann sich aus der Spezifikation für einen Filter die Anforderung ergeben, dass die Filterkoeffizienten mit einer Genauigkeit von $q=\num{\pm1e-5}$ quantisiert werden müssen. Aus dieser Anforderung lässt sich $n$ berechnen:
 
 \[n=\lceil -\log_2(|q|) \rceil \]
 
-Auch hier sind wieder negative Werte für $n$ zulässig: Wenn beispielsweise eine Zahl Werte im Intervall $[-10000, 10000]$ annehmen kann, aber lediglich mit einer Genauigkeit von \num{\pm200} quantisiert werden muss. Dann ergibt sich $m=14$ und $n=-7$ und lässt sich somit in einem \SI{8}{\bit} Datentyp abspeichern. 
+Auch hier sind wieder negative Werte für $n$ zulässig: Wenn beispielsweise eine Zahl Werte im Intervall $[-10000, 10000]$ annehmen kann, aber lediglich mit einer Genauigkeit von \num{\pm200} quantisiert werden muss. Dann ergibt sich $m=14$ und $n=-7$ und lässt sich somit in einem \SI{8}{\bit} Datentyp abspeichern.
+
+In \FR{FixkommaBsp2Negativ.png} ist als Beispiel die Umwandlung einer Fließkommazahl mit negativem Vorzeichen zur Basis 10 in eine Festkommazahl zu Basis 2 im Format $Q3.4$ dargestellt.
+
+\FGimg{FixkommaBsp1Positiv.png}{Beispiel für eine Umwandlung einer positiven Fließkommazahl zur Basis 10 in eine Festkommazahl zur Basis 2.}{0.65\textwidth}
+
+\FGimg{FixkommaBsp2Negativ.png}{Beispiel für eine Umwandlung einer negativen Fließkommazahl zur Basis 10 in eine Festkommazahl zur Basis 2. Negative Zahlen werden als ihr Zweierkomplement dargestellt, bei der das MSB die Wertigkeit $-2^m$ hat.}{0.65\textwidth}
 
 \section{Rechenoperationen}
-Bei der Berechnungen mit Festkommazahlen sind einige Besonderheiten zu beachten, die im Folgenden erläutert werden.
+Auf der Registerebene laufen Rechenoperationen mit Festkommazahlen genau so ab wie mit binären Ganzzahlen (im Speicher sind sie ja als solche dargestellt). Allerdings sind einige Besonderheiten zu beachten, die im Folgenden erläutert werden.
 
 \subsection{Arithmerische Schiebeoperation}
-Für Arithmetische Schiebeoperationen werden die Operatoren $>>$ bzw $<<$ definiert\footnote{Der Operator $\lfloor \cdot \rfloor$ bezeichnet das Abrunden zur nächsten Ganzzahl bzw. das Extrahieren des Ganzzahlanteils}:
+Für arithmetische Schiebeoperationen werden die Operatoren $>>$ bzw $<<$ definiert:\footnote{Der Operator $\lfloor \cdot \rfloor$ bezeichnet das Abrunden zur nächsten Ganzzahl bzw. das Extrahieren des Ganzzahlanteils}
 \[x >> p := \lfloor x/2^p \rfloor\]
 \[x << p := \lfloor x/2^p \rfloor\]
 
-Auf Registerebene wird dies durch Schieben der binären Ziffern nach links ($<<$) bzw. rechts ($>>$) realisiert. Bei negativen Zahlen ist zu beachten, dass bei der $>>$ Operation an der höchstwertigen Stelle $1$en eingeschoben werden.
+Auf Registerebene wird dies durch Schieben der binären Ziffern nach links ($<<$) bzw. rechts ($>>$) realisiert. Bei negativen Zahlen ist zu beachten, dass bei der $>>$ Operation an der höchstwertigen Stelle $1$en eingeschoben werden, um das Vorzeichen beizubehalten.
 
 \subsection{Umwandlung von \texorpdfstring{$Q_{m_1,n_1}$ zu  $Q_{m_2,n_2}$}{Qm1.n1 zu Qm2.n2}}
 Für einige der Standardrechenoperationen ist es erforderlich, dass die Zahlen im selben Q-Format vorliegen. Die Umwandlung von einem Q-Format in ein anderes Q-Format geschieht auf Registerebene sehr einfach durch Schieben der Stellen der binären Zahl nach links bzw. rechts:
@@ -46,7 +52,7 @@ Für einige der Standardrechenoperationen ist es erforderlich, dass die Zahlen i
 \[z_1^{m_1,n_1} << p = z_1^{m_1-p,n_1+p}\]
 
 \subsection{Addition und Subtraktion}
-Zur Addition von Festkommazahlen müssen die Zahlen im selben Q-Format vorliegen, damit die Zahlen stellenwertmäßig korrekt addiert werden. Gegebenenfalls müssen die Zahlen mit daher umgewandelt (s.o.) werden und die damit vergrößerten Quantisierungsfehler berücksichtigt werden. Des Weiteren kann es bei der Addition zu einem Überlauf kommen. Das heißt, dass bei der Addition zweier Zahlen im $Q_{m,n}$ Format das Ergebnis im Allgemeinen im $Q_{m+1,n}$ Format vorliegen wird.
+Zur Addition von Festkommazahlen müssen die Zahlen im selben Q-Format vorliegen, damit die Zahlen stellenwertmäßig korrekt addiert werden. Gegebenenfalls müssen die Zahlen daher umgewandelt (s.o.) werden und die damit vergrößerten Quantisierungsfehler berücksichtigt werden. Des Weiteren kann es bei der Addition zu einem Überlauf kommen. Das heißt, dass bei der Addition zweier Zahlen im $Q_{m,n}$ Format das Ergebnis im Allgemeinen im $Q_{m+1,n}$ Format vorliegen wird.
 
 \[z_1^{m,n}+z_2^{m,n} := Q_{m+1,n}(z_1+z_2) = (z_1+z_2)^{m+1,n}\]
 
@@ -62,7 +68,7 @@ In der Implementierung von Algorithmen, die Multiplikationen verwenden, ist desh
 Die Division folgt ähnlichen Regeln wie die Multiplikation, was sich aus der Regel \emph{Division entspricht der Multiplikation mit dem Kehrwert} ergibt:
 \[\frac{z_1^{m_1,n_1}}{z_2^{m_2,n_2}} := Q_{m_1-m_2,n_1-n_2}\left(\frac{z_1}{z_2}\right) = \left(\frac{z_1}{z_2}\right)^{m_1-m_1,n_1-n_2}\]
 
-Wie man sieht hat der Quotient ein Q-Format mit weniger Stellen für Ganzzahl- und Bruchanteil. Das bedeutet, dass für ein sinnvolles Ergebnis der Dividend vor der Division auf das Q-Format der Zielvariablen skaliert werden muss. In der Praxis erfolgt die Division deshalb wie folgt:
+Wie man sieht hat der Quotient ein Q-Format mit weniger Stellen für Ganzzahl- und Bruchanteil. Das bedeutet, dass für ein sinnvolles Ergebnis vor der Division der Dividend auf das Q-Format der Zielvariablen skaliert werden muss. In der Praxis erfolgt die Division deshalb wie folgt:
 
 \[\frac{z_1^{m_1,n_1}<<(w-(m_1+n_1))}{z_2^{m_2,n_2}} = \frac{z_1^{m_1,w-m_1}}{z_2^{m_2,n_2}} \]
 
