@@ -15,9 +15,14 @@ Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird l
 
 \paragraph{C/A Code Generator} Der \gls{CA} Code Generator erzeugt eine drei Kopien des Codes. Dabei ist die Codefrequenz, also die Geschwindigkeit mit der die Codesequenz \enquote{abgespielt} wird, digital einstellbar. Vereinfacht gesagt  funktioniert der C/A Code Generator intern als \gls{NCO} der ein Taktsignal für die erzeugenden \gls{LFSR} generiert. Die drei Kopien unterscheiden sich leicht in der Codephase, üblicherweise um die Dauer eines $\frac{1}{2}$ Chips. Deshalb werden die Kopien mit \emph{Early}, \emph{Prompt} und \emph{Late} bezeichnet. Der Zweck dieser drei Pfade wird weiter unten erläutert (TODO Link?).
 
-\paragraph{Code Mischer} Nach der Mischung mit dem LO Signal wird das Signal $\gpsmx_I$ bzw. $\gpsmx_Q$ mit den Kopien des Codes gemischt. Nach der Mischung mit dem Code entspricht das Signal $\gpsxc_{I,P}$ theoretisch bereits wieder dem Datensignal $\gpsdat$.
+\paragraph{Code Mischer} Nach der Mischung mit dem LO Signal wird das Signal $\gpsmx_I$ bzw. $\gpsmx_Q$ mit den Kopien des Codes gemischt. Nach der Mischung mit dem Code entspricht das Signal $\gpsxc_{I,P}$ theoretisch bereits wieder dem Datensignal $\gpsdat$. Zusammen mit den \emph{Integrate \& Dump} Blöcken (s.u.) bilden sie die Korrelatoren, die die Kreuzkorrelation zwischen Eingangssignal und lokaler Codekopie berechnen.
 
-\paragraph{Integrate \& Dump} Für die Funktion des Regelkreises werden die Signal $\gpsxc$ jeweils über eine Code Periode gemittelt (integriert). Der \emph{Dump}, also das Speichern des Integrationswerts und Zurücksetzen des Integrators auf null, muss dabei Synchron zu den Code Perioden erfolgen. Die Integratoren wirken gleichzeitig als Tiefpassfilter für die PLL.
+\paragraph{Integrate \& Dump} \label{IntegrateDump} Die Integrate \& Dump Blöcke integrieren das Signal an ihrem Eingang jeweils für die Dauer eines Codewortes $\gpsTcode$, speichern dann den Wert in einem Ausgangsregister bevor der Akkumulator auf Null zurückgesetzt wird und die Integration von Neuem beginnt. Die Integratoren haben eine Doppelfunktion: Zum einen wirken sie als Tiefpassfilter für die PLL. Zum anderen wird im Zusammenspiel mit den Code-Mischern die zyklische Kreuzkorrelation zwischen $\gpsmx$ und $\gpsca$ berechnet\footnote{Durch das Zurücksetzen des Integrators können $\gpsxc$ und $\gpsca$ als Funktionen behandelt werden, die außerhalb von $0\leq t < \gpsTcode$ verschwinden. Dadurch ergibt sich die Zyklische Fortzsetzung als $\xi_T(t)=\sum_{m=-\infty}^{\infty}{\xi(t-m\cdot \gpsTcode)}$ mit $\xi=\gpsca$ oder $\xi=\gpsxc$}:
+\begin{eqnarray}
+	\int_{t_0}^{{t_0}+\gpsTcode}{\gpsxc(\tau) \textrm{d}\tau} &=& \int_{t_0}^{{t_0}+\gpsTcode}{\gpsmx(\tau) \cdot \gpsca(\tau) \textrm{d}\tau}\\
+    &=& (\gpsmx(t) * \gpsca(-t))(0)
+\end{eqnarray}
+Dies entspricht genau der zyklischen Kreuzkorrelation $(\gpsmx \star \gpsca)(0)$. Der \emph{Dump}, also das Speichern des Integrationswerts und Zurücksetzen des Integrators auf null, muss synchron zu den Code Perioden erfolgen. Diese Anforderung geht zwar nicht aus der zyklischen Kreuzkorrelation hervor, aber es kann sonst vorkommen, dass ein Bitwechsel innerhalb der Integrationsperiode auftritt.
 
 \paragraph{Code Diskriminator} Der Code Diskriminator berechnet aus seinen Eingangswerten ein Steuersignal, das bestimmt ob die Codephase erhöht oder verringert werden muss.
 
@@ -33,22 +38,26 @@ Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} ve
 	\gpsmx_I &=& \gpsin \cdot \cos(\omega_{f} t)\\
 		    &=& \gpsdat \cdot \cos(\omega_{ZF} \cdot t) \cdot \cos(\omega_{f} t)\\
             &=& \frac{\gpsdat}{2} \cdot (\cos((\omega_{ZF}-\omega_{f}) t)+ \cos((\omega_{ZF}+\omega_{f}) t)) \\
-    \gpsout_I &=& \frac{\gpsdat}{2} \cdot \cos((\omega_{ZF}-\omega_{f})\cdot t)
+    \gpspllout_I &=& \frac{\gpsdat}{2} \cdot \cos((\omega_{ZF}-\omega_{f})\cdot t)
 \end{eqnarray}
-Der hintere Term wird durch das Tiefpassfilter entfernt. Im Q-Pfad ergibt sich nach ähnlicher Rechnung:
+$\gpspllout$  ergibt sich durch Tiefpassfilterung von $\gpsmx$, wodurch der hintere Term wegfällt. Im Q-Pfad ergibt sich nach ähnlicher Rechnung:
 \begin{eqnarray}
 \gpsmx_Q &=& \frac{\gpsdat}{2} \cdot (\sin((\omega_{ZF}-\omega_{f}) t)+ \sin((\omega_{ZF}+\omega_{f}) t))\\
-\gpsout_Q &=& \frac{\gpsdat}{2} \cdot \sin((\omega_{ZF}-\omega_{f})\cdot t)
+\gpspllout_Q &=& \frac{\gpsdat}{2} \cdot \sin((\omega_{ZF}-\omega_{f})\cdot t)
 \end{eqnarray}
-Man sieht nun, dass wenn $\omega_{ZF}=\omega_{f}$ gilt, dann $\gpsout_I = \frac{\gpsdat}{2}$  und $\gpsout_Q =0$. Das Ziel des Regelkreises ist also die gesamte Energie im $I$-Arm zu halten. 
+Man sieht nun, dass wenn $\omega_{ZF}=\omega_{f}$ gilt, dann $\gpspllout_I = \frac{\gpsdat}{2}$  und $\gpspllout_Q =0$. Das Ziel des Regelkreises ist also die gesamte Energie im $I$-Arm zu halten. 
 Dazu vergleicht der Loopdiskriminator die Energie im I und Q Arm, und generiert ein entsprechendes Steuersignal falls das Regelziel nicht erfüllt ist. Als Loopdiskriminator bietet sich $\arctan\left(\frac{Q}{I}\right)$ an, denn: 
 \begin{equation}
-	\frac{\gpsout_Q}{\gpsout_I} = \frac{ \frac{\gpsdat}{2} \cdot \sin((\omega_{ZF}-\omega_{f})\cdot t)}{\frac{\gpsdat}{2} \cdot \cos((\omega_{ZF}-\omega_{f})\cdot t)} = \tan({\underbrace{(\omega_{ZF}-\omega_{f})\cdot t}_{\phi_f}})
+	\frac{\gpspllout_Q}{\gpspllout_I} = \frac{ \frac{\gpsdat}{2} \cdot \sin((\omega_{ZF}-\omega_{f})\cdot t)}{\frac{\gpsdat}{2} \cdot \cos((\omega_{ZF}-\omega_{f})\cdot t)} = \tan({\underbrace{(\omega_{ZF}-\omega_{f})\cdot t}_{\phi_f}})
 \end{equation}
-Die Charakteristik des TODO arctan Diskriminators ist in Grafik TODO dargestellt. Wie man sieht hat die $\arctan()$ Funktion Nullstellen für \SI{0}{\degree} und \SI{180}{\degree}, woraus sich die Immunität gegen die BPSK Modulation ergibt.
+Die Charakteristik des $\arctan$ Diskriminators ist in \FR{arctandiscriminator.png} dargestellt. Wie man sieht bestehen Nullstellen für \SI{0}{\degree} und \SI{180}{\degree}, woraus sich die Immunität gegen die BPSK Modulation ergibt.
 
-\paragraph{Code Tracking}
-Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. In dieser Arbeit wurde dafür ein \emph{Early-Late-Gate} verwendet. Bei diesem wird das Signal parallel mit drei Kopien des Codes multipliziert, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips. Die drei Kopien werden mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Bei korrekter Codephase wird die Energie im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
+\FGimg{arctandiscriminator.png}{Charakteristik des $\arctan$ Diskriminators der im Costas Loop zur Anwendung kommt. Die Nullstellen bei $\phi=n\cdot \pi$ mit $n\in \mathbb{N}$ sorgen dafür, dass der Costas Loop immun gegen die durch die Modulation entstandenen \SI{180}{\degree} Phasenwechsel ist.}{0.8\textwidth}
+
+\subsubsection{Code Tracking}
+Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. Bekannte Methoden sind zum Beispiel \emph{Direct Maximization} oder \emph{Early-Late-Gate}, wobei letzteres in dieser Arbeit verwendet wird. 
+
+\paragraph{Early Late Gate} Bei dieser Technik wird das Signal $\gpsmx$ parallel mit drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ korreliert (vgl \ref{IntegrateDump}, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips. Die drei Kopien werden deshalb mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Bei korrekter Einstellung der Codephase wird die Korrelation im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
 
 \paragraph{Loop Filter}
 Der Ausgang der Carrier- bzw. Code Loop Diskriminatoren ist der Wert des Phasenfehlers. Zur Ansteuerung des (TODO Glossar) NCO wird .

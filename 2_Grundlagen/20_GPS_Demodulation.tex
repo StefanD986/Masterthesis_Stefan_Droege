@@ -2,6 +2,7 @@
 In diesem Abschnitt wird die prinzipielle Funktion eines Empfängers für das GPS Signal erklärt. Es wird hier davon ausgegangen, dass das von der Antenne kommende Signal bereits auf eine Zwischenfrequenz $f_{ZF}$ heruntergemischt wurde und digitalisiert wurde. Damit gestaltet sich die Demodulation eigentlich einfach: Es werden einfach die Schritte der Modulation erneut durchgeführt: Multiplikation mit dem (ZF-)Träger und Multiplikation mit dem CA Code (siehe \FR{MoDem.png}). Am Ausgang des Demodulators liegt dann das ursprüngliche Informationssignal an. Im Detail ist der Prozess jedoch komplexer und kann in drei Schritte aufgeteilt werden, die im Folgenden beschrieben werden.
 
 \subsection{Acquisition}
+\ref{Grundlagen_Acquisition}
 Die zuvor beschriebene Demodulation hängt von mehreren, zunächst unbekannten, Variablen ab. Diese Unbekannten zu bestimmen ist Aufgabe der Acquisition.
 Wie in Abschnitt \ref{basics_cdma} beschrieben wird zum Multiplexen der Signale der über 30 Satelliten das Signal CDMA kodiert, wobei jeder aktive Satellit einen anderen Code verwendet. Deshalb und weil der Signalpegel beim Empfang unter dem thermischen Rauschen liegt, ist aus den Rohdaten zunächst nicht ersichtlich welche Satelliten überhaupt in Sicht sind. Die erste zu bestimmende Unbekannte ist also welche GPS Satelliten überhaupt in Sicht sind.
 

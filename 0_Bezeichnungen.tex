@@ -1,0 +1,32 @@
+% Some shortcuts so that everyhwere the same nomenclature is used for signals in this document
+Dieser Abschnitt ist eine Übersicht über die verwendeten Symbole in dieser Arbeit. Bei vielen Symbolen kann es außerdem hilfreich sein, die Blockschaltbilder zur Hilfe zu nehmen. 
+
+Einige generelle Konventionen denen in dieser Arbeit gefolgt wird: 
+\begin{itemize}
+\item Symbole mit einer Tilde wie z.B. $\gpsin$ stellen Signale auf der Empfängerseite dar. 
+\item Großgeschriebene Symbole stellen die Fouriertransformierte des entsprechenden Signals mit Kleinbuchstaben dar.
+\item Wenn von einem Signal mehrere Versionen vorliegen wie z.B. im Falle von $\gpslo_I$ und $\gpslo_Q$ wird in einigen Gleichungen das Subscript weggelassen, wenn die Gleichung für alle Versionen gilt.
+\end{itemize}
+
+\begin{scriptsize}
+
+\begin{description}
+\item [$\ifft{\cdot}$] Operator für die Fourier Transformation
+\item [$\fft{\cdot}$] Operator für die inverse Fourier Transformation % inverse FFT{}
+
+\item [$\gpsnav$] % output of acquisiton
+\item [$\gpsin$] Eingangssignal des GPS Empfängers (bereits heruntergemischt auf eine ZF).% Input signal to GPS receiver
+\item [$\gpslo$] Signal des \gls{LO}.% LO signal
+\item [$\gpsca$] Signal des Codegenerators. Der index $i$ bezeichnet die Code PRN. % CA code in the receiver
+\item [$\gpsmx$] Ausgangssignal des Mixers der das Eingangssignal $\gpsin$ mit $\gpslo$ mischt. % output of carrier mixer
+\item [$\gpsxc$] Ausgang des Mischers der $\gpsmx$ mit $\gpsca$ mischt.% output of code correlator
+\item [$\gpsaout$] % output of acquisiton
+\item [$\gpsdat$] % output of acquisiton
+\item [$\gpspllout$] % output of acquisiton
+
+\item [$\gpsTcode$] Dauer eines C/A Codewortes (\SI{1}{\ms} bei GPS)% (time)length of one codeword
+\item [$\gpsTchip$] Dauer eines Chips des C/A Codewortes (\SI{\approx977}{\ms} bei GPS)% (time)length of one codeword
+
+\end{description}
+
+\end{scriptsize}
