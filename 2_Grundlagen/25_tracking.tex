@@ -57,7 +57,11 @@ Die Charakteristik des $\arctan$ Diskriminators ist in \FR{arctandiscriminator.p
 \subsubsection{Code Tracking}
 Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. Bekannte Methoden sind zum Beispiel \emph{Direct Maximization} oder \emph{Early-Late-Gate}, wobei letzteres in dieser Arbeit verwendet wird. 
 
-\paragraph{Early Late Gate} Bei dieser Technik wird das Signal $\gpsmx$ parallel mit drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ korreliert (vgl \ref{IntegrateDump}, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips. Die drei Kopien werden deshalb mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Bei korrekter Einstellung der Codephase wird die Korrelation im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
+\paragraph{Early Late Gate} Bei dieser Technik werden drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ erzeugt, die zeitlich leicht zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ \gls{Chips}.\footnote{Damit Verschiebungen $<\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise bereits der Fall um Aliasing zu verhindern.} 
+Die drei Kopien werden deshalb mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Das vom Carrier Mischer kommende Signal wird nun parallel mit den drei Codekopien korreliert. 
+
+das Signal $\gpsmx$ parallel mit 
+korreliert (vgl \ref{IntegrateDump}, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips.  Bei korrekter Einstellung der Codephase wird die Korrelation im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
 
 \paragraph{Loop Filter}
 Der Ausgang der Carrier- bzw. Code Loop Diskriminatoren ist der Wert des Phasenfehlers. Zur Ansteuerung des (TODO Glossar) NCO wird .
