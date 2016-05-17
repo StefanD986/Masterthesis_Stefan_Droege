@@ -17,12 +17,13 @@ Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird l
 
 \paragraph{Code Mischer} Nach der Mischung mit dem LO Signal wird das Signal $\gpsmx_I$ bzw. $\gpsmx_Q$ mit den Kopien des Codes gemischt. Nach der Mischung mit dem Code entspricht das Signal $\gpsxc_{I,P}$ theoretisch bereits wieder dem Datensignal $\gpsdat$. Zusammen mit den \emph{Integrate \& Dump} Blöcken (s.u.) bilden sie die Korrelatoren, die die Kreuzkorrelation zwischen Eingangssignal und lokaler Codekopie berechnen.
 
-\paragraph{Integrate \& Dump} \label{IntegrateDump} Die Integrate \& Dump Blöcke integrieren das Signal an ihrem Eingang jeweils für die Dauer eines Codewortes $\gpsTcode$, speichern dann den Wert in einem Ausgangsregister bevor der Akkumulator auf Null zurückgesetzt wird und die Integration von Neuem beginnt. Die Integratoren haben eine Doppelfunktion: Zum einen wirken sie als Tiefpassfilter für die PLL. Zum anderen wird im Zusammenspiel mit den Code-Mischern die zyklische Kreuzkorrelation zwischen $\gpsmx$ und $\gpsca$ berechnet\footnote{Durch das Zurücksetzen des Integrators können $\gpsxc$ und $\gpsca$ als Funktionen behandelt werden, die außerhalb von $0\leq t < \gpsTcode$ verschwinden. Dadurch ergibt sich die Zyklische Fortzsetzung als $\xi_T(t)=\sum_{m=-\infty}^{\infty}{\xi(t-m\cdot \gpsTcode)}$ mit $\xi=\gpsca$ oder $\xi=\gpsxc$}:
+\paragraph{Integrate \& Dump} \label{IntegrateDump} Die Integrate \& Dump Blöcke integrieren das Signal an ihrem Eingang jeweils für die Dauer eines Codewortes $\gpsTcode$, speichern dann den Wert in einem Ausgangsregister bevor der Akkumulator auf Null zurückgesetzt wird und die Integration von Neuem beginnt. Die Integratoren haben eine Doppelfunktion: Zum einen wirken sie als Tiefpassfilter für die PLL. Zum anderen wird im Zusammenspiel mit den Code-Mischern die zyklische\footnote{Durch das Zurücksetzen des Integrators können $\gpsxc$ und $\gpsca$ als Funktionen behandelt werden, die außerhalb von $0\leq t < \gpsTcode$ verschwinden. Dadurch ergibt sich die zyklische Fortsetzung als $\xi_T(t)=\sum_{m=-\infty}^{\infty}{\xi(t-m\cdot \gpsTcode)}$ mit $\xi=\gpsca$ oder $\xi=\gpsxc$} Kreuzkorrelation zwischen $\gpsmx$ und $\gpsca$ berechnet. Zum Zeitpunkt $t=n\cdot \gpsTcode$, $n\in \mathbb{N}$ liegt am Ausgang des Integrators:
 \begin{eqnarray}
-	\int_{t_0}^{{t_0}+\gpsTcode}{\gpsxc(\tau) \textrm{d}\tau} &=& \int_{t_0}^{{t_0}+\gpsTcode}{\gpsmx(\tau) \cdot \gpsca(\tau) \textrm{d}\tau}\\
-    &=& (\gpsmx(t) * \gpsca(-t))(0)
+	\gpspllout(t) &=& \int_{-\gpsTcode}^{0}{\gpsca(\tau) \cdot \gpsmx(t+\tau) \textrm{d}\tau}\\
+    &=& (\gpsca(-\tau) * \gpsmx(\tau))(t)
 \end{eqnarray}
-Dies entspricht genau der zyklischen Kreuzkorrelation $(\gpsmx \star \gpsca)(0)$. Der \emph{Dump}, also das Speichern des Integrationswerts und Zurücksetzen des Integrators auf null, muss synchron zu den Code Perioden erfolgen. Diese Anforderung geht zwar nicht aus der zyklischen Kreuzkorrelation hervor, aber es kann sonst vorkommen, dass ein Bitwechsel innerhalb der Integrationsperiode auftritt.
+
+Dies entspricht genau der zyklischen Kreuzkorrelation $(\gpsca \star \gpsmx)(t)$. Der \emph{Dump}, also das Speichern des Integrationswerts und Zurücksetzen des Integrators auf null, muss synchron zu den Code Perioden erfolgen. Diese Anforderung geht zwar nicht aus der zyklischen Kreuzkorrelation hervor, aber es kann sonst vorkommen, dass ein Bitwechsel innerhalb der Integrationsperiode auftritt.
 
 \paragraph{Code Diskriminator} Der Code Diskriminator berechnet aus seinen Eingangswerten ein Steuersignal, das bestimmt ob die Codephase erhöht oder verringert werden muss.
 
@@ -57,8 +58,14 @@ Die Charakteristik des $\arctan$ Diskriminators ist in \FR{arctandiscriminator.p
 \subsubsection{Code Tracking}
 Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. Bekannte Methoden sind zum Beispiel \emph{Direct Maximization} oder \emph{Early-Late-Gate}, wobei letzteres in dieser Arbeit verwendet wird. 
 
-\paragraph{Early Late Gate} Bei dieser Technik werden drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ erzeugt, die zeitlich leicht zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ \gls{Chips}.\footnote{Damit Verschiebungen $<\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise bereits der Fall um Aliasing zu verhindern.} 
-Die drei Kopien werden deshalb mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Das vom Carrier Mischer kommende Signal wird nun parallel mit den drei Codekopien korreliert. 
+\paragraph{Early Late Gate} Bei dieser Technik werden drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ erzeugt, die zeitlich leicht zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ \glspl{Chip}.\footnote{Damit Verschiebungen $\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise bereits der Fall um Aliasing zu verhindern.} 
+
+Die drei Kopien werden deshalb mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Das vom Carrier Mischer kommende Signal $\gpsmx$ wird nun durch die Codemischer und die Integratoren parallel mit den drei Codekopien korreliert. In \FR{EarlyLate_delayed.png} ist die Kreuzkorrelation zwischen einem Eingangssignal und einer um $1/4$ Chip nacheilenden Codekopie dargestellt.
+\FR{EarlyLate_punctual.png} und 
+
+\FGimg{EarlyLate_punctual.png}{Kreuzkorrelation in der Umgebung von $k=0$ bei dem die Codekopie mit dem Eingangssignal perfekt synchron ist. Das Signal ist 4-fach überabgetastet.}{0.8\textwidth}
+
+\FGimg{EarlyLate_delayed.png}{Kreuzkorrelation in der Umgebung von $k=0$ für ein Eingangssignal dem die Codekopie um $1/4$ Chip nacheilt. Das Signal ist 4-fach überabgetastet.}{0.8\textwidth}
 
 das Signal $\gpsmx$ parallel mit 
 korreliert (vgl \ref{IntegrateDump}, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips.  Bei korrekter Einstellung der Codephase wird die Korrelation im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
