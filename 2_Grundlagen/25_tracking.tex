@@ -58,7 +58,9 @@ Die Charakteristik des $\arctan$ Diskriminators ist in \FR{arctandiscriminator.p
 \subsubsection{Code Tracking}
 Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. Bekannte Methoden sind zum Beispiel \emph{Direct Maximization} oder \emph{Early-Late-Gate}, wobei letzteres in dieser Arbeit verwendet wird. 
 
-\paragraph{Early Late Gate} Bei dieser Technik werden drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ erzeugt, die zeitlich leicht zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ \glspl{Chip}.\footnote{Damit Verschiebungen $\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise bereits der Fall um Aliasing zu verhindern.} 
+\FGimg{EarlyLateBlockdiagram.png}{Vereinfachtes Blockschaltbild für die Code Synchronisation mittels Early Late Gate}{0.8\textwidth}
+
+\paragraph{Early Late Gate} Bei dieser Technik werden drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ erzeugt, die zeitlich leicht zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ \glspl{Chip}.\footnote{Damit Verschiebungen $<\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise ohnehin der Fall um Aliasing zu verhindern.} 
 
 Die drei Kopien werden deshalb mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Das vom Carrier Mischer kommende Signal $\gpsmx$ wird nun durch die Codemischer und die Integratoren parallel mit den drei Codekopien korreliert. In \FR{EarlyLate_delayed.png} ist die Kreuzkorrelation zwischen einem Eingangssignal und einer um $1/4$ Chip nacheilenden Codekopie dargestellt.
 \FR{EarlyLate_punctual.png} und 
