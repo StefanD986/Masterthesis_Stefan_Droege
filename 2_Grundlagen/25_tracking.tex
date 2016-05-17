@@ -58,19 +58,20 @@ Die Charakteristik des $\arctan$ Diskriminators ist in \FR{arctandiscriminator.p
 \subsubsection{Code Tracking}
 Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. Bekannte Methoden sind zum Beispiel \emph{Direct Maximization} oder \emph{Early-Late-Gate}, wobei letzteres in dieser Arbeit verwendet wird. 
 
-\FGimg{EarlyLateBlockdiagram.png}{Vereinfachtes Blockschaltbild für die Code Synchronisation mittels Early Late Gate}{0.8\textwidth}
+\FGimg{EarlyLateBlockdiagram.png}{Vereinfachtes Blockschaltbild für die Code Synchronisation mittels Early Late Gate. Hier wird nur eine einfache Summe als Loop Diskriminator verwendet. Außerdem nicht dargestellt ist, dass die Korrelation im I und Q Arm Gleichzeitig durchgeführt wird, um Phasenfehler des Carrier Loops auszugleichen.}{0.8\textwidth}
 
-\paragraph{Early Late Gate} Bei dieser Technik werden drei Kopien des Codes, $\gpsca_E$, $\gpsca_P$ und $\gpsca_L$ erzeugt, die zeitlich leicht zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ \glspl{Chip}.\footnote{Damit Verschiebungen $<\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise ohnehin der Fall um Aliasing zu verhindern.} 
+\paragraph{Early Late Gate} In \FR{EarlyLateBlockdiagram.png} ist ein vereinfachtes Blockschaltbild des Early Late Gate Synchronisierers dargestellt. Für das Early Late Gate werden zwei Kopien des \emph{pünktlichen} Codes $\gpsca_P$ erzeugt, \emph{Early} ($\gpsca_E$) und \emph{Late} $\gpsca_L$, die jeweils $\gpsca_P$ voreilen ($\gpsca_E$), bzw. nacheilen ($\gpsca_L$), üblicherweise um die Dauer $\frac{1}{2}$ \glspl{Chip}.\footnote{Damit Verschiebungen $<\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise ohnehin der Fall um Aliasing zu verhindern.}
 
-Die drei Kopien werden deshalb mit \emph{Early} (\enquote{verfrüht}), \emph{Prompt} (\enquote{pünktlich}) und \emph{Late} (\enquote{verspätet}) bezeichnet. Das vom Carrier Mischer kommende Signal $\gpsmx$ wird nun durch die Codemischer und die Integratoren parallel mit den drei Codekopien korreliert. In \FR{EarlyLate_delayed.png} ist die Kreuzkorrelation zwischen einem Eingangssignal und einer um $1/4$ Chip nacheilenden Codekopie dargestellt.
-\FR{EarlyLate_punctual.png} und 
+Das vom Carrier Mischer kommende Signal $\gpsmx$ wird nun durch die Codemischer und die Integratoren parallel mit den zwei Codekopien korreliert. Bei perfekter Synchronisation werden die \emph{Early} und \emph{Late} Korrelatoren einen gleichgroßen Wert liefern (\FR{EarlyLate_punctual.png}). Falls die Codekopie voreilt oder nacheilt wird sich dagegen das Gewicht zum Early bzw Late Korrelator verschieben. 
+
+Als Beispiel ist in \FR{EarlyLate_delayed.png} die Kreuzkorrelation zwischen einem Eingangssignal und einer um $1/4$ Chip nacheilenden Codekopie dargestellt. Weil das Eingangssignal relativ zur Codekopie voreilt zeigt der \emph{Early} Korrelator einen höheren Wert an als der \emph{Late} Korrelator ($\blacksquare$) $A \mathbin{\tikz[baseline] \draw[->>] (0pt,.5ex) -- (3ex,.5ex);} B$
 
 \FGimg{EarlyLate_punctual.png}{Kreuzkorrelation in der Umgebung von $k=0$ bei dem die Codekopie mit dem Eingangssignal perfekt synchron ist. Das Signal ist 4-fach überabgetastet.}{0.8\textwidth}
 
-\FGimg{EarlyLate_delayed.png}{Kreuzkorrelation in der Umgebung von $k=0$ für ein Eingangssignal dem die Codekopie um $1/4$ Chip nacheilt. Das Signal ist 4-fach überabgetastet.}{0.8\textwidth}
+\FGimg{EarlyLate_delayed.png}{Kreuzkorrelation in der Umgebung von $k=0$ für ein Eingangssignal dem die Codekopie um $1/4$ Chip nacheilt. Das Signal ist 4-fach überabgetastet. Der Early Korrelator zeigt einen größeren Wert an, weil das Eingangssignal in Bezug auf die Codekopie voreilt.}{0.8\textwidth}
 
 das Signal $\gpsmx$ parallel mit 
-korreliert (vgl \ref{IntegrateDump}, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips.  Bei korrekter Einstellung der Codephase wird die Korrelation im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
+korreliert (vgl. \ref{IntegrateDump}, wobei die drei Codekopien zeitlich zueinander verzögert sind, üblicherweise um die Dauer $\frac{1}{2}$ Chips.  Bei korrekter Einstellung der Codephase wird die Korrelation im \emph{Prompt} Zweig am höchsten sein, und die Energie in den \emph{Early} und \emph{Late} Zweigen gleich groß. Falls die Phase des Codes dagegen zu klein eingestellt ist, wird die Energie im \emph{Late} Zweig steigen, und der Code Loop Diskriminator regelt entsprechend gegen.
 
 \paragraph{Loop Filter}
 Der Ausgang der Carrier- bzw. Code Loop Diskriminatoren ist der Wert des Phasenfehlers. Zur Ansteuerung des (TODO Glossar) NCO wird .
