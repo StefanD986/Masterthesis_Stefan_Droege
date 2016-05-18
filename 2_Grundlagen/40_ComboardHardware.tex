@@ -1,5 +1,21 @@
 \section{Systemhardware}
-Der in dieser Arbeit entwickelte GPS Empfänger ist Teil des Kommunikationssystems des Dragsail Cubesat. Das Kommunikationssystem wurde in mehreren Arbeiten am Institut für Hochfrequenztechnik der RWTH Aachen und an der Fachhochschule Aachen entwickelt. Die Entwicklung der \emph{COM Board} Hardware wurde in \cite{DragsailKaiMA} und \cite{DragsailMattiMA} beschrieben und eine gute Beschreibung der DSP-FPGA Schnittstelle ist in \cite{DragsailAndrejMA} zu finden.
+Der in dieser Arbeit entwickelte GPS Empfänger ist Teil des Kommunikationssystems des Dragsail Cubesat. Das Kommunikationssystem wurde in mehreren Arbeiten am Institut für Hochfrequenztechnik der RWTH Aachen und an der Fachhochschule Aachen entwickelt. Die Entwicklung der \comboard Hardware wurde in \cite{DragsailKaiMA} und \cite{DragsailMattiMA} beschrieben und eine gute Beschreibung der DSP-FPGA Schnittstelle ist in \cite{DragsailAndrejMA} zu finden.
+In diesem Abschnitt wird ein Überblick über die für diese Arbeit relevanten Teile der \comboard Hardware gegeben werden. 
 
-In diesem Abschnitt soll noch einmal ein Überblick über die für diese Arbeit relevanten Teile des \emph{COM Boards} gegeben werden. 
+\FGimg{COMTop.png}{Oberseite der COM Leiterplatte.}{0.7\textwidth}
+\FGimg{COMBottom.png}{Unterseite der COM Leiterplatte.}{0.7\textwidth}
 
+
+\FR{COMTop.png} und \FR{COMBottom.png} zeigen das \comboard Subsystem des Dragsail Cubesat. Das System beinhaltet: 
+\begin{itemize}
+\item Einen leistungsfähigen \gls{DSP} für die Signalverarbeitung und Systemmanagementaufgaben.
+\item Ein \gls{FPGA} der vor allem für die Bildverarbeitung der Kameras notwendig ist, aber auch beim GPS zum Einsatz kommt.
+\item Das GPS HF Frontend, was die Digitalisierung der von den GPS Antennen kommenden HF Signale übernimmt.
+\end{itemize}
+
+
+% MAX2769
+% FPGA
+% DSP 
+% FPGA DSP Schnittstelle
+% DSP 
