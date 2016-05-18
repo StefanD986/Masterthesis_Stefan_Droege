@@ -4,8 +4,8 @@ In diesem Abschnitt wird ein Überblick über die für diese Arbeit relevanten T
 
 Die für den GPS Empfänger relevanten Teile des \comboard sind: 
 \begin{itemize}
-\item Einen leistungsfähigen \gls{DSP} für die Signalverarbeitung und Systemmanagement Aufgaben.
-\item Ein \gls{FPGA} der vor allem für die Bildverarbeitung der Kameras notwendig ist, aber auch beim GPS zum Einsatz kommt.
+\item Ein leistungsfähiger \gls{DSP} für die Signalverarbeitung und Systemmanagement Aufgaben.
+\item Ein \gls{FPGA} der zum einen für die Bildverarbeitung der Kameras notwendig ist, aber auch beim GPS beim Tracking zum Einsatz kommt.
 \item Ein GPS HF Frontend, was die Digitalisierung der von den GPS Antennen kommenden HF Signale übernimmt.
 \end{itemize}
 
@@ -13,15 +13,20 @@ Die für den GPS Empfänger relevanten Teile des \comboard sind:
 
 \FGimg{COMBottom.png}{Unterseite der COM Leiterplatte.}{0.7\textwidth}
 
+In \FR{SystemBlockdiagram.png} ist ein vereinfachtes Blockdiagramm des \comboard dargestellt. Das GPS Frontend hat eine write-only SPI Schnittstelle, die an den SPI Bus des DSP angeschlossen ist, was aber lediglich der Konfiguration der Frontend Parameter dient. Das digitalisiere \gls{ZF} Signal wird dagegen über eine parallele, synchrone Schnittstelle an den FPGA weitergegeben. Der FPGA übernimmt zum einen Teile der Datenverarbeitung (\gls{Tracking}), zum anderen puffert er die Rohdaten um sie auf Anfrage an den DSP weiterzugeben. Der Datenaustausch zwischen FPGA und DSP erfolgt über ein asynchrones Speicherinterface. 
+
 \FGimg{SystemBlockdiagram.png}{Vereinfachtes Blockdiagram des \comboard. Es sind lediglich die Komponenten dargestellt, die für den GPS Empfänger relevant sind.}{0.7\textwidth}
 
 \subsection{GPS Frontend MAX2769}
-Das GPS Frontend hat die Aufgabe das L-Band Signal (\SI{1575.42}{\MHz}) auf eine \gls{ZF} herabzusetzen und zu digitalisieren. Die digitale ZF wird dem FPGA über eine parallele, synchrone Schnittstelle zugeführt. 
+\label{max2769frontend}
+Das GPS Frontend hat die Aufgabe das L-Band Signal (\SI{1575.42}{\MHz}) auf eine \gls{ZF} herabzusetzen und zu digitalisieren. Dazu beinhaltet das Frontend einen PLL stabilisierten Frequenzsynthesizer, Low-Noise Vorverstärker, Mischer, Filter mit \gls{AGC} und AD Wandler. Die Funktion ist in weiten Bereichen über eine SPI Schnittstelle konfigurierbar: Für aktive Antennen steht eine Phantomspeisung zur Verfügung und es kann aus zwei \gls{LNA} ausgewählt werden die auf passive, bzw. aktive Antennen optimiert sind. Die \gls{LO} Frequenz wird von einer PLL erzeugt, über die die ZF Frequenz ebenfalls wählbar ist. Zur Anpassung an andere ZF Frequenzen sind außerdem die ZF Filter konfigurierbar. Eine Beschreibung aller Funktionen des MAX2769 Frontends ist dem Datenblatt \cite{max2769} zu entnehmen.
+
+Das komplexe (\emph{IQ}) ZF Signal kann mit \SI{1}{\bit}, \SI{1.5}{\bit} oder \SI{2}{\bit}  quantisiert werden. Falls lediglich ein reelles (\emph{I}) ZF Signal gewünscht ist, stehen außerdem  \SI{2.5}{\bit} und \SI{3}{\bit} Quantisierung zur Auswahl.
+
+\FGimg{MAX2769.pdf}{Blockdiagramm des MAX2769 GPS Frontend ICs (entnommen aus \cite{max2769})}{0.6\textwidth}
+
+\subsection{Digitaler Signalprozessor}
+Auf dem \gls{DSP} des \comboard läuft ein embedded Linux System (\emph{Buildroot}) und der Zugriff auf den FPGA und die SPI Schnittstelle erfolgt über Treiber die als ladbare Kernelmodule ausgeführt sind. Anwendungsprogramme (wie der GPS Prozess) können dann über die Linux Devices auf die Hardware zugreifen. Dadurch ist die Low-Level Programmierung klar von der Anwendungsprogrammierung getrennt. Weitere Vorteile des Linux Systems sind das einfache Multitasking und der Möglichkeit der Verwendung von Standardbibliotheken. Einige Nachteile gegenüber einer \emph{Bare Metal} Implementierung sind allerdings die fehlende Echtzeitfähigkeit, weshalb in dieser Arbeit der DSP nur für nicht-zeitkritische Berechnungen, verwendet wird.
 
 
 
-% MAX2769
-% FPGA
-% DSP 
-% FPGA DSP Schnittstelle
-% DSP 
