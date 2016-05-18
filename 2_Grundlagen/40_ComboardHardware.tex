@@ -9,11 +9,11 @@ Die für den GPS Empfänger relevanten Teile des \comboard sind:
 \item Ein GPS HF Frontend, was die Digitalisierung der von den GPS Antennen kommenden HF Signale übernimmt.
 \end{itemize}
 
-\FGimg{COMTop.png}{Oberseite der COM Leiterplatte.}{0.7\textwidth}
+\FGimg{COMTop.png}{Oberseite der COM Leiterplatte.}{9cm}
 
-\FGimg{COMBottom.png}{Unterseite der COM Leiterplatte.}{0.7\textwidth}
+\FGimg{COMBottom.png}{Unterseite der COM Leiterplatte.}{9cm}
 
-In \FR{SystemBlockdiagram.png} ist ein vereinfachtes Blockdiagramm des \comboard dargestellt. Das GPS Frontend hat eine write-only SPI Schnittstelle, die an den SPI Bus des DSP angeschlossen ist, was aber lediglich der Konfiguration der Frontend Parameter dient. Das digitalisiere \gls{ZF} Signal wird dagegen über eine parallele, synchrone Schnittstelle an den FPGA weitergegeben. Der FPGA übernimmt zum einen Teile der Datenverarbeitung (\gls{Tracking}), zum anderen puffert er die Rohdaten um sie auf Anfrage an den DSP weiterzugeben. Der Datenaustausch zwischen FPGA und DSP erfolgt über ein asynchrones Speicherinterface. 
+In \FR{SystemBlockdiagram.png} ist ein vereinfachtes Blockdiagramm des \comboard dargestellt. Das GPS Frontend hat eine write-only SPI Schnittstelle, die an den SPI Bus des DSP angeschlossen ist, was aber lediglich der Konfiguration der Frontend Parameter dient. Das digitalisiere \gls{ZF} Signal wird dagegen über eine parallele, synchrone Schnittstelle an den FPGA weitergegeben. Der FPGA übernimmt zum einen Teile der Datenverarbeitung (\emph{Tracking}), zum anderen puffert er die Rohdaten um sie auf Anfrage an den DSP weiterzugeben. Der Datenaustausch zwischen FPGA und DSP erfolgt über ein asynchrones Speicherinterface. 
 
 \FGimg{SystemBlockdiagram.png}{Vereinfachtes Blockdiagram des \comboard. Es sind lediglich die Komponenten dargestellt, die für den GPS Empfänger relevant sind.}{0.7\textwidth}
 
@@ -23,10 +23,9 @@ Das GPS Frontend hat die Aufgabe das L-Band Signal (\SI{1575.42}{\MHz}) auf eine
 
 Das komplexe (\emph{IQ}) ZF Signal kann mit \SI{1}{\bit}, \SI{1.5}{\bit} oder \SI{2}{\bit}  quantisiert werden. Falls lediglich ein reelles (\emph{I}) ZF Signal gewünscht ist, stehen außerdem  \SI{2.5}{\bit} und \SI{3}{\bit} Quantisierung zur Auswahl.
 
-\FGimg{MAX2769.pdf}{Blockdiagramm des MAX2769 GPS Frontend ICs (entnommen aus \cite{max2769})}{0.6\textwidth}
+\FGimg{MAX2769.pdf}{Blockdiagramm des MAX2769 GPS Frontend ICs (entnommen aus \cite{max2769})}{0.8\textwidth}
 
 \subsection{Digitaler Signalprozessor}
-Auf dem \gls{DSP} des \comboard läuft ein embedded Linux System (\emph{Buildroot}) und der Zugriff auf den FPGA und die SPI Schnittstelle erfolgt über Treiber die als ladbare Kernelmodule ausgeführt sind. Anwendungsprogramme (wie der GPS Prozess) können dann über die Linux Devices auf die Hardware zugreifen. Dadurch ist die Low-Level Programmierung klar von der Anwendungsprogrammierung getrennt. Weitere Vorteile des Linux Systems sind das einfache Multitasking und der Möglichkeit der Verwendung von Standardbibliotheken. Einige Nachteile gegenüber einer \emph{Bare Metal} Implementierung sind allerdings die fehlende Echtzeitfähigkeit, weshalb in dieser Arbeit der DSP nur für nicht-zeitkritische Berechnungen, verwendet wird.
+Auf dem \gls{DSP} des \comboard läuft ein embedded Linux System (\emph{Buildroot}) und der Zugriff auf den FPGA und die SPI Schnittstelle erfolgt über Treiber die als ladbare Kernelmodule ausgeführt sind \FR{LinuxSystem.png}. Anwendungsprogramme (wie der GPS Prozess) können dann über die Linux Devices auf die Hardware zugreifen. Dadurch ist die Low-Level Programmierung klar von der Anwendungsprogrammierung getrennt. Weitere Vorteile des Linux Systems sind das einfache Multitasking und der Möglichkeit der Verwendung von Standardbibliotheken. Einige Nachteile gegenüber einer \emph{Bare Metal} Implementierung sind allerdings die fehlende Echtzeitfähigkeit, weshalb in dieser Arbeit der DSP nur für nicht-zeitkritische Berechnungen, verwendet wird.
 
-
-
+\FGimg{LinuxSystem.png}{Prinzipielle Systemarchtiektur eines Linux Systems. Die Hardware wird durch den Kernel und die Kerneltreiber abstrahiert}{0.6\textwidth}
