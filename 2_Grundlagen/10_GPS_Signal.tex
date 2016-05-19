@@ -58,3 +58,6 @@ Zur Synchronisation des Empfängers beginnt das erste Wort jedes Subframes mit e
 Alle Subframes übertragen in den ersten zwei Words die aktuelle Zeit zum Zeitpunkt der Aussendung. Die Ephemeriden mit den Orbitdaten und weiteren Informationen über das aussendende \gls{SV} werden in den Subframes 1, 2 und 3 übertragen. Diese drei Subframes werden in jedem Frame wiederholt. Die Almanach Daten sind deutlich länger, und werden deshalb segmentiert und über 25 Frames in den Subframes 4 und 5 übertragen. Die Übertragung eines vollständigen Datensatzes dauert damit \SI{12.5}{\minute}.
 
 \FGimg{MoDem.png}{Prinzip der GPS Signalerzeugung und Informationsrückgewinnung: Das Datensignal wird mit dem \gls{CA} Code Modulo-2 addiert (\emph{gespreizt}), und anschließend auf den Träger moduliert}{0.7\textwidth}
+
+\paragraph{Positionsbestimmung}
+Die Positionsbestimmung mittles GPS erfolgt nach dem Prinzip der \emph{Lateration}: Wenn der Beobachter die Entfernung zu einem Punkt kennt, so muss er sich an einem Punkt auf einer Kugelfläche um diesen Punkt befinden. Wenn der Beobachter die Entfernung zu einem Zweiten Punkt kennt, muss sich die 
