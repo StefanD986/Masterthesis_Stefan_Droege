@@ -12,10 +12,27 @@ Die dritte Unbekannte ist die exakte (ZF-)Trägerfrequenz. Die Trägerfrequenz i
 Es ist zu betonen, dass alle drei genannten Unbekannten gleichzeitig gefunden werden müssen. Denn wenn zum Beispiel die korrekte Trägerfrequenz bekannt ist, aber die Codephase oder PRN falsch ist, wird der Demodulator lediglich wiederum ein Rauschsignal liefern. Es wird also ein Korrelationsmaximum im dreidimensionalen Raum aus PRN, Frequenz, und Codephase gesucht.
 
 \subsubsection{Suchalgorithmus}
-Es gibt verschiedene Möglichkeiten zur Suche. Die einfachste, aber auch langsamste Methode ist die serielle Suche. Dabei wird das Eingangssignal $\gpsin$ punktweise mit einer Kopie des Codes $\gpsca$ und des Trägers $\gpslo$ multipliziert, wobei nacheinander verschiedene Kombinationen von \gls{PRN}, Dopplershift und Codephase ausprobiert werden. Aufgrund der großen Anzahl möglicher Kombinationen und Rechenoperationen ist dies jedoch äußerst zeitaufwändig.
+Es gibt verschiedene Möglichkeiten zur Suche. Die einfachste, aber auch langsamste Methode ist die serielle Suche. Dabei wird das Eingangssignal $\gpsin$ punktweise mit einer Kopie des Codes $\gpsca$ und des Trägers $\gpslo$ multipliziert und dann die Energie des Signals bestimmt, wobei nacheinander verschiedene Kombinationen von \gls{PRN}, Dopplershift und Codephase ausprobiert werden. Aufgrund der großen Anzahl möglicher Kombinationen und Rechenoperationen ist dies jedoch äußerst zeitaufwändig.
 
 Effizienter sind Methoden die sich die Fourier Transformation zunutze machen, um die aufwändige Berechnung der Kreuzkorrelation zu vereinfachen. Diese Suche muss zwar immer noch für jede PRN ausgeführt werden. Aber der Rechenaufwand bei den weiteren Schritten ist deutlich geringer. 
 In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Suche und paralleler Frequenzsuche verwendet. Im ersten Schritt wird der Dopplershift lediglich grob bestimmt (\SI{\pm500}{\Hz}), dafür die Codephase aber mit hoher Genauigkeit bestimmt. Im zweiten Schritt ist dann die Codephase bekannt, und es kann eine parallele Suche im Frequenzbereich durchgeführt werden um den Dopplershift genauer zu bestimmen. 
+
+\paragraph{Datenmenge für die Acquisition}
+Prinzipiell ist bei der Acquisition die Erfolgswahrscheinlichkeit größer je länger das Datensegment ist, mit dem die Kreuzkorrelation geprüft wird. Auf der anderen Seite steigt auch der Rechenaufwand für längere Segmente. Außerdem darf während des gesamten Datensegments zu keinem Bitwechsel kommen, da dies sonst in einem kleineren Korrelationswert resultieren würde:
+\begin{align}
+   (\gpsin(t) \star \gpsca)(\tau)  &= \int_0^T{\gpsin(t) \cdot \gpsca(\tau -t) \rm{d}t} \\
+   &= \int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \rm{d}t}
+     + \int_{t_1}^T{\gpsin_-(t) \cdot \gpsca(\tau -t) \rm{d}t}\\
+   &\leq \int_0^{t_1}{|\gpsin_+(t) \cdot \gpsca(\tau -t)| \rm{d}t} 
+     + \int_{t_1}^T{|\gpsin_-(t) \cdot \gpsca(\tau -t)| \rm{d}t}
+\end{align}
+
+mit dem Zeitpunkt $t_1$ des Bitwechsels, $T$ der Segmentlänge und $\gpsin_{\pm}$ dem Eingangssignal vor bzw. nach dem Bitwechsel . Die dritte Zeile folgt aus der Dreiecksungleichung.
+allen oben genannten Algorithmen gemein, dass sie Bitwechsel im Signal nicht tolerieren, die im schlimmsten Fall alle  \SI{20}{\milli\second} auftreten. Dieser würden durch die Drehung der Phase in einem kleineren Korrelationswert resultieren. Um dies auszuschließen nimmt man 
+
+Mit der GPS Bitrate von \SI{50}{\bit\per\second} ist damit die obere Schranke. Deshalb
+
+Für den Acquisition Algorithmus müssen eine gewisse Menge an Rohdaten zwischengespeichert werden. Wie in \cite{borre2007software} Kapitel 6.5 erläutert ist bei der Auswahl der Länge ein Kompromiss zwischen Rechenaufwand und Erfolgswahrscheinlichkeit gemacht werden: Verwendung eines längeren Signalausschnitts erhöht die Erfolgsaussichten, führt aber auch zu einem höheren Rechenaufwand. Da die Acquisition Algorithmen außerdem die nach einem Bitwechsel gedrehte Polarität des Signals ignorieren ist außerdem die sinnvolle Länge nach oben begrenzt.
 
 \FGimg{acquisition_activity.png}{Die Acquisition bestimmt in einem ersten Schritt die genaue Codephase. Wenn diese Suche erfolgreich ist (die \emph{Peak Metric} über einem bestimmten Schwellwert liegt), wird in einem zweiten Schritt die Dopplerverschiebung genauer bestimmt }{0.6\textwidth}
 
