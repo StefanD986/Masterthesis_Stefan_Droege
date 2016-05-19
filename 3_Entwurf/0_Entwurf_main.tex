@@ -2,11 +2,27 @@
 Einleitung zum Entwurf
 
 \section{Anforderungen}
-In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand derer sich die Arbeitspakete identifiezieren lassen. Die grundlegende Anforderung ist: Der \dscubesat soll in der Lage sein seine eigene Position mittels GPS zu bestimmen. 
+In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand derer sich die Arbeitspakete identifizieren lassen. Das Ziel ist: Der \dscubesat soll in der Lage sein seine eigene Position mittels GPS zu bestimmen.  
+
+\paragraph{Anzahl der Kanäle} Wie in Abschnitt \ref{positionsbestimmung} erläutert werden dazu die Daten von mindesten 4 GPS Satelliten benötigt. Daraus ergibt sich die Anforderung, dass der Empfänger mindestens 4 Kanäle zum Tracking der Signale haben muss. Weiterhin soll bei einem Verbindungsabbruch zu einem der 4 Satelliten die Positionsbestimmung nicht abbrechen, weshalb >4 Kanäle erforderlich sind. Außerdem steigt die Genauigkeit der Positionsbestimmung mit mehr Satelliten. Deshalb soll der hier entwickelte GPS Empfänger mindestens 6 Kanäle umfassen.
+
+\paragraph{Rohdatenpuffer}
+Voraussetzung für das Tracking ist die erfolgreiche Acquisition. 
+
+dazu mindestens \SI{2}{\ms} Rohdaten erforderlich. 
+
+\paragraph{Frontend Samplingrate}
+Bei der Wahl der Frontend Für einen kleinen Pseudoranging Fehler sind hohe Samplingraten des GPS Frontends von Vorteil ($\epsilon_{r} = c_0/f_S$). Allerdings steigt mit höherer Samplingrate auch der Rechenaufwand bei der Acquisition.
+
+ 
 % Die Voraussetzungen sind dafür: NAV Daten von >= 4 Satelliten
 % Also müssen mindestens 4 Satelliten getrackt werden können. (plus Reserve falls Empfang verloren geht)
 % Voraussetzung für das Tracking ist die Acquisition. Für die Acquisition werden 2ms Rohdaten benötigt. --> Speicheranforderung. Berechnung durchführen.
 % Aus Experimenten mit verschieden Konfigurationen hat sich gezeigt, dass die besten Ergebnisse mit 1 bit sampling und einer ZF von xx Hz erzielt werden können, bei einer Samplingrate von xyz Hz. Das Frontend bietet zwar höhere Quantisierungen, jedoch führt dies offenbar i
+
+% # CHannels
+% Samplingrate
+% Sample länge
 
 \section{Planung}
 Um die Arbeitspakete und Anforderungen zu identifizieren ist es zunächst wichtig zu verstehen wie die Demodulation des GPS Signals prinzipiell abläuft. Dies wird deshalb im ersten Abschnitt beschrieben. Im zweiten Abschnitt werden die Arbeitspakete dann den einzelnen Hardware Komponenten zugeordnet. Da die COM Hardware mit dem DSP und dem FPGA zwei komplexe Datenverarbeitende Komponenten besitzt, die Daten miteinander austauschen wird im dritten Abschnitt der Entwurf der Software Schnittstelle zwischen DSP und FPGA beschrieben. Der letzte Abschnitt beschreibt die Simulation, von der während des Entwurfs und Implementierung viel Gebrauch gemacht wurde, um Konzepte und Ideen zu prüfen.

@@ -14,13 +14,13 @@ Die von der darüberliegenden Schicht erhaltenen Daten werden auf den Träger mi
 
 Das ausgesendete Signal ergibt sich durch Addition des \gls{CA} Signals mit dem um \SI{3}{\dB} gedämpften \gls{PY} Signal. \FR{GPSConstellation} stellt die Symbolkonstellation grafisch dar. Wie man sieht, gibt es je zwei Symbole die eine $1$ bzw. eine $0$ des CA Signals signalisieren. Ein Empfänger wendet auf das empfangene Signal einen Tiefpassfilter an. Da das \gls{PY} Signal durch ein Informationssignal mit deutlich höherer Bandbreite moduliert ist und durch den Chipping Code ein pseudo-Zu\-falls\-ver\-hal\-ten aufweist ergeben sich nach der Tiefpassfilterung wieder die Konstellationspunkte $C_{1,2}$.
 
-\FG{\input{figures/GPSConstellation.tex}}{Konstellationsdiagramm des L1 GPS Signals (blau, $P_{0,1}+C_{0,1}$). Das GPS Signals ergibt sich durch Addition des modulierten \gls{CA} Trägers (rot, $C_{0,1}$) mit dem modulierten, um \SI{3}{\dB} gedämpften, \gls{PY} Trägers.}{GPSConstellation}
+\FG{\input{figures/GPSConstellation.tex}}{Konstellationsdiagramm des L1 GPS Signals (blau, $P_{0,1}+C_{0,1}$). Das GPS Signals ergibt sich durch Addition des modulierten \gls{CA} Trägers (rot, $C_{0,1}$) mit dem modulierten, um \SI{3}{\dB} gedämpften, \gls{PY} Trägers (grün, $C_{0,1}$).}{GPSConstellation}
 
 \paragraph{Polarisation} Das Signal wird mit einer rechtszirkular polarisierten Antenne ausgestrahlt. Dies hilft Multipath-Ausbreitung zu unterdrücken: Eine Reflektion dreht die Polarisation zu einer linkspolariserten Welle. Durch Verwendung einer rechtszirkular polarisierten Empfangsantenne wird das reflektierte Signal beim Empfang unterdrückt.
 
 \subsection{Medium Access Control mit CDMA}
 \label{basics_cdma}
-Wie im vorherigen Abschnitt beschrieben senden alle GPS Satelliten auf derselben Frequenz. Zum Multiplexen der vielen Signale kommt bei GPS \gls{CDMA} zum Einsatz. Dabei wird das eigentliche Informationssignal vor der Modulation auf dem Träger mit einem Codewort multipliziert. Jeder aktive Satellit hat ein individuelles Codewort zugewiesen. Die unterschiedlichen Codeworte - und damit die Satelliten - werden durch die sogenannte \gls{PRN} identifiziert.
+Wie im vorherigen Abschnitt beschrieben, senden alle GPS Satelliten auf derselben Frequenz. Zum Multiplexen der vielen Signale kommt bei GPS \gls{CDMA} zum Einsatz. Dabei wird das eigentliche Informationssignal vor der Modulation auf dem Träger mit einem Codewort multipliziert. Jeder aktive Satellit hat ein individuelles Codewort zugewiesen. Die unterschiedlichen Codeworte - und damit die Satelliten - werden durch die sogenannte \gls{PRN} identifiziert.
 
 Da die Coderate deutlich größer ist als die Informationrate erhöht sich durch die Multiplikation mit dem Codewort die Bandbreite des Signals stark. Daher zählt \gls{CDMA} zu den \emph{Spread Spectrum} Verfahren (\enquote{\emph{aufspreizen}}).
 
@@ -35,7 +35,7 @@ Da die Bits des Codeworts keine Information enthalten werden sie zur besseren Un
 \FGimg{LFSRGoldcode.png}{Erzeugung der Goldcode Folgen durch punktweiser Modulo-2 Addition (\emph{XOR}) zweier Maximum Length Sequences die jeweils durch ein \gls{LFSR} erzeugt werden. Die Abgriffe die bei der Addition verwendet werden sind Abhängig von der \gls{PRN}}{.9\textwidth}
 
 \subsection{GPS Nutzdaten}
-Die Nutzdaten - im GPS Kontext \emph{NAV Daten} genannt - werden mit einer Bitrate von \SI{50}{\bit\per\sec} übertragen. Im folgenden werden die Struktur und die wichtigsten Nutzdaten beschrieben.
+Die Nutzdaten - im GPS Kontext \emph{NAV Daten} genannt - werden mit einer Bitrate von \SI{50}{\bit\per\second} übertragen. Im folgenden werden die Struktur und die wichtigsten Nutzdaten beschrieben.
 
 \paragraph{Übertragene Daten}
 Prinzipiell erfolgt die Positionsbestimmung beim Empfänger über einfache geometrische und physikalische Zusammenhänge, indem aus dem Zeitpunkt der Aussendung des Signals und der Lichtgeschwindigkeit die Entfernung des Empfängers vom Sender bestimmt wird. Mit mindestens 3 Satelliten lässt sich theoretisch die Position im dreidimensionalen Raum bestimmen\footnote{Da die exakte Zeit beim Empfänger eine weitere Unbekannte ist, sind in der Realität mindestens 4 Satellitensignale erforderlich.}.
@@ -60,4 +60,13 @@ Alle Subframes übertragen in den ersten zwei Words die aktuelle Zeit zum Zeitpu
 \FGimg{MoDem.png}{Prinzip der GPS Signalerzeugung und Informationsrückgewinnung: Das Datensignal wird mit dem \gls{CA} Code Modulo-2 addiert (\emph{gespreizt}), und anschließend auf den Träger moduliert}{0.7\textwidth}
 
 \paragraph{Positionsbestimmung}
-Die Positionsbestimmung mittles GPS erfolgt nach dem Prinzip der \emph{Lateration}: Wenn der Beobachter die Entfernung zu einem Punkt kennt, so muss er sich an einem Punkt auf einer Kugelfläche um diesen Punkt befinden. Wenn der Beobachter die Entfernung zu einem Zweiten Punkt kennt, muss sich die 
+\label{positionsbestimmung}
+Die Positionsbestimmung mittles GPS erfolgt nach dem Prinzip der \emph{Lateration}. Eine schematische Darstellung ist in \FR{trilateration.png} zu sehen: Wenn der Beobachter die Entfernung zu einem Punkt kennt, so muss er sich an einem Punkt auf einer Kugelfläche um diesen Punkt befinden. Wenn der Beobachter die Entfernung zu einem Zweiten Punkt kennt, muss sich die Position an der Schnittlinie der beiden Kugeln (also auf einer Kreislinie) befinden. Mit der Entfernung zu einem dritten Punkt kann die Position auf zwei Punkte reduziert werden. Von diesen beiden Punkten liegt ein Punkt sehr weit entfernt - noch weit über der Orbits der GPS Satelliten - und kann somit üblicherweise ausgeschlossen werden. 
+
+Die Entfernung zu den GPS Satelliten wird über die Laufzeit der Signale bestimmt. Wie oben beschrieben, enthalten die Nutzdaten die Zeit zum Zeitpunkt der Aussendung der Frames und Information über den Orbit des Senders. Über die Ausbreitungsgeschwindigkeit $c_0$ und die Zeitinformation lässt sich dann die Entfernung zum Sender bestimmten. Weil im Allgemeinen davon ausgegangen werden muss, dass die Uhr im Empfänger ungenau ist, wird zusätzlich noch ein viertes Satellitensignal benötigt, was als Zeitreferenz benutzt wird. In der Realität werden üblicherweise noch mehr als vier Satellitensignale erfasst und die Position über die Methode der kleinsten Quadrate gemittelt.
+
+Die Entfernung zu einem GPS Satelliten wird im GPS Jargon \emph{Pseudorange} genannt, da sie noch eventuelle Ungenauigkeiten beinhaltet, die korrigiert werden müssen. Ursachen der Ungenauigkeiten sind zum Beispiel die Brechung der elektromagnetischen Welle in der Ionosphäre und Troposphäre. Auch die Samplingrate $f_S$, mit der das GPS Signal verarbeitet wird spielt eine wichtige Rolle, denn zwischen zwei Samplezeitpunkten schreitet die Welle um den Weg $\epsilon_{r} = c_0/f_S$ fort. Als Beispiel ergibt sich hier bei dem im \dscubesat verwendeten Frontend $\epsilon_{r} = c_0/(\SI{16.369}{\MHz}=\SI{18.3}{\meter})$
+
+Da sich diese Arbeit vor allem mit der Signalverarbeitung zur Demodulation beschäftigt und weniger mit der Positionsbestimmung an sich, sei an dieser Stelle für genaue Informationen auf \cite{borre2007software}, Kapitel 8.5 verwiesen.
+
+\FGimg{trilateration.png}{Bestimmung der Position mittels Lateration. Wenn der Beobachter die Entfernung zu mindestens drei Punkten mit bekannten Koordinaten messen kann, so er seine eigenen Koordinaten errechnen.}{0.8\textwidth}
