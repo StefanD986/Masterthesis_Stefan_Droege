@@ -14,7 +14,7 @@ Die von der darüberliegenden Schicht erhaltenen Daten werden auf den Träger mi
 
 Das ausgesendete Signal ergibt sich durch Addition des \gls{CA} Signals mit dem um \SI{3}{\dB} gedämpften \gls{PY} Signal. \FR{GPSConstellation} stellt die Symbolkonstellation grafisch dar. Wie man sieht, gibt es je zwei Symbole die eine $1$ bzw. eine $0$ des CA Signals signalisieren. Ein Empfänger wendet auf das empfangene Signal einen Tiefpassfilter an. Da das \gls{PY} Signal durch ein Informationssignal mit deutlich höherer Bandbreite moduliert ist und durch den Chipping Code ein pseudo-Zu\-falls\-ver\-hal\-ten aufweist ergeben sich nach der Tiefpassfilterung wieder die Konstellationspunkte $C_{1,2}$.
 
-\FG{\input{figures/GPSConstellation.tex}}{Konstellationsdiagramm des L1 GPS Signals (blau, $P_{0,1}+C_{0,1}$). Das GPS Signals ergibt sich durch Addition des modulierten \gls{CA} Trägers (rot, $C_{0,1}$) mit dem modulierten, um \SI{3}{\dB} gedämpften, \gls{PY} Trägers (grün, $C_{0,1}$).}{GPSConstellation}
+\FG[GPS L1 Konstellationsdiagramm]{\input{figures/GPSConstellation.tex}}{Konstellationsdiagramm des L1 GPS Signals (blau, $P_{0,1}+C_{0,1}$). Das GPS Signals ergibt sich durch Addition des modulierten \gls{CA} Trägers (rot, $C_{0,1}$) mit dem modulierten, um \SI{3}{\dB} gedämpften, \gls{PY} Trägers (grün, $C_{0,1}$).}{GPSConstellation}
 
 \paragraph{Polarisation} Das Signal wird mit einer rechtszirkular polarisierten Antenne ausgestrahlt. Dies hilft Multipath-Ausbreitung zu unterdrücken: Eine Reflektion dreht die Polarisation zu einer linkspolariserten Welle. Durch Verwendung einer rechtszirkular polarisierten Empfangsantenne wird das reflektierte Signal beim Empfang unterdrückt.
 
@@ -26,13 +26,15 @@ Da die Coderate deutlich größer ist als die Informationrate erhöht sich durch
 
 Die Codeworte haben die Eigenschaft orthogonal zueinander zu sein, haben also eine geringe Kreuzkorrelation (\FR{GoldcodeXcorr.png}). Außerdem weisen sie für Verschiebungen $k\neq0$ eine sehr geringe Autokorrelation auf (\FR{GoldcodeAKF.png}). Letzteres ist ein weiteres Mittel um Multipath Empfangswege zu unterdrücken: Die reflektierten Signale kommen im Vergleich zum direkten Ausbreitungsweg verzögert an. Bei der Demodulation wird die Frequenzspreizung wieder rückgängig gemacht, was nur bei exakter Übereinstimmung der Codephase $k$ gelingt. Folglich werden die reflektierten Signale stark unterdrückt.
 
-\FGimg{GoldcodeAKF.png}{Zyklische Autokorrelationsfunktion ($\mathcal{F}^{-1}(X\cdot X^*)_k$) eines Goldcode Wortes. Die Autokorrelation ist lediglich bei perfekter Überlagerung (Verschiebung $k=0$) groß, ansonsten sehr klein. (vgl mit \FR{GoldcodeXcorr.png})}{.9\textwidth}
+\FGimg[Goldcode AKF]{GoldcodeAKF.png}{Zyklische Autokorrelationsfunktion ($\mathcal{F}^{-1}(X\cdot X^*)_k$) eines Goldcode Wortes. Die Autokorrelation ist lediglich bei perfekter Überlagerung (Verschiebung $k=0$) groß, ansonsten sehr klein. (vgl mit \FR{GoldcodeXcorr.png})}{.9\textwidth}
 
-\FGimg{GoldcodeXcorr.png}{Zyklische Kreuzkorrelation ($\mathcal{F}^{-1}(X\cdot Y^*)_k$) zweier unterschiedlicher Goldcode Worte. Die Kreuzkorrelation ist sehr gering (vgl mit \FR{GoldcodeAKF.png})}{.9\textwidth}
+
+
+\FGimg[Goldcode Kreuzkorrelation]{GoldcodeXcorr.png}{Zyklische Kreuzkorrelation ($\mathcal{F}^{-1}(X\cdot Y^*)_k$) zweier unterschiedlicher Goldcode Worte. Die Kreuzkorrelation ist sehr gering (vgl mit \FR{GoldcodeAKF.png})}{.9\textwidth}
 
 Da die Bits des Codeworts keine Information enthalten werden sie zur besseren Unterscheidung als \glspl{Chip} bezeichnet. Die wichtigen Parameter für CDMA sind die \emph{Coderate} und der verwendete Code. Das zivil nutzbare GPS Signal hat eine Coderate von \SI{1.023}{MChip/s} und verwendet \emph{Gold Codefolgen} (benannt nach Robert Gold). Die Gold Codefolgen werden durch die punktweise Modulo-2 Addition zweier \emph{Maximum Length Sequences} \gls{LFSR} erzeugt. Je nach \gls{PRN} werden bei der Addition andere Abgriffe (\emph{Taps}) an dem \gls{LFSR} verwendet. Die erzeugenden Polynome der beiden ML Sequenzen sind $G_1: 1 + x^3 + x^10$ und $G_2: 1 + x^2 + x^3 +x^6 + x^8 + x^9 + x^{10}$. \FR{LFSRGoldcode.png} stellt die Generierung der Gold Codes grafisch dar. Eine Liste mit der Zuordnung der verwendeten Abgriffe ist \cite{specification2010gps} zu entnehmen.
 
-\FGimg{LFSRGoldcode.png}{Erzeugung der Goldcode Folgen durch punktweiser Modulo-2 Addition (\emph{XOR}) zweier Maximum Length Sequences die jeweils durch ein \gls{LFSR} erzeugt werden. Die Abgriffe die bei der Addition verwendet werden sind Abhängig von der \gls{PRN}}{.9\textwidth}
+\FGimg[Goldcode erzeugung mittels LFSR]{LFSRGoldcode.png}{Erzeugung der Goldcode Folgen durch punktweiser Modulo-2 Addition (\emph{XOR}) zweier Maximum Length Sequences die jeweils durch ein \gls{LFSR} erzeugt werden. Die Abgriffe die bei der Addition verwendet werden sind Abhängig von der \gls{PRN}}{.9\textwidth}
 
 \subsection{GPS Nutzdaten}
 Die Nutzdaten - im GPS Kontext \emph{NAV Daten} genannt - werden mit einer Bitrate von \SI{50}{\bit\per\second} übertragen. Im folgenden werden die Struktur und die wichtigsten Nutzdaten beschrieben.
@@ -51,13 +53,13 @@ Deshalb enthalten die NAV Daten die folgenden Informationen:
 \paragraph{Datenstruktur}
 Die \emph{NAV Daten} sind in \emph{Frames} und \emph{Subframes} und \emph{Words} unterteilt. Ein \emph{Frame} ist \SI{1500}{\bit} lang, bestehend aus 5 \emph{Subframes}, von je \SI{300}{\bit} Länge. Die \emph{Subframes} sind weiter unterteilt in \emph{Words} von je \SI{30}{\bit} Länge. Zur Erkennung von Übertragungsfehlern ist jedes Word mit 6 Paritätsbits abgesichert. 
 
-\FGimg{GPSData.png}{Übersicht über die Datenstruktur mit der die NAV Nachrichten übertragen werden. Subframes 4 und 5 unterscheiden sich in jeder \emph{Page}. Jeder Subframe beginnt mit einer Präambel im ersten Wort.}{0.9\textwidth}
+\FGimg[GPS NAV Datenstruktur]{GPSData.png}{Übersicht über die Datenstruktur mit der die NAV Nachrichten übertragen werden. Subframes 4 und 5 unterscheiden sich in jeder \emph{Page}. Jeder Subframe beginnt mit einer Präambel im ersten Wort.}{0.9\textwidth}
 
 Zur Synchronisation des Empfängers beginnt das erste Wort jedes Subframes mit einer Preamble. Diese hat zwei Funktionen: Der Demodulator hat zwei stabile Zustände, die zu einer Negierung der Informationsbits führen können. Die Preamble wird genutzt, um dies zu erkennen bzw. zu korrigieren. Außerdem wird die Preamble genutzt um den Beginn eines Subframes zu finden.
 
 Alle Subframes übertragen in den ersten zwei Words die aktuelle Zeit zum Zeitpunkt der Aussendung. Die Ephemeriden mit den Orbitdaten und weiteren Informationen über das aussendende \gls{SV} werden in den Subframes 1, 2 und 3 übertragen. Diese drei Subframes werden in jedem Frame wiederholt. Die Almanach Daten sind deutlich länger, und werden deshalb segmentiert und über 25 Frames in den Subframes 4 und 5 übertragen. Die Übertragung eines vollständigen Datensatzes dauert damit \SI{12.5}{\minute}.
 
-\FGimg{MoDem.png}{Prinzip der GPS Signalerzeugung und Informationsrückgewinnung: Das Datensignal wird mit dem \gls{CA} Code Modulo-2 addiert (\emph{gespreizt}), und anschließend auf den Träger moduliert}{0.7\textwidth}
+\FGimg[(De)Modulation, (De)Spreading]{MoDem.png}{Prinzip der GPS Signalerzeugung und Informationsrückgewinnung: Das Datensignal wird mit dem \gls{CA} Code Modulo-2 addiert (\emph{gespreizt}), und anschließend auf den Träger moduliert}{0.7\textwidth}
 
 \paragraph{Positionsbestimmung}
 \label{positionsbestimmung}
@@ -69,4 +71,4 @@ Die Entfernung zu einem GPS Satelliten wird im GPS Jargon \emph{Pseudorange} gen
 
 Da sich diese Arbeit vor allem mit der Signalverarbeitung zur Demodulation beschäftigt und weniger mit der Positionsbestimmung an sich, sei an dieser Stelle für genaue Informationen auf \cite{borre2007software}, Kapitel 8.5 verwiesen.
 
-\FGimg{trilateration.png}{Bestimmung der Position mittels Lateration. Wenn der Beobachter die Entfernung zu mindestens drei Punkten mit bekannten Koordinaten messen kann, so er seine eigenen Koordinaten errechnen.}{0.8\textwidth}
+\FGimg[Positionsbestimmung mit Lateration]{trilateration.png}{Bestimmung der Position mittels Lateration. Wenn der Beobachter die Entfernung zu mindestens drei Punkten mit bekannten Koordinaten messen kann, so er seine eigenen Koordinaten errechnen.}{0.8\textwidth}

@@ -1,8 +1,37 @@
 %*******************************************************
 % Declaration
 %*******************************************************
-\chapter*{Declaration}
+\chapter*{Eidesstattliche Versicherung}
 \thispagestyle{empty}
 
-Put your declaration here.
+\newcommand*{\SignatureAndDate}[2]{%
+    \par\vspace{0.7cm}\noindent\makebox[2.5in]{\hrulefill} \hfill\makebox[2.0in]{\hrulefill}%
+    \par\noindent\makebox[2.5in][l]{#1}      \hfill\makebox[2.0in][l]{#2}%
+}%
 
+
+\begin{tabbing}
+    \textbf{Name, Vorname:} \hspace*{0.4cm}\= \kill      % erste Zeile der Tabelle bestimmt Abstand der Spalten --> längstes Wort reinschreiben, als Referenzwert, durch kill wird nicht angezeigt
+    \textbf{Name, Vorname:} \> Dröge, Stefan
+\end{tabbing}
+
+Ich versichere hiermit an Eides Statt, dass ich die vorliegende Masterarbeit mit dem Titel \enquote{\emph{\ThesisTitle}}
+selbständig und ohne unzulässige fremde Hilfe erbracht habe. Ich habe keine anderen als die angegebenen Quellen und Hilfsmittel benutzt. Für den Fall, dass die Arbeit zusätzlich auf einem Datenträger eingereicht wird, erkläre ich, dass die schriftliche und die elektronische Form vollständig übereinstimmen. Die Arbeit hat in gleicher oder ähnlicher Form noch keiner Prüfungsbehörde vorgelegen.
+
+\SignatureAndDate{Ort, Datum}{Unterschrift}
+
+\subsubsection*{Belehrung:}
+
+§ 156 StGB: Falsche Versicherung an Eides Statt
+
+Wer vor einer zur Abnahme einer Versicherung an Eides Statt zuständigen Behörde eine solche Versicherung falsch abgibt oder unter Berufung auf eine solche Versicherung falsch aussagt, wird mit Freiheitsstrafe bis zu drei Jahren oder mit Geldstrafe bestraft.
+
+§ 161 StGB: Fahrlässiger Falscheid; fahrlässige falsche Versicherung an Eides Statt
+
+(1) Wenn eine der in den §§ 154 bis 156 bezeichneten Handlungen aus Fahrlässigkeit begangen worden ist, so tritt Freiheitsstrafe bis zu einem Jahr oder Geldstrafe ein.
+
+(2) Straflosigkeit tritt ein, wenn der Täter die falsche Angabe rechtzeitig berichtigt. Die Vorschriften des § 158 Abs. 2 und 3 gelten entsprechend.
+
+Die vorstehende Belehrung habe ich zur Kenntnis genommen:
+
+\SignatureAndDate{Ort, Datum}{Unterschrift}

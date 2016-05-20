@@ -18,27 +18,21 @@ Effizienter sind Methoden die sich die Fourier Transformation zunutze machen, um
 In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Suche und paralleler Frequenzsuche verwendet. Im ersten Schritt wird der Dopplershift lediglich grob bestimmt (\SI{\pm500}{\Hz}), dafür die Codephase aber mit hoher Genauigkeit bestimmt. Im zweiten Schritt ist dann die Codephase bekannt, und es kann eine parallele Suche im Frequenzbereich durchgeführt werden um den Dopplershift genauer zu bestimmen. 
 
 \paragraph{Datenmenge für die Acquisition}
-Prinzipiell ist bei der Acquisition die Erfolgswahrscheinlichkeit größer je länger das Datensegment ist, mit dem die Kreuzkorrelation geprüft wird. Auf der anderen Seite steigt auch der Rechenaufwand für längere Segmente. Außerdem darf während des gesamten Datensegments zu keinem Bitwechsel kommen, da dies sonst in einem kleineren Korrelationswert resultieren würde:
+Prinzipiell ist bei der Acquisition die Erfolgswahrscheinlichkeit größer je länger das Datensegment ist, mit dem die Kreuzkorrelation geprüft wird. Auf der anderen Seite steigt auch der Rechenaufwand für längere Segmente. Außerdem darf während des gesamten Datensegments kein Bitwechsel vorkommen, da dies sonst in einem kleineren Korrelationswert resultieren würde. Dies folgt aus der Dreiecksungleichung:
 \begin{align}
-   (\gpsin(t) \star \gpsca)(\tau)  &= \int_0^T{\gpsin(t) \cdot \gpsca(\tau -t) \rm{d}t} \\
-   &= \int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \rm{d}t}
-     + \int_{t_1}^T{\gpsin_-(t) \cdot \gpsca(\tau -t) \rm{d}t}\\
-   &\leq \int_0^{t_1}{|\gpsin_+(t) \cdot \gpsca(\tau -t)| \rm{d}t} 
-     + \int_{t_1}^T{|\gpsin_-(t) \cdot \gpsca(\tau -t)| \rm{d}t}
+   |(\gpsin(t) \star \gpsca)(\tau)|  &= \left|\int_0^T{\gpsin(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right| \\  
+&= \Biggl|\int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \textrm{d}t}\\
+     &\phantom{=~}+ \int_{t_1}^T{\gpsin_-(t) \cdot \gpsca(\tau -t) \textrm{d}t}\Biggl|\\
+   &\leq \left|\int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right| \notag\\
+    &\phantom{\leq~} + \left|\int_{t_1}^T{|\gpsin_-(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right|
 \end{align}
+mit dem Zeitpunkt $t_1$ des Bitwechsels, $T$ der Segmentlänge und $\gpsin_{\pm}$ dem Eingangssignal vor bzw. nach dem Bitwechsel. Ein Bitwechsel kann aber nie ausgeschlossen werden. Man behilft sich deshalb damit die maximale Segmentlänge auf $1/2 \gpsTbit$ zu begrenzen, aber die Acquisiton für zwei aufeinander folgende Segmente durchzuführen. Dann kann ein Bitwechsel höchstens in einem der beiden Segmente vorkommen, und für die weitere Verarbeitung wird dann das Segment mit dem besseren Ergebnis ausgewählt.
 
-mit dem Zeitpunkt $t_1$ des Bitwechsels, $T$ der Segmentlänge und $\gpsin_{\pm}$ dem Eingangssignal vor bzw. nach dem Bitwechsel . Die dritte Zeile folgt aus der Dreiecksungleichung.
-allen oben genannten Algorithmen gemein, dass sie Bitwechsel im Signal nicht tolerieren, die im schlimmsten Fall alle  \SI{20}{\milli\second} auftreten. Dieser würden durch die Drehung der Phase in einem kleineren Korrelationswert resultieren. Um dies auszuschließen nimmt man 
+\FGimg[Acquisition Aktivitätsdiagram]{acquisition_activity.png}{Die Acquisition wird nacheinander für alle PRN durchgeführt. Um dem Problem eines möglichen Bitwechsels vorzugreifen wird die Acquisition für zwei aufeinanderfolgende Segemente durchgeführt, von denen für die weitere Verarbeitung nur das mit der höheren Korrelation ausgewählt wird.}{0.8\textwidth}
 
-Mit der GPS Bitrate von \SI{50}{\bit\per\second} ist damit die obere Schranke. Deshalb
+\FGimg[Blockschaltbild parallele Codephasensuche]{parallelCodephase.png}{Bei der parallelen Codephasensuche müssen nur alle möglichen Dopplerverschiebungen seriell durchsucht werden. Die Bestimmung der Codephase kann sehr einfach durch eine Maximumsuche nach der Multiplikation im Frequenzbereich und anschließende Rücktransformation bestimmt werden.}{0.9\textwidth}
 
-Für den Acquisition Algorithmus müssen eine gewisse Menge an Rohdaten zwischengespeichert werden. Wie in \cite{borre2007software} Kapitel 6.5 erläutert ist bei der Auswahl der Länge ein Kompromiss zwischen Rechenaufwand und Erfolgswahrscheinlichkeit gemacht werden: Verwendung eines längeren Signalausschnitts erhöht die Erfolgsaussichten, führt aber auch zu einem höheren Rechenaufwand. Da die Acquisition Algorithmen außerdem die nach einem Bitwechsel gedrehte Polarität des Signals ignorieren ist außerdem die sinnvolle Länge nach oben begrenzt.
-
-\FGimg{acquisition_activity.png}{Die Acquisition bestimmt in einem ersten Schritt die genaue Codephase. Wenn diese Suche erfolgreich ist (die \emph{Peak Metric} über einem bestimmten Schwellwert liegt), wird in einem zweiten Schritt die Dopplerverschiebung genauer bestimmt }{0.6\textwidth}
-
-\FGimg{parallelCodephase.png}{Bei der parallelen Codephasensuche müssen nur alle möglichen Dopplerverschiebungen seriell durchsucht werden. Die Bestimmung der Codephase kann sehr einfach durch eine Maximumsuche nach der Multiplikation im Frequenzbereich und anschließende Rücktransformation bestimmt werden.}{0.9\textwidth}
-
-\FGimg{parallelfreqspace.png}{Bei der parallelen Frequenzbereichsuche müssen nur die möglichen Codephasen seriell durchsucht werden. Die Bestimmung der Dopplerverschiebung erfolgt durch eine Maximumsuche im Frequenzbereich.}{0.6\textwidth}
+\FGimg[Blockschaltbild parallele Frequenzsuche]{parallelfreqspace.png}{Bei der parallelen Frequenzbereichsuche müssen nur die möglichen Codephasen seriell durchsucht werden. Die Bestimmung der Dopplerverschiebung erfolgt durch eine Maximumsuche im Frequenzbereich.}{0.6\textwidth}
 
 \paragraph{parallele Codephasensuche}
 Bei der parallelen Codephasen Suche werden Kopien des Trägers $\gpslo$ (jeweils I und Q Anteil) für den zu durchsuchenden Frequenzbereich $\textbf{D}$ in einem groben Raster (z.B. \SI{500}{\Hz}) generiert. Außerdem wird für jede PRN die Fouriertransformierte des Codes $\gpsCA$ berechnet. Nacheinander wird dann für jede Trägerfrequenz das Eingangssignal mit dem Träger multipliziert:

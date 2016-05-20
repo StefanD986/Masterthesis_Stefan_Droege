@@ -20,7 +20,7 @@ Mit der Dopplerverschiebung $f_d$ sei die Differenz zwischen wahrgenommener Empf
 Im folgenden wird eine Formel für die  maximale Dopplerverschiebung hergeleitet. 
 Dazu werden einige vereinfachende Annahmen gemacht \footnote{In \cite{Birklykke2010} wurden ähnliche Berechnungen angestellt, und mit Messungen von existierenden Cubesat Missionen verglichen. Dabei hat sich gezeigt, dass die durch die Näherungen eingeführten Fehler vernachlässigbar sind.}: Es wird angenommen, dass sich Sender und Empfänger jeweils auf Kreisbahnen mit Radius $r_A$ bzw $r_B$ bewegen. Man kann sich einfach klarmachen, dass die größte Dopplerverschiebung auftritt, wenn die Kreisbahnen in einer Ebene liegen, und entgegengesetzt durchlaufen werden. Das Szenario ist in \FR{DopplerSzenario} veranschaulicht.
 
-\FG{\input{figures/DopplerSzenario.tex}}{Szenario zur Berechnung der maximalen Dopplerverschiebung (nicht maßstabsgetreu). Der Cubesat (Punkt $A$) befindet sich in einem \emph{Low-Earth-Orbit}, der GPS Satellit (Punkt $B$) in einem \emph{Medium Earth Orbit}.}{DopplerSzenario}
+\FG[Dopplerverschiebung Szenario]{\input{figures/DopplerSzenario.tex}}{Szenario zur Berechnung der maximalen Dopplerverschiebung (nicht maßstabsgetreu). Der Cubesat (Punkt $A$) befindet sich in einem \emph{Low-Earth-Orbit}, der GPS Satellit (Punkt $B$) in einem \emph{Medium Earth Orbit}.}{DopplerSzenario}
 
 $\vv{a}$ gibt die Position des Cubesat bezogen auf den Erdmittelpunkt an:
 \begin{equation}
@@ -97,11 +97,11 @@ Eingesetzt in Gl.\ref{EqDoppler} erhält man folgende Gleichung für die maximal
 \end{equation}
 \FR{maxdoppler.png} stellt die maximale Dopplerverschiebung des GPS Signals in Abhängigkeit von der Höhe des Kreisorbits über Grund dar.
 
-\FGimg{maxdoppler.png}{Maximale Dopplerverschiebung des GPS L1 Signals in Abhängigkeit der Höhe des Orbits (über Grund)}{.9\textwidth}
+\FGimg[Maximale Dopplerverschiebung per Orbithöhe]{maxdoppler.png}{Maximale Dopplerverschiebung des GPS L1 Signals in Abhängigkeit der Höhe des Orbits (über Grund)}{.9\textwidth}
 
 In \FR{doppler.png} ist exemplarisch die Dopplerverschiebung auf dem Weg des Cubesat auf einem Orbit mit der Höhe \SI{120}{\km} dargestellt. 
 
-\FGimg{doppler.png}{Dopplerverschiebung des \SI{1575,42}{\MHz} GPS Signals für einen LEO Satelliten auf einem Kreisorbit mit $r_A=\SI{120}{\km}+r_E$ in Abhängigkeit des Winkels $\theta$ zwischen Cubesat GPS Satellit ($r_E$ bezeichnet den Erdradius). Der Funkschatten der Erde ist nicht berücksichtigt worden.}{.9\textwidth}
+\FGimg[Änderung der Dopplerverschiebung im Orbit]{doppler.png}{Dopplerverschiebung des \SI{1575,42}{\MHz} GPS Signals für einen LEO Satelliten auf einem Kreisorbit mit $r_A=\SI{120}{\km}+r_E$ in Abhängigkeit des Winkels $\theta$ zwischen Cubesat GPS Satellit ($r_E$ bezeichnet den Erdradius). Der Funkschatten der Erde ist nicht berücksichtigt worden.}{.9\textwidth}
 
 Es ist noch die maximale Änderungsrate der Dopplerverschiebung  $\dot f_{d,max}=max\left(\frac{\partial f_d}{\partial t}\right)$ interessant.  Wie man in \FR{doppler.png} sehen kann tritt die Maximale Änderung bei $\theta=0$ auf. Ohne Beschränkung der Allgemeinheit kann die Forderung $\theta(t=0)\overset{!}{=}0$ gemacht werden. Damit ergibt sich $\dot f_{d,max}$ nach einigen Umformungen zu
 \begin{equation}
@@ -114,7 +114,7 @@ Tabelle \ref{TabDoppler} gibt die Zahlenwerte für ein Beispiel mit einer Orbith
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption{Zusammenfassung der Auswirkungen des Dopplereffekts auf den Empfang des GPS Signals im L1 Band für den Dragsail Cubesat. Die Ergebnisse wurden mit $r_A=r_E+\SI{400}{\km}$ und $r_B=r_E+\SI{20000}{\km}$ berechnet ($r_E$ ist der Erdradius)}
+        \caption[Dopplereffekt für GPS Signal im \dscubesat]{Zusammenfassung der Auswirkungen des Dopplereffekts auf den Empfang des GPS Signals im L1 Band für den \dscubesat. Die Ergebnisse wurden mit $r_A=r_E+\SI{400}{\km}$ und $r_B=r_E+\SI{20000}{\km}$ berechnet ($r_E$ ist der Erdradius)}
         \label{TabDoppler}
     }
     {

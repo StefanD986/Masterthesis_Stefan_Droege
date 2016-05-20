@@ -1,7 +1,7 @@
 \subsection{Tracking}
 Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird lediglich durchgeführt, wenn neue GPS Satelliten gesucht werden, beispielsweise nach dem Systemstart, oder wenn das Signal verloren wird. Sobald die Parameter (PRN, Codephase, Dopplershift) durch die Acquisition bestimmt wurden, werden diese an den eigentlichen Demodulator, den Trackingloop, weitergegeben. Der Begriff Trackingloop kommt daher, dass die bei der Acquisition bestimmte Codephase bzw. Dopplershift jeweils nur Momentaufnahmen sind. Dopplershift und Codephase ändern sich ständig und auch Ungenauigkeiten der Takterzeugung beim Empfänger müssen ausgeglichen werden. Der Trackingloop hat die Aufgabe die in der Acquisitonphase bestimmten Werte mittels eines Regelkreises (\emph{control loop}) nachzuführen (\emph{to track}). 
 
-\FGimg{Trackingloop.png}{Blockschaltbild des GPS Trackingloops. Der Trackingloop besteht aus zwei Regelkreisen, die die LO-Frequenz bzw. die Codefrequenz nachführen.}{0.9\textwidth}
+\FGimg[Blockschaltbild GPS Trackingloop]{Trackingloop.png}{Blockschaltbild des GPS Trackingloops. Der Trackingloop besteht aus zwei Regelkreisen, die die LO-Frequenz bzw. die Codefrequenz nachführen.}{0.9\textwidth}
 
 \FR{Trackingloop.png} zeigt ein Blockschaltbild des Trackingloops. Im folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Anschließend wird ein Überblick über die Funktion des gesamten Trackingloops gegeben. Eine detaillierte Beschreibung des ist in \cite{borre2007software} zu finden.
 
@@ -32,7 +32,7 @@ Dies entspricht genau der zyklischen Kreuzkorrelation $(\gpsca \star \gpsmx)(t)$
 \subsubsection{Carrier Tracking}
 Zum Synchronisieren der LO Frequenz mit der Trägerfrequenz des Empfangssignals wird im Allgemeinen ein Phase Locked Loop (PLL) verwendet, der versucht die Phasendifferenz zwischen Eingangssignal und LO Signal auf null zu halten. Im Falle des GPS Signals ist jedoch zu beachten, dass der Träger BPSK moduliert ist, also Phasendifferenzen von \SI{0}{\degree} oder \SI{180}{\degree} gewollt sind. Eine Variante von PLL die diesen \SI{180}{\degree} Phasenfehler ignoriert ist der Costas Loop (\FR{Costasloop.png}), benannt nach dem Erfinder John P. Costas \cite{CostasSyncComm}.
 
-\FGimg{Costasloop.png}{Der Costas Loop ist eine PLL Variante, die \gls{BPSK} modulierte Signale demodulieren kann.}{0.8\textwidth}
+\FGimg[Blockschaltbild Costas Loop]{Costasloop.png}{Der Costas Loop ist eine PLL Variante, die \gls{BPSK} modulierte Signale demodulieren kann.}{0.8\textwidth}
 
 Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} verschoben sind: $\gpslo_I=\cos(\omega_{f} t)$ und  $\gpslo_Q=\sin(\omega_{f} t)$. Das Eingangssignal $\gpsin=\gpsdat \cdot \cos(\omega_{ZF} \cdot t)$ wird im jeweiligen Arm mit dem $I$ bzw $Q$ Träger gemischt und Tiefpassgefiltert:
 \begin{eqnarray}
@@ -53,12 +53,12 @@ Dazu vergleicht der Loopdiskriminator die Energie im I und Q Arm, und generiert 
 \end{equation}
 Die Charakteristik des $\arctan$ Diskriminators ist in \FR{arctandiscriminator.png} dargestellt. Wie man sieht bestehen Nullstellen für \SI{0}{\degree} und \SI{180}{\degree}, woraus sich die Immunität gegen die BPSK Modulation ergibt.
 
-\FGimg{arctandiscriminator.png}{Charakteristik des $\arctan$ Diskriminators der im Costas Loop zur Anwendung kommt. Die Nullstellen bei $\phi=n\cdot \pi$ mit $n\in \mathbb{N}$ sorgen dafür, dass der Costas Loop immun gegen die durch die Modulation entstandenen \SI{180}{\degree} Phasenwechsel ist.}{0.8\textwidth}
+\FGimg[$\arctan$ Loop Diskriminator Characteristik]{arctandiscriminator.png}{Charakteristik des $\arctan$ Diskriminators der im Costas Loop zur Anwendung kommt. Die Nullstellen bei $\phi=n\cdot \pi$ mit $n\in \mathbb{N}$ sorgen dafür, dass der Costas Loop immun gegen die durch die Modulation entstandenen \SI{180}{\degree} Phasenwechsel ist.}{0.8\textwidth}
 
 \subsubsection{Code Tracking}
 Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anzupassen, dass sie mit der Phase des Codes im Empfangssignal übereinstimmt. Bekannte Methoden sind zum Beispiel \emph{Direct Maximization} oder \emph{Early-Late-Gate}, wobei letzteres in dieser Arbeit verwendet wird. 
 
-\FGimg{EarlyLateBlockdiagram.png}{Vereinfachtes Blockschaltbild für die Code Synchronisation mittels Early Late Gate. Hier wird nur eine einfache Summe als Loop Diskriminator verwendet. Außerdem nicht dargestellt ist, dass die Korrelation im I und Q Arm Gleichzeitig durchgeführt wird, um Phasenfehler des Carrier Loops auszugleichen.}{0.8\textwidth}
+\FGimg[Blockschaltbild Early Late Gate Synchronizer]{EarlyLateBlockdiagram.png}{Vereinfachtes Blockschaltbild für die Code Synchronisation mittels Early Late Gate. Hier wird nur eine einfache Summe als Loop Diskriminator verwendet. Außerdem nicht dargestellt ist, dass die Korrelation im I und Q Arm Gleichzeitig durchgeführt wird, um Phasenfehler des Carrier Loops auszugleichen.}{0.8\textwidth}
 
 \paragraph{Early Late Gate} \label{EarlyLateGate} In \FR{EarlyLateBlockdiagram.png} ist ein vereinfachtes Blockschaltbild des Early Late Gate Synchronisierers dargestellt. Für das Early Late Gate werden zwei Kopien des \emph{pünktlichen} Codes $\gpsca_P$ erzeugt, \emph{Early} ($\gpsca_E$) und \emph{Late} $\gpsca_L$, die $\gpsca_P$ jeweils  um $\Delta t$ voreilen ($\gpsca_E$), bzw. nacheilen ($\gpsca_L$). $\Delta t$ wird dabei üblicherweise als $\frac{1}{2} \gpsTchip$ gewählt.\footnote{Damit Verschiebungen $<\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise ohnehin der Fall um Aliasing zu verhindern.}
 
@@ -69,8 +69,8 @@ Das vom Carrier Mischer kommende Signal $\gpsmx$ wird dann mit den beiden Codeko
 
 Als Beispiel ist in \FR{EarlyLate_delayed.png} die Kreuzkorrelation zwischen einem Eingangssignal und einer um $1/4$ Chip nacheilenden Codekopie dargestellt. Weil das Eingangssignal relativ zur Codekopie voreilt, zeigt der \emph{Early} Korrelator \markerEarly einen höheren Wert an als der \emph{Late} Korrelator \markerLate. In Folge dessen ist das Signal des Code Loop Diskriminators  $\gpspllout_E - \gpspllout_L>0$ und der Code NCO wird dementsprechend seine Frequenz erhöhen, bis die Differenz ausgeglichen ist.
 
-\FGimg{EarlyLate_punctual.png}{Kreuzkorrelation in der Umgebung von $k=0$ bei dem die Codekopie mit dem Eingangssignal perfekt synchron ist. Das Signal ist 4-fach überabgetastet.}{0.8\textwidth}
+\FGimg[Early-Late Gate bei perfekter Synchronisation]{EarlyLate_punctual.png}{Kreuzkorrelation in der Umgebung von $k=0$ bei dem die Codekopie mit dem Eingangssignal perfekt synchron ist. Das Signal ist 4-fach überabgetastet.}{0.8\textwidth}
 
-\FGimg{EarlyLate_delayed.png}{Kreuzkorrelation in der Umgebung von $k=0$ für ein Eingangssignal dem die Codekopie um $1/4$ Chip nacheilt. Das Signal ist 4-fach überabgetastet. Der Early Korrelator zeigt einen größeren Wert an, weil das Eingangssignal in Bezug auf die Codekopie voreilt.}{0.8\textwidth}
+\FGimg[Early-Late Gate bei verspäteter Codekopie]{EarlyLate_delayed.png}{Kreuzkorrelation in der Umgebung von $k=0$ für ein Eingangssignal dem die Codekopie um $1/4$ Chip nacheilt. Das Signal ist 4-fach überabgetastet. Der Early Korrelator zeigt einen größeren Wert an, weil das Eingangssignal in Bezug auf die Codekopie voreilt.}{0.8\textwidth}
 
 Da der Code Loop Diskriminator ähnlich wie im Falle PLL nur eine Phasendifferenz angibt, der Code NCO aber eine Frequenz erwartet, gibt es auch hier wieder einen Loop Filter, der die Phasendifferenz addiert. Genau wie beim Carrier Loop Filter ist der Code Loop Filter ein $PI-Glied$.
