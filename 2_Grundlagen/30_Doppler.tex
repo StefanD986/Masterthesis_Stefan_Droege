@@ -7,7 +7,7 @@ Der Empfänger nimmt aufgrund der begrenzten Ausbreitungsgeschwindigkeit der ele
     f_r=f_s \sqrt{\frac{c+v_{rel}}{c-v_{rel}}}
 \end{equation}
 
-Hier bezeichnet $v_{rel}$ die relative Geschwindkeit von Empfänger und Sender zueinander ($v_{rel}>0$ wenn sich Empfänger und Sender annähern). $c$ ist die Lichtgeschwindigkeit, $f_s$ die Sendefrequenz, $f_r$ die vom Empfänger wahrgenommene Empfangsfrequenz.
+Hier bezeichnet $v_{rel}$ die relative Geschwindigkeit von Empfänger und Sender zueinander ($v_{rel}>0$ wenn sich Empfänger und Sender annähern). $c$ ist die Lichtgeschwindigkeit, $f_s$ die Sendefrequenz, $f_r$ die vom Empfänger wahrgenommene Empfangsfrequenz.
 
 Mit der Dopplerverschiebung $f_d$ sei die Differenz zwischen wahrgenommener Empfangsfrequenz und Sendefrequenz gemeint:
 
@@ -17,7 +17,7 @@ Mit der Dopplerverschiebung $f_d$ sei die Differenz zwischen wahrgenommener Empf
 \end{equation}
 
 \subsubsection{Maximale Dopplerverschiebung für den Dragsail Cubesat}
-Im folgenden wird eine Formel für die  maximale Dopplerverschiebung hergeleitet. 
+Im Folgenden wird eine Formel für die  maximale Dopplerverschiebung hergeleitet. 
 Dazu werden einige vereinfachende Annahmen gemacht \footnote{In \cite{Birklykke2010} wurden ähnliche Berechnungen angestellt, und mit Messungen von existierenden Cubesat Missionen verglichen. Dabei hat sich gezeigt, dass die durch die Näherungen eingeführten Fehler vernachlässigbar sind.}: Es wird angenommen, dass sich Sender und Empfänger jeweils auf Kreisbahnen mit Radius $r_A$ bzw $r_B$ bewegen. Man kann sich einfach klarmachen, dass die größte Dopplerverschiebung auftritt, wenn die Kreisbahnen in einer Ebene liegen, und entgegengesetzt durchlaufen werden. Das Szenario ist in \FR{DopplerSzenario} veranschaulicht.
 
 \FG[Dopplerverschiebung Szenario]{\input{figures/DopplerSzenario.tex}}{Szenario zur Berechnung der maximalen Dopplerverschiebung (nicht maßstabsgetreu). Der Cubesat (Punkt $A$) befindet sich in einem \emph{Low-Earth-Orbit}, der GPS Satellit (Punkt $B$) in einem \emph{Medium Earth Orbit}.}{DopplerSzenario}
@@ -33,9 +33,7 @@ $\vv{a}$ gibt die Position des Cubesat bezogen auf den Erdmittelpunkt an:
         \sin(\theta_A(t)) 
     \end{bmatrix}
 \end{equation}
-
 und $\vec{b}$ die Position des GPS Satelliten:
-
 \begin{equation}
     \vv{b}(t)=\begin{bmatrix} 
         B_x\\ 
@@ -46,8 +44,7 @@ und $\vec{b}$ die Position des GPS Satelliten:
         \sin(\theta_B(t)) 
     \end{bmatrix}
 \end{equation}
-
-wobei $\theta_{A,B}(t)=\omega_{A,B} \cdot t$ mit der Winkelgeschwindigkeit $\omega_{A,B}$. Desweiteren sei $\theta = \theta_B-\theta_A$.
+wobei $\theta_{A,B}(t)=\omega_{A,B} \cdot t$ mit der Winkelgeschwindigkeit $\omega_{A,B}$. Des Weiteren sei $\theta = \theta_B-\theta_A$.
 
 Der Betrag der Winkelgeschwindigkeit $\omega$ eines Flugkörpers auf einem Kreisorbit mit Radius $r$ lässt sich über das Kräftegleichgewicht von Erdbeschleunigungskraft $F_g$ und Zentrifugalkraft $F_{Zf}$ berechnen:
 
@@ -81,7 +78,6 @@ Für die Dopplerverschiebung ist die Relativgeschwindigkeit in Ausbreitungsricht
     v_{rel} &=&(\vv*{v}{A}-\vv*{v}{B} ) \cdot \frac{\vv{AB}}{|\vv{AB}|}\\
      v_{rel} &=& \frac{(r_B v_A + r_A v_B) \cdot \sin{(\overbrace{\theta_A-\theta_B}^{-\theta}})}{\sqrt{r_A^2-2 r_A r_B \cos(\theta_A-\theta_B)+r_B^2}}
 \end{eqnarray}
-
 bestimmt werden. Die Maxima und Minima dieser Funktion sind
 \begin{eqnarray}
     \theta_{v_{rel,max}}&=&\frac{(4n+1)\pi}{2}-\arcsin\left(\frac{r_A}{r_B}\right)\\

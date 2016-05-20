@@ -1,8 +1,9 @@
 \section{GPS Empfänger}
-In diesem Abschnitt wird die prinzipielle Funktion eines Empfängers für das GPS Signal erklärt. Es wird hier davon ausgegangen, dass das von der Antenne kommende Signal bereits auf eine Zwischenfrequenz $f_{ZF}$ heruntergemischt wurde und digitalisiert wurde. Damit gestaltet sich die Demodulation eigentlich einfach: Es werden einfach die Schritte der Modulation erneut durchgeführt: Multiplikation mit dem (ZF-)Träger und Multiplikation mit dem CA Code (siehe \FR{MoDem.png}). Am Ausgang des Demodulators liegt dann das ursprüngliche Informationssignal an. Im Detail ist der Prozess jedoch komplexer und kann in drei Schritte aufgeteilt werden, die im Folgenden beschrieben werden.
+In diesem Abschnitt wird die prinzipielle Funktion eines Empfängers für das GPS Signal erklärt. Es wird hier davon ausgegangen, dass das von der Antenne kommende Signal bereits auf eine Zwischenfrequenz $f_{ZF}$ herunter gemischt wurde und digitalisiert wurde. Damit gestaltet sich die Demodulation eigentlich einfach: Es werden einfach die Schritte der Modulation erneut durchgeführt: Multiplikation mit dem (ZF-)Träger und Multiplikation mit dem CA Code (siehe \FR{MoDem.png}). Am Ausgang des Demodulators liegt dann das ursprüngliche Informationssignal an. Im Detail ist der Prozess jedoch komplexer und kann in drei Schritte aufgeteilt werden, die im Folgenden beschrieben werden.
 
 \subsection{Acquisition}
 \label{Grundlagen_Acquisition}
+
 Die zuvor beschriebene Demodulation hängt von mehreren, zunächst unbekannten, Variablen ab. Diese Unbekannten zu bestimmen ist Aufgabe der Acquisition.
 Wie in Abschnitt \ref{basics_cdma} beschrieben wird zum Multiplexen der Signale der über 30 Satelliten das Signal CDMA kodiert, wobei jeder aktive Satellit einen anderen Code verwendet. Deshalb und weil der Signalpegel beim Empfang unter dem thermischen Rauschen liegt, ist aus den Rohdaten zunächst nicht ersichtlich welche Satelliten überhaupt in Sicht sind. Die erste zu bestimmende Unbekannte ist also welche GPS Satelliten überhaupt in Sicht sind.
 
@@ -12,7 +13,7 @@ Die dritte Unbekannte ist die exakte (ZF-)Trägerfrequenz. Die Trägerfrequenz i
 Es ist zu betonen, dass alle drei genannten Unbekannten gleichzeitig gefunden werden müssen. Denn wenn zum Beispiel die korrekte Trägerfrequenz bekannt ist, aber die Codephase oder PRN falsch ist, wird der Demodulator lediglich wiederum ein Rauschsignal liefern. Es wird also ein Korrelationsmaximum im dreidimensionalen Raum aus PRN, Frequenz, und Codephase gesucht.
 
 \subsubsection{Suchalgorithmus}
-Es gibt verschiedene Möglichkeiten zur Suche. Die einfachste, aber auch langsamste Methode ist die serielle Suche. Dabei wird das Eingangssignal $\gpsin$ punktweise mit einer Kopie des Codes $\gpsca$ und des Trägers $\gpslo$ multipliziert und dann die Energie des Signals bestimmt, wobei nacheinander verschiedene Kombinationen von \gls{PRN}, Dopplershift und Codephase ausprobiert werden. Aufgrund der großen Anzahl möglicher Kombinationen und Rechenoperationen ist dies jedoch äußerst zeitaufwändig.
+Es gibt verschiedene Möglichkeiten zur Suche. Die einfachste, aber auch langsamste Methode ist die serielle Suche. Dabei wird das Eingangssignal $\gpsin$ punktweise mit einer Kopie des Codes $\gpsca$ und des Trägers $\gpslo$ multipliziert und dann die Energie des Signals bestimmt, wobei nacheinander verschiedene Kombinationen von \gls{PRN}, Dopplerverschiebung und Codephase ausprobiert werden. Aufgrund der großen Anzahl möglicher Kombinationen und Rechenoperationen ist dies jedoch äußerst zeitaufwändig.
 
 Effizienter sind Methoden die sich die Fourier Transformation zunutze machen, um die aufwändige Berechnung der Kreuzkorrelation zu vereinfachen. Diese Suche muss zwar immer noch für jede PRN ausgeführt werden. Aber der Rechenaufwand bei den weiteren Schritten ist deutlich geringer. 
 In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Suche und paralleler Frequenzsuche verwendet. Im ersten Schritt wird der Dopplershift lediglich grob bestimmt (\SI{\pm500}{\Hz}), dafür die Codephase aber mit hoher Genauigkeit bestimmt. Im zweiten Schritt ist dann die Codephase bekannt, und es kann eine parallele Suche im Frequenzbereich durchgeführt werden um den Dopplershift genauer zu bestimmen. 
@@ -58,14 +59,15 @@ und
 \begin{equation}
      l_{\max}=\argmax_{x\in \textbf{L}}(\gpsxc)
 \end{equation} 
-gespeichert\footnote{$\textbf{L}=[0, N-1]$ und $N$ gleich der Anzahl der Samples pro Codewort}. Dieser Vorgang wird für alle Dopplershifts $d\in \textbf{D}$ wiederholt, und anschließend das globale 
+gespeichert\footnote{$\textbf{L}=[0, N-1]$ und $N$ gleich der Anzahl der Samples pro Codewort}. Dieser Vorgang wird für alle Dopplerverschiebungen $d\in \textbf{D}$ wiederholt, und anschließend das globale 
 \begin{equation}
 	\hat{\gpsxc}_{l,\max}=\max(\gpsxc)
 \end{equation}
+und
 \begin{equation}
 	\left[l_{\max}, d_{\max}\right]=\argmax_{x,\in \bf{L} \times \bf{D}}(\gpsxc)
 \end{equation}
-und gesucht. Der Vektor $\left[l_{\max}, d_{\max}\right]$ gibt dann die genaue Codephase und den groben Dopplershift für diese PRN an der Stelle des globalen Korrelationsmaximums $\hat{\gpsxc}_{l,\max}$ an. 
+gesucht. Der Vektor $\left[l_{\max}, d_{\max}\right]$ gibt dann die genaue Codephase und den groben Dopplershift für diese PRN an der Stelle des globalen Korrelationsmaximums $\hat{\gpsxc}_{l,\max}$ an. 
 
 Das Finden des Maximums ist allerdings noch nicht hinreichend um sagen zu können, dass der Satellit in Sicht ist, denn es existiert immer ein Maximum. Um Entscheiden zu können ob ein Satellit in Sicht ist, muss deshalb überprüft werden wie hoch das Korrelationsmaximum relativ gesehen ist, die sogenannte \emph{Peak Metric}. Dazu gibt es verschiedene Möglichkeiten. Es kann zum Beispiel das \emph{Peak to Average Ratio} bestimmt werden. Eine weitere Möglichkeit ist, außerhalb eines gewissen Bereichs um das globale Maximum, nach einem zweiten lokalen Maximum zu suchen und das Verhältnis der beiden Maxima zu bestimmen.
 Wenn dies über einem im Design festgelegten Wert liegt, wird die PRN zu der Liste der Satelliten in Sicht hinzugefügt. Dieser Vorgang wird für alle PRN wiederholt. 
