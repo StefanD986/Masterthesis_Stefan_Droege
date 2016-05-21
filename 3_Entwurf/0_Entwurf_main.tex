@@ -9,6 +9,8 @@ In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand de
 \subsection{Frontend Parameter}
 Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. An dieser Stelle sei gesagt, dass die Dokumentation des MAX2769 Frontend ICs an vielen Stellen leider sehr lückenhaft ist. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
 
+\FGimg[Vereinfachtes MAX2769 Blockschaltbild]{FrontendSimplified.png}{Vereinfachtes Blockschaltbild des MAX2769 GPS Frontends. Vor dem Mischer filtert ein externer Bandpass für das GPS L1 Signal.}{0.8\textwidth}
+
 \paragraph{ZF Frequenz und PLL Parameter}
 Bei der Erzeugung des LO Signals stehen im Frontend eine Integer PLL oder eine Fractional PLL zur Auswahl. Experimentell wurde bestimmt, dass die Integer PLL weniger Interferenzen verursacht, und die besten Ergebnisse bei einer ZF von etwa \SI{2}{\MHz} erreicht werden können. 
 
