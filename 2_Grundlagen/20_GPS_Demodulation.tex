@@ -18,17 +18,6 @@ Es gibt verschiedene Möglichkeiten zur Suche. Die einfachste, aber auch langsam
 Effizienter sind Methoden die sich die Fourier Transformation zunutze machen, um die aufwändige Berechnung der Kreuzkorrelation zu vereinfachen. Diese Suche muss zwar immer noch für jede PRN ausgeführt werden. Aber der Rechenaufwand bei den weiteren Schritten ist deutlich geringer. 
 In dieser Arbeit wird eine zweischrittige Methode aus paralleler Codephasen Suche und paralleler Frequenzsuche verwendet. Im ersten Schritt wird der Dopplershift lediglich grob bestimmt (\SI{\pm500}{\Hz}), dafür die Codephase aber mit hoher Genauigkeit bestimmt. Im zweiten Schritt ist dann die Codephase bekannt, und es kann eine parallele Suche im Frequenzbereich durchgeführt werden um den Dopplershift genauer zu bestimmen. 
 
-\paragraph{Datenmenge für die Acquisition}
-Prinzipiell ist bei der Acquisition die Erfolgswahrscheinlichkeit größer je länger das Datensegment ist, mit dem die Kreuzkorrelation geprüft wird. Auf der anderen Seite steigt auch der Rechenaufwand für längere Segmente. Außerdem darf während des gesamten Datensegments kein Bitwechsel vorkommen, da dies sonst in einem kleineren Korrelationswert resultieren würde. Dies folgt aus der Dreiecksungleichung:
-\begin{align}
-   |(\gpsin(t) \star \gpsca)(\tau)|  &= \left|\int_0^T{\gpsin(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right| \\  
-&= \Biggl|\int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \textrm{d}t}\\
-     &\phantom{=~}+ \int_{t_1}^T{\gpsin_-(t) \cdot \gpsca(\tau -t) \textrm{d}t}\Biggl|\\
-   &\leq \left|\int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right| \notag\\
-    &\phantom{\leq~} + \left|\int_{t_1}^T{|\gpsin_-(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right|
-\end{align}
-mit dem Zeitpunkt $t_1$ des Bitwechsels, $T$ der Segmentlänge und $\gpsin_{\pm}$ dem Eingangssignal vor bzw. nach dem Bitwechsel. Ein Bitwechsel kann aber nie ausgeschlossen werden. Man behilft sich deshalb damit die maximale Segmentlänge auf $1/2 \gpsTbit$ zu begrenzen, aber die Acquisiton für zwei aufeinander folgende Segmente durchzuführen. Dann kann ein Bitwechsel höchstens in einem der beiden Segmente vorkommen, und für die weitere Verarbeitung wird dann das Segment mit dem besseren Ergebnis ausgewählt.
-
 \FGimg[Acquisition Aktivitätsdiagram]{acquisition_activity.png}{Die Acquisition wird nacheinander für alle PRN durchgeführt. Um dem Problem eines möglichen Bitwechsels vorzugreifen wird die Acquisition für zwei aufeinanderfolgende Segemente durchgeführt, von denen für die weitere Verarbeitung nur das mit der höheren Korrelation ausgewählt wird.}{0.8\textwidth}
 
 \FGimg[Blockschaltbild parallele Codephasensuche]{parallelCodephase.png}{Bei der parallelen Codephasensuche müssen nur alle möglichen Dopplerverschiebungen seriell durchsucht werden. Die Bestimmung der Codephase kann sehr einfach durch eine Maximumsuche nach der Multiplikation im Frequenzbereich und anschließende Rücktransformation bestimmt werden.}{0.9\textwidth}
@@ -78,3 +67,15 @@ Für jede der PRN in Sicht wird dann der genaue Dopplershift mit einer parallele
 \end{equation}
 Das Ergebnis wird anschließend Fourier transformiert und das Maximum im Frequenzbereich gesucht, wodurch $\omega_x$ und damit der Dopplershift bestimmt wird.
 
+\paragraph{Datenmenge für die Acquisition} \label{DatenmengeAcq}
+Prinzipiell ist bei der Acquisition die Erfolgswahrscheinlichkeit größer je länger das Datensegment ist, mit dem die Kreuzkorrelation geprüft wird. Auf der anderen Seite steigt auch der Rechenaufwand für längere Segmente. Außerdem darf während des gesamten Datensegments kein Bitwechsel vorkommen, da dies sonst in einem kleineren Korrelationswert resultieren würde. Dies folgt aus der Dreiecksungleichung:
+\begin{align}
+   |(\gpsin(t) \star \gpsca)(\tau)|  &= \left|\int_0^T{\gpsin(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right| \\  
+&= \Biggl|\int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \textrm{d}t}\\
+     &\phantom{=~}+ \int_{t_1}^T{\gpsin_-(t) \cdot \gpsca(\tau -t) \textrm{d}t}\Biggl|\\
+   &\leq \left|\int_0^{t_1}{\gpsin_+(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right| \notag\\
+    &\phantom{\leq~} + \left|\int_{t_1}^T{|\gpsin_-(t) \cdot \gpsca(\tau -t) \textrm{d}t}\right|
+\end{align}
+mit dem Zeitpunkt $t_1$ des Bitwechsels, $T$ der Segmentlänge und $\gpsin_{\pm}$ dem Eingangssignal vor bzw. nach dem Bitwechsel. Ein Bitwechsel kann aber nie ausgeschlossen werden. Wie in \cite{borre2007software} beschrieben behilft man sich deshalb damit, die maximale Segmentlänge auf $1/2 \gpsTbit$ zu begrenzen, aber die Acquisiton für zwei aufeinander folgende Segmente durchzuführen. Dann kann ein Bitwechsel höchstens in einem der beiden Segmente vorkommen, und für die weitere Verarbeitung wird dann das Segment mit dem besseren Ergebnis ausgewählt.
+
+Bei dem oben beschriebenen zweischrittigen Algorithmus (1. parallele Codephasensuche, 2. parallele Frequenzbereichsuche) kann es sich außerdem lohnen, in den beiden Schritten mit unterschiedlichen Segementlängen zu arbeiten: Der erste Schritt ist rechenaufwändiger, weil die Berechnung für alle Dopplerverschiebungen wiederholt werden muss. Aber gleichzeitig bringen auch kurze Segemente, in der Größenordnung $\gpsTcode$ zuverlässig hohe Korrelationswerte. Es können also kurze Segemente analysiert werden um die Geschwindigkeit zu erhöhen. In der zweiten Phase muss nicht mehr über alle möglichen Codephase iteriert werden. Hier kann dann ein längeres Segment genutzt werden, um Bestimmung der Dopplerverschiebung zu verbessern\footnote{Unschärferelation der Kurzzeit Fouriertransformation}.
