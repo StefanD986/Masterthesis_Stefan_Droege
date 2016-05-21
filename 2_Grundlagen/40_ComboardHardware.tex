@@ -23,6 +23,8 @@ Das GPS Frontend hat die Aufgabe das L-Band Signal (\SI{1575.42}{\MHz}) auf eine
 
 Das komplexe (\emph{IQ}) ZF Signal kann mit \SI{1}{\bit}, \SI{1.5}{\bit} oder \SI{2}{\bit}  quantisiert werden. Falls lediglich ein reelles (\emph{I}) ZF Signal gewünscht ist, stehen außerdem  \SI{2.5}{\bit} und \SI{3}{\bit} Quantisierung zur Auswahl.
 
+Der Referenzoszillator ist ein \gls{TCXO} mit \SI{16.368}{MHz}\footnote{Auf der ersten Version des \comboard ist die TCXO Frequenz \SI{16.369}{MHz}!}. Von diesem Referenzoszillator wird die LO Frequenz mit einem Integer- oder Fractional PLL abgeleitet. Die ADC Samplingfrequenz wird ebenfalls davon abgeleitet, wobei hier ebenfalls verschiedene Teiler / Vervielfacher zur Verfügung stehen.
+
 \FGimg[Blockdiagram MAX2769]{MAX2769.pdf}{Blockdiagramm des MAX2769 GPS Frontend ICs (entnommen aus \cite{max2769})}{0.8\textwidth}
 
 \subsection{Digitaler Signalprozessor}

@@ -4,93 +4,116 @@ Einleitung zum Entwurf
 \section{Anforderungen}
 In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand derer sich die Arbeitspakete identifizieren lassen. Das Ziel ist: Der \dscubesat soll in der Lage sein seine eigene Position mittels GPS zu bestimmen.  
 
-\subsection{Anzahl der Kanäle} Wie in Abschnitt \ref{positionsbestimmung} erläutert werden dazu die Daten von mindesten 4 GPS Satelliten benötigt. Daraus ergibt sich die Anforderung, dass der Empfänger mindestens 4 Kanäle zum Tracking der Signale haben muss. Weiterhin soll bei einem Verbindungsabbruch zu einem der 4 Satelliten die Positionsbestimmung nicht abbrechen, weshalb >4 Kanäle erforderlich sind. Außerdem steigt die Genauigkeit der Positionsbestimmung mit mehr Satelliten. Deshalb soll der hier entwickelte GPS Empfänger mindestens 6 Kanäle umfassen.
+\subsection{Anzahl der Kanäle} Wie in Abschnitt \ref{positionsbestimmung} erläutert werden zur Positionsbestimmung die Daten von mindesten 4 GPS Satelliten benötigt. Daraus ergibt sich die Anforderung, dass der Empfänger mindestens 4 Kanäle zum Tracking der Signale haben muss. Weiterhin soll bei einem Verbindungsabbruch zu einem der 4 Satelliten die Positionsbestimmung nicht abbrechen, weshalb >4 Kanäle erforderlich sind. Außerdem steigt die Genauigkeit der Positionsbestimmung mit mehr Satelliten. Deshalb soll der hier entwickelte GPS Empfänger mindestens 6 Kanäle umfassen.
+
+\subsection{Rohdatenpuffer}
+Voraussetzung für das Tracking ist die erfolgreiche Acquisition, wofür eine gewisse Menge Rohdaten benötigt werden. Aufgrund der Bitwechsel Problemetik (\ref{DatenmengeAcq}) beträgt die maximal sinnvolle Pufferlänge $2\times\SI{10}{\ms}$. Für den Entwurf wurde sich an der Implementierung in der Simulation in \cite{borre2007software} orientiert, wo ein \SI{10}{\ms} Segment in der zweiten Phase der Acquisition verwendet wird.
+
 
 \subsection{Frontend Parameter}
 Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. An dieser Stelle sei gesagt, dass die Dokumentation des MAX2769 Frontend ICs an vielen Stellen leider sehr lückenhaft ist. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
 
-\FGimg[Vereinfachtes MAX2769 Blockschaltbild]{FrontendSimplified.png}{Vereinfachtes Blockschaltbild des MAX2769 GPS Frontends. Vor dem Mischer filtert ein externer Bandpass für das GPS L1 Signal.}{0.8\textwidth}
+\FGimg[Vereinfachtes MAX2769 Blockschaltbild]{FrontendSimplified.png}{Vereinfachtes Blockschaltbild des MAX2769 GPS Frontends. Vor dem Mischer filtert ein externer Bandpass das GPS L1 Signal.}{0.9\textwidth}
 
 \paragraph{ZF Frequenz und PLL Parameter}
-Bei der Erzeugung des LO Signals stehen im Frontend eine Integer PLL oder eine Fractional PLL zur Auswahl. Experimentell wurde bestimmt, dass die Integer PLL weniger Interferenzen verursacht, und die besten Ergebnisse bei einer ZF von etwa \SI{2}{\MHz} erreicht werden können. 
+Bei der Erzeugung des LO Signals stehen im Frontend eine Integer PLL oder eine Fractional PLL zur Auswahl. Experimentell wurde bestimmt, dass die Integer PLL weniger Interferenzen verursacht, und die besten Ergebnisse bei einer ZF von etwa \SI{2}{\MHz} erreicht werden können. Bei der Auswahl der PLL Teilerfaktoren muss darauf geachtet werden, dass die geteilten Frequenzen in den im Datenblatt \cite{max2769} angegebenen Grenzen bleiben und $f_{comp}=f_{ref}/R$ muss zu dem Loop Filter der Frontend PLL passen. Das \comboard verwendet für den Loop Filter die Werte aus dem Datenblatt, wonach $f_{comp}=\SI{1.023}{\MHz}$ sein soll. Mit dem \SI{16.368}{MHz} \gls{TCXO} auf dem \comboard ergibt sich damit $R=16$. $f_ZF$ soll im Bereich \SI{2}{\MHz} liegen, womit $N=1538$ zu wählen ist. Damit ergibt sich $f_{ZF}=f_{L1}-f_{TCXO}\cdot \frac{N}{R}=\SI{2.048}{MHz}$.
 
 \paragraph{ZF Filter}
-Als Konfiguration für das ZF Filter im Frontend wurde ein komplexes Bandpassfilter mit $B=\SI{2.5}{\MHz}$ gewählt. Das komplexe Bandpassfilter ist bei Anwendungen mit einer ZF $\neq 0$ zu bevorzugen, da damit die Spiegelfrequenzen unterdrückt werden.\footnote{Falls die ZF zu \SI{0}{\Hz} gewählt wird sollte als ZF Filter das reelle Tiefpassfilter gewählt werden, um Satellitensignale mit negativer Doppleverschiebung nicht zu unterdrücken.}
+Als Konfiguration für das ZF Filter im Frontend wurde das komplexe Bandpassfilter gewählt. Das komplexe Bandpassfilter ist bei Anwendungen mit einer ZF $\neq 0$ zu bevorzugen, da damit die Spiegelfrequenzen unterdrückt werden\footnote{Falls die ZF zu \SI{0}{\Hz} gewählt wird sollte als ZF Filter das reelle Tiefpassfilter gewählt werden, um Satellitensignale mit negativer Doppleverschiebung nicht zu unterdrücken.}. Die untere Schranke für die Bandbreite ergibt sich aus dem Shannon-Nyquist Theorem zu $B\geq 2/\gpsTchip=\SI{1.023}{\MHz}$. Jegliche Filterung verschlechtert zwar das $E_b/N_0$, ist allerdings erforderlich um Aliasing bei der AD Wandlung zu verhindern. Wie in \cite{hegarty2011analytical} und \cite{itc1982chang} untersucht wurde, bringen allerdings Bandbreiten $B>2/\gpsTchip$ nur marginal geringere Verschlechterungen. \cite{hegarty2011analytical} nennt zum Beispiel eine Verbesserung von lediglich \SI{0.41}{\dB} wenn statt $B=2/\gpsTchip$ eine Bandbreite von $B=10/\gpsTchip$ gewählt wird. Deshalb wurde als Bandbreite $B=\SI{2.5}{\MHz}$ gewählt.
 
-\SI{2.5}{MHz} gewählt, da die Nyquist Bandbreite des \gls{CA} kodierten Signals $1/\gpsTchip=\SI{1.023}{\MHz}$ beträgt. Der Einfluss der Filterbandbreite auf die Verschlechterung im Vergleich zu einem Filter mit unendlicher Bandbreite wurde in \cite{itc1982chang} untersucht. Bandbreiten sorgen zwar für eine geringere Verschlechterung, aber wie in  zeigt ist der Einfluss für $B \gpsTchip>2$ gering.
-
-Die Mittenfrequenz des ZF Filters lässt sich auf die gewählte ZF über ein \SI{6}{\bit} Konfigurationswort ($\textrm{FCEN}$) anpassen. Die Berechnung des Konfigurationsworts ist leider nicht im MAX2769 Datenblatt dokumentiert, es konnte aber herausgefunden werden, dass das korrekte Konfigurationswort mit folgender Gleichung ermittelt werden kann: 
+Die Mittenfrequenz $f_{cen}$ des ZF Filters lässt sich auf die gewählte ZF über ein \SI{6}{\bit} Konfigurationswort ($\textrm{FCEN}$) anpassen. Die Berechnung des Konfigurationsworts ist leider nicht im MAX2769 Datenblatt dokumentiert, es konnte aber herausgefunden werden, dass das korrekte Konfigurationswort mit folgender Gleichung ermittelt werden kann: 
 \begin{equation}
-    f_{cen,2.5} = (64 - \textrm{FCEN'}) \cdot \SI{0.195}{MHz}
+    \textrm{FCEN'} = 64 - \frac{f_{cen}}{\Delta f}
 \end{equation}
-wobei $\textrm{FCEN'}$ das gespiegelte Konfigurationswort $\textrm{FCEN}$ ist (wenn z.B. $\textrm{FCEN}=101100$, dann $\textrm{FCEN}=001101$)
+wobei $\textrm{FCEN'}$ das gespiegelte Konfigurationswort $\textrm{FCEN}$ ist (wenn z.B. $\textrm{FCEN'}=101100$, dann ist $\textrm{FCEN}=001101$) und $\Delta f=\SI{0.195}{\MHz}$  für $B=\SI{0.195}{\MHz}$.
 
 \paragraph{Quantisierung und Samplingrate}
-Quantisierung, Abtastung und Bandpassfilterung des Signals im Frontend verschlechtert sich das SNR leicht. Der genaue Zusammenhang wurde in \cite{itc1982chang} untersucht. Daraus lässt sich entnehmen, dass die Verschlechterung vor allem von der Anzahl der Bits $m$ des Quantisierers, schwach von dem Produkt $B\cdot T$ und nur sehr schwach vom $E_b/N_0$ abhängt. dass die Bandbreite des Frontend Filters $B\geq 2/\gpsTchip$ gewählt werden sollte. Weiterhin schreibt \cite{itc1982chang}, dass der Einfluss der Samplingrate abnimmt, 
+Zusätzlich zu der Bandpassfilterung wird auch durch Quantisierung und Abtastung das $E_b/N_0$  des Signals leicht verschlechtert. Der genaue Zusammenhang wurde ebenfalls in \cite{hegarty2011analytical} und \cite{itc1982chang} untersucht. Wie \cite{itc1982chang} schreibt hängt die Verschlechterung vor allem von der Anzahl der Bits $m$ des Quantisierers, schwach von dem Produkt $B\cdot T$ und nur sehr schwach vom $E_b/N_0$ des Eingangssignals ab. \TR{TabDegradQuant} stellt die Werte für verschiedene Anzahl von Bits für einen Empfänger ohne Bandpassfilterung und hoher Abtrastrate dar. Das trotzdem auch viele kommerzielle GPS Empfänger lediglich 1-bit Quantisierer verwenden liegt zum einen daran, dass die Verschlechterung nicht sehr gravierend ist und zum anderen daran, dass sich dadurch die Implementierung stark vereinfacht: Die Mischer können durch einfache XOR Glieder implementiert werden, es sind keine Look-Up Tables für den Lokaloszillator notwendig usw. Aus diesem Grund verwendet auch der in dieser Arbeit entwickelte Empfänger nur 1 bit.
 
-% 1 bit reduzierte komplexität
-% höhere samplingrate als 1/TChip verbessert SNR nur marginal (Chang 2.2)
-Bei der Wahl der Frontend Für einen kleinen Pseudoranging Fehler sind hohe Samplingraten des GPS Frontends von Vorteil (siehe \ref{positionsbestimmung}). Allerdings steigt mit höherer Samplingrate auch der Rechenaufwand bei der Acquisition, und der Rohdatenpuffer benötigt mehr Speicher. 
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[$E_b/N_0$ Verschlechterung durch Quantisierung]{Kleinste mögliche $E_b/N_0$ Verschlechterung durch Quantisierung für verschiedene Anzahl von Bits. Gültig für einen Empfänger ohne Bandpassfilterung und hohe Abtastraten (aus \cite{hegarty2011analytical}).}
+        \label{TabDegradQuant}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c}
+        \toprule
+        \# Bits             &  Verschlechterung (dB)\\
+        \midrule
+        \num{1}         & \num{1,961} \\
+        \num{1.5}    & \num{0.916} \\
+        \num{2}           & \num{0.549} \\
+        \num{2.5}    & \num{0.372} \\
+        \num{3}           & \num{0.166} \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gpsftcxo/2$, $\gpsftcxo/4$, oder $2\times \gpsftcxo$ annehmen\footnote{Es gibt außerdem noch ein Fractional Clock Divider, über den noch andere Teilraten eingestellt werden können.}. Bei der Auswahl muss ein Kompromiss gemacht werden zwischen Genauigkeit der Pseudorange Schätzung (\ref{positionsbestimmung}) und dem Speicherverbrauch für den Rohdatenpuffer. Unter Berücksichtigung der oben festgelegten Größe des Rohdatenpuffers \SI{10}{\ms} wird die Samplingrate auf  $f_S=\gpsftcxo=\SI{16.368}{\MHz}$ festgelegt. Damit werden mit dem 1-bit Quantisierer mindestens \SI{163.69}{\kilo\bit} Speicher benötigt\footnote{Weil der Puffer als FIFO implementiert wird sind Speichergrößen von Zweierpotenzen vorteilhaft. Daher umfasst der Puffer \SI{262144}{\bit}, und damit etwa \SI{16}{\ms}}.
+
 
 % Tabelle 
 % FCEN
-% PLL M, N
+% PLL M, N, f_ZF
 % Samplingrate
 %
 
-LNA Strom
-LO Strom
-Mixerstrom
-Mixpole??
-LNA1/2 Auswahl
-Antenna bias
-Mixer enable
-FCEN 27
-Filter Bandbreite 2.5 MHz
-Filter order 5
-Filter bandpass
-filter gain high
+%LNA Strom
+%LO Strom
+%Mixerstrom
+%Mixpole??
+%LNA1/2 Auswahl
+%Antenna bias
+%Mixer enable
+%FCEN 27
+%Filter Bandbreite 2.5 MHz
+%Filter order 5
+%Filter bandpass
+%filter gain high
 
-IQ enable off
-gainref 
-agcmode_indep
-format unsigned
-bits_1
-drvcfg_cmos
-LO enable
+%IQ enable off
+%gainref 
+%%agcmode_indep
+%format unsigned
+%bits_1
+%drvcfg_cmos
+%LO enable
 
-Gainin (ignoriert bei agc)
-fslowen??
-hiloaden off wegen interferenz
-adc enable
-drven??
-fofsten?
-filten?
-fhipen? off
-pgaien
-pgaqen
+%Gainin (ignoriert bei agc)
+%fslowen??
+%hiloaden off wegen interferenz
+%adc enable
+%drven??
+%fofsten?
+%filten?
+%fhipen? off
+%pgaien
+%pgaqen
 
-pll vco enable
-ivco normal
-refout enable
-refdiv none
-ixtal buff normal
-xtalcap 0b10000
-ldmux(0)
-icp 0.5ma
-cptest(0)
-intpll
+%pll vco enable
+%ivco normal
+%refout enable
+%refdiv none
+%ixtal buff normal
+%vxtalcap 0b10000
+%ldmux(0)
+%icp 0.5ma
+%cptest(0)
+%intpll
 
-ndiv 1538
-rdiv 16
+%ndiv 1538
+%rdiv 16
 
-fdiv nicht benutzt
+%fdiv nicht benutzt
 
-lcnt, mcnt nicht benutzt
-clk_serclk
+%lcnt, mcnt nicht benutzt
+%clk_serclk
 
-\subsection{Rohdatenpuffer}
-Voraussetzung für das Tracking ist die erfolgreiche Acquisition, wofür eine gewisse Menge Rohdaten benötigt werden. Aufgrund der Bitwechsel Problemetik (\ref{DatenmengeAcq}) beträgt die maximal sinnvolle Pufferlänge $2\times\SI{10}{\ms}$. Für den Entwurf wurde sich an der Implementierung in der Simulation in \cite{borre2007software} orientiert, wo ein \SI{10}{\ms} Segment in der zweiten Phase der Acquisition verwendet wird.
+
 
 
 
