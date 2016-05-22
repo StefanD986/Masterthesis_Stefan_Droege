@@ -2,21 +2,45 @@
 Einleitung zum Entwurf
 
 \section{Anforderungen}
-In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand derer sich die Arbeitspakete identifizieren lassen. Das Ziel ist: Der \dscubesat soll in der Lage sein seine eigene Position mittels GPS zu bestimmen.  
+In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand derer sich die Arbeitspakete identifizieren lassen. Das Ziel ist: Der \dscubesat soll in der Lage sein seine eigene Position mittels GPS zu bestimmen. Einige Anforderungen ergeben sich außerdem aus der Konfiguration des Frontends, weshalb auch diese hier besprochen wird.
 
-\subsection{Anzahl der Kanäle} Wie in Abschnitt \ref{positionsbestimmung} erläutert werden zur Positionsbestimmung die Daten von mindesten 4 GPS Satelliten benötigt. Daraus ergibt sich die Anforderung, dass der Empfänger mindestens 4 Kanäle zum Tracking der Signale haben muss. Weiterhin soll bei einem Verbindungsabbruch zu einem der 4 Satelliten die Positionsbestimmung nicht abbrechen, weshalb >4 Kanäle erforderlich sind. Außerdem steigt die Genauigkeit der Positionsbestimmung mit mehr Satelliten. Deshalb soll der hier entwickelte GPS Empfänger mindestens 6 Kanäle umfassen.
+\subsection{Anzahl der Kanäle} Wie in Abschnitt \ref{positionsbestimmung} erläutert werden zur Positionsbestimmung die Daten von mindesten 4 GPS Satelliten benötigt. Daraus ergibt sich die Anforderung, dass der Empfänger mindestens 4 Kanäle zum Tracking der Signale haben muss. Weiterhin soll bei einem Verbindungsabbruch zu einem der Satelliten die Positionsbestimmung nicht abbrechen, weshalb $>4$ Kanäle erforderlich sind. Außerdem steigt die Genauigkeit der Positionsbestimmung mit mehr Satelliten. Deshalb soll der hier entwickelte GPS Empfänger mindestens 6 Kanäle umfassen.
 
 \subsection{Rohdatenpuffer}
 Voraussetzung für das Tracking ist die erfolgreiche Acquisition, wofür eine gewisse Menge Rohdaten benötigt werden. Aufgrund der Bitwechsel Problemetik (\ref{DatenmengeAcq}) beträgt die maximal sinnvolle Pufferlänge $2\times\SI{10}{\ms}$. Für den Entwurf wurde sich an der Implementierung in der Simulation in \cite{borre2007software} orientiert, wo ein \SI{10}{\ms} Segment in der zweiten Phase der Acquisition verwendet wird.
 
 
 \subsection{Frontend Parameter}
-Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. An dieser Stelle sei gesagt, dass die Dokumentation des MAX2769 Frontend ICs an vielen Stellen leider sehr lückenhaft ist. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
+Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. Die Dokumentation des MAX2769 Frontend ICs ist leider an vielen Stellen sehr lückenhaft. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Zusammenfassung Frontend Parameter]{Übersicht der wichtigsten Frontend Parameter}
+        \label{TabFrontendParams}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c S l}
+        \toprule
+        Bezeichnung             &  {Wert} & Anmerkung\\
+        \midrule
+        $f_{ZF}$      & \SI{2.048}{\MHz}      & Zwischenfrequenz\\
+        $f_{LO}$      & \SI{1573.374}{\MHz}   & Lokaloszillator\\
+        NDIV        & \num{1538}            & PLL Hauptteiler\\
+        RDIV        & \num{16}              & PLL Referenzteiler\\
+        $f_S$       & \SI{16.368}{\MHz}     & Samplingrate \\
+        $m$           & \num{1}               & Quantisierer Bits \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
 
 \FGimg[Vereinfachtes MAX2769 Blockschaltbild]{FrontendSimplified.png}{Vereinfachtes Blockschaltbild des MAX2769 GPS Frontends. Vor dem Mischer filtert ein externer Bandpass das GPS L1 Signal.}{0.9\textwidth}
 
-\paragraph{ZF Frequenz und PLL Parameter}
-Bei der Erzeugung des LO Signals stehen im Frontend eine Integer PLL oder eine Fractional PLL zur Auswahl. Experimentell wurde bestimmt, dass die Integer PLL weniger Interferenzen verursacht, und die besten Ergebnisse bei einer ZF von etwa \SI{2}{\MHz} erreicht werden können. Bei der Auswahl der PLL Teilerfaktoren muss darauf geachtet werden, dass die geteilten Frequenzen in den im Datenblatt \cite{max2769} angegebenen Grenzen bleiben und $f_{comp}=f_{ref}/R$ muss zu dem Loop Filter der Frontend PLL passen. Das \comboard verwendet für den Loop Filter die Werte aus dem Datenblatt, wonach $f_{comp}=\SI{1.023}{\MHz}$ sein soll. Mit dem \SI{16.368}{MHz} \gls{TCXO} auf dem \comboard ergibt sich damit $R=16$. $f_ZF$ soll im Bereich \SI{2}{\MHz} liegen, womit $N=1538$ zu wählen ist. Damit ergibt sich $f_{ZF}=f_{L1}-f_{TCXO}\cdot \frac{N}{R}=\SI{2.048}{MHz}$.
+\paragraph{ZF und PLL Parameter}
+Bei der Erzeugung des LO Signals stehen im Frontend eine Integer PLL oder eine Fractional PLL zur Auswahl. Experimentell wurde bestimmt, dass die Integer PLL weniger Interferenzen verursacht, und die besten Ergebnisse bei einer ZF von etwa \SI{2}{\MHz} erreicht werden können. Bei der Auswahl der PLL Teilerfaktoren muss darauf geachtet werden, dass die geteilten Frequenzen in den im Datenblatt \cite{max2769} angegebenen Grenzen bleiben und $f_{comp}=f_{ref}/R$ muss zu dem Loop Filter der Frontend PLL passen. Das \comboard verwendet für den Loop Filter die Werte aus dem Datenblatt, wonach $f_{comp}=\SI{1.023}{\MHz}$ sein soll. Falls der komplexe Bandpass verwendet wird, muss außerdem die LO Frequenz unterhalb der Eingangsfrequenz liegen, da der komplexe Bandpass das untere Seitenband herausfiltert.
+Mit dem \SI{16.368}{MHz} \gls{TCXO} auf dem \comboard ergibt sich damit $R=16$. $f_ZF$ soll im Bereich \SI{2}{\MHz} liegen, womit $N=1538$ zu wählen ist. Damit ergibt sich $f_{ZF}=f_{L1}-f_{TCXO}\cdot \frac{N}{R}=\SI{2.046}{MHz}$.
 
 \paragraph{ZF Filter}
 Als Konfiguration für das ZF Filter im Frontend wurde das komplexe Bandpassfilter gewählt. Das komplexe Bandpassfilter ist bei Anwendungen mit einer ZF $\neq 0$ zu bevorzugen, da damit die Spiegelfrequenzen unterdrückt werden\footnote{Falls die ZF zu \SI{0}{\Hz} gewählt wird sollte als ZF Filter das reelle Tiefpassfilter gewählt werden, um Satellitensignale mit negativer Doppleverschiebung nicht zu unterdrücken.}. Die untere Schranke für die Bandbreite ergibt sich aus dem Shannon-Nyquist Theorem zu $B\geq 2/\gpsTchip=\SI{1.023}{\MHz}$. Jegliche Filterung verschlechtert zwar das $E_b/N_0$, ist allerdings erforderlich um Aliasing bei der AD Wandlung zu verhindern. Wie in \cite{hegarty2011analytical} und \cite{itc1982chang} untersucht wurde, bringen allerdings Bandbreiten $B>2/\gpsTchip$ nur marginal geringere Verschlechterungen. \cite{hegarty2011analytical} nennt zum Beispiel eine Verbesserung von lediglich \SI{0.41}{\dB} wenn statt $B=2/\gpsTchip$ eine Bandbreite von $B=10/\gpsTchip$ gewählt wird. Deshalb wurde als Bandbreite $B=\SI{2.5}{\MHz}$ gewählt.
@@ -28,7 +52,9 @@ Die Mittenfrequenz $f_{cen}$ des ZF Filters lässt sich auf die gewählte ZF üb
 wobei $\textrm{FCEN'}$ das gespiegelte Konfigurationswort $\textrm{FCEN}$ ist (wenn z.B. $\textrm{FCEN'}=101100$, dann ist $\textrm{FCEN}=001101$) und $\Delta f=\SI{0.195}{\MHz}$  für $B=\SI{0.195}{\MHz}$.
 
 \paragraph{Quantisierung und Samplingrate}
-Zusätzlich zu der Bandpassfilterung wird auch durch Quantisierung und Abtastung das $E_b/N_0$  des Signals leicht verschlechtert. Der genaue Zusammenhang wurde ebenfalls in \cite{hegarty2011analytical} und \cite{itc1982chang} untersucht. Wie \cite{itc1982chang} schreibt hängt die Verschlechterung vor allem von der Anzahl der Bits $m$ des Quantisierers, schwach von dem Produkt $B\cdot T$ und nur sehr schwach vom $E_b/N_0$ des Eingangssignals ab. \TR{TabDegradQuant} stellt die Werte für verschiedene Anzahl von Bits für einen Empfänger ohne Bandpassfilterung und hoher Abtrastrate dar. Das trotzdem auch viele kommerzielle GPS Empfänger lediglich 1-bit Quantisierer verwenden liegt zum einen daran, dass die Verschlechterung nicht sehr gravierend ist und zum anderen daran, dass sich dadurch die Implementierung stark vereinfacht: Die Mischer können durch einfache XOR Glieder implementiert werden, es sind keine Look-Up Tables für den Lokaloszillator notwendig usw. Aus diesem Grund verwendet auch der in dieser Arbeit entwickelte Empfänger nur 1 bit.
+Zusätzlich zu der Bandpassfilterung wird auch durch Quantisierung und Abtastung das $E_b/N_0$  des Signals leicht verschlechtert. Der genaue Zusammenhang wurde ebenfalls in \cite{hegarty2011analytical} und \cite{itc1982chang} untersucht. Wie \cite{itc1982chang} schreibt hängt die Verschlechterung vor allem von der Anzahl der Bits $m$ des Quantisierers, schwach von dem Produkt $B\cdot T$ und nur sehr schwach vom $E_b/N_0$ des Eingangssignals ab. \TR{TabDegradQuant} stellt die Werte für verschiedene Anzahl von Bits für einen Empfänger ohne Bandpassfilterung und hoher Abtrastrate dar. Das trotzdem auch viele kommerzielle GPS Empfänger lediglich 1-bit Quantisierer verwenden liegt zum einen daran, dass die Verschlechterung nicht sehr gravierend ist und zum anderen daran, dass sich dadurch die Implementierung stark vereinfacht: Die Mischer können durch einfache XOR Glieder implementiert werden, es sind keine Look-Up Tables für den Lokaloszillator notwendig usw. 
+
+Trotzdem wurden einige Untersuchungen angestellt, welchen Vorteil höhere Quantisierungen in der Praxis bringen. Dabei stellte sich jedoch heraus, dass der Störabstand im Vergleich zu 1-bit Sampling sinkt. Als Ursache wurde vermutet, dass die zusätzlichen Schaltvorgänge innerhalb des ICs für Interferenzen sorgen. Aus diesem Grund verwendet auch der in dieser Arbeit entwickelte Empfänger nur 1 bit und nur die reellen ($I$) Samples.
 
 
 \begin{table}[htbp]
@@ -55,81 +81,40 @@ Zusätzlich zu der Bandpassfilterung wird auch durch Quantisierung und Abtastung
 
 Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gpsftcxo/2$, $\gpsftcxo/4$, oder $2\times \gpsftcxo$ annehmen\footnote{Es gibt außerdem noch ein Fractional Clock Divider, über den noch andere Teilraten eingestellt werden können.}. Bei der Auswahl muss ein Kompromiss gemacht werden zwischen Genauigkeit der Pseudorange Schätzung (\ref{positionsbestimmung}) und dem Speicherverbrauch für den Rohdatenpuffer. Unter Berücksichtigung der oben festgelegten Größe des Rohdatenpuffers \SI{10}{\ms} wird die Samplingrate auf  $f_S=\gpsftcxo=\SI{16.368}{\MHz}$ festgelegt. Damit werden mit dem 1-bit Quantisierer mindestens \SI{163.69}{\kilo\bit} Speicher benötigt\footnote{Weil der Puffer als FIFO implementiert wird sind Speichergrößen von Zweierpotenzen vorteilhaft. Daher umfasst der Puffer \SI{262144}{\bit}, und damit etwa \SI{16}{\ms}}.
 
-
-% Tabelle 
-% FCEN
-% PLL M, N, f_ZF
-% Samplingrate
-%
-
-%LNA Strom
-%LO Strom
-%Mixerstrom
-%Mixpole??
-%LNA1/2 Auswahl
-%Antenna bias
-%Mixer enable
-%FCEN 27
-%Filter Bandbreite 2.5 MHz
-%Filter order 5
-%Filter bandpass
-%filter gain high
-
-%IQ enable off
-%gainref 
-%%agcmode_indep
-%format unsigned
-%bits_1
-%drvcfg_cmos
-%LO enable
-
-%Gainin (ignoriert bei agc)
-%fslowen??
-%hiloaden off wegen interferenz
-%adc enable
-%drven??
-%fofsten?
-%filten?
-%fhipen? off
-%pgaien
-%pgaqen
-
-%pll vco enable
-%ivco normal
-%refout enable
-%refdiv none
-%ixtal buff normal
-%vxtalcap 0b10000
-%ldmux(0)
-%icp 0.5ma
-%cptest(0)
-%intpll
-
-%ndiv 1538
-%rdiv 16
-
-%fdiv nicht benutzt
-
-%lcnt, mcnt nicht benutzt
-%clk_serclk
+\paragraph{Andere Einstellungen} Neben den oben genannten Parametern bietet das MAX2769 Frontend noch viele weitere Einstellungen. Die meisten wurden dabei auf den Voreinstellungen belassen. Abweichend davon wurde beim Flugmodell die Phantomspeisung abgeschaltet und LNA1 ausgewählt, da dieser für passive Antennen ausgelegt ist wie sie im \dscubesat verwendet werden\footnote{Bei dem COM1 Board wurde währende der Entwicklung eine aktive Antenne und der dafür optimierte LNA2 verwendet.}. Die \gls{AGC} ist zwar aktiviert, dürfte aber bei 1-Bit Sampling keinen Einfluss haben. Der \emph{GAINREF} Parameter wurde auf 255 gesetzt. Weiterhin wurde durch ausprobieren herausgefunden, dass sich die Erfolgsrate der Acquisition leicht verbessert wenn der Hochpassfilter vor dem \gls{PGA} abgeschaltet wird (\emph{FHIPEN}$=0$).
 
 
-
-
-
-
- 
-% Die Voraussetzungen sind dafür: NAV Daten von >= 4 Satelliten
-% Also müssen mindestens 4 Satelliten getrackt werden können. (plus Reserve falls Empfang verloren geht)
-% Voraussetzung für das Tracking ist die Acquisition. Für die Acquisition werden 2ms Rohdaten benötigt. --> Speicheranforderung. Berechnung durchführen.
-% Aus Experimenten mit verschieden Konfigurationen hat sich gezeigt, dass die besten Ergebnisse mit 1 bit sampling und einer ZF von xx Hz erzielt werden können, bei einer Samplingrate von xyz Hz. Das Frontend bietet zwar höhere Quantisierungen, jedoch führt dies offenbar i
-
-% # CHannels
-% Samplingrate
-% Sample länge
 
 \section{Planung}
 Um die Arbeitspakete und Anforderungen zu identifizieren ist es zunächst wichtig zu verstehen wie die Demodulation des GPS Signals prinzipiell abläuft. Dies wird deshalb im ersten Abschnitt beschrieben. Im zweiten Abschnitt werden die Arbeitspakete dann den einzelnen Hardware Komponenten zugeordnet. Da die COM Hardware mit dem DSP und dem FPGA zwei komplexe Datenverarbeitende Komponenten besitzt, die Daten miteinander austauschen wird im dritten Abschnitt der Entwurf der Software Schnittstelle zwischen DSP und FPGA beschrieben. Der letzte Abschnitt beschreibt die Simulation, von der während des Entwurfs und Implementierung viel Gebrauch gemacht wurde, um Konzepte und Ideen zu prüfen.
+
+\begin{enumerate}
+\item Schnittstelle zum Übertragen der Rohdaten zum DSP
+    \begin{enumerate}
+    \item Kerneltreiber schreiben
+    \item EBIU Schnittstelle im FPGA implementieren
+    \item FIFO im FPGA implementieren
+    \end{enumerate}
+\item Simulation der Acquisition in Matlab
+\item Simulation des Trackings in Matlab
+    \begin{enumerate}
+    \item Zuerst \emph{High Level} Simulation
+    \item Sukzessive an die Implementierung im FPGA anpassen
+    \end{enumerate}
+\item Implementierung des Tracking im FPGA
+    \begin{enumerate}
+    \item Programmierbare Hardware
+    \item Implementierung des Softcore Prozessors
+    \item Schreiben der Firmware für den Softcore Prozessor
+    \end{enumerate}
+\item Implementierung der Acquisition im DSP
+\item Extraktion der NAV Daten
+\begin{enumerate}
+    \item Frame Synchronisation
+    \item \ldots
+\end{enumerate}
+\item Berechnung der Position
+\end{enumerate}
 
 % Meilensteine:
 % Daten von Frontend nehmen, puffern und an DSP Übertragen
@@ -170,9 +155,16 @@ Dafür sind die Filterkoeffizienten zu quantisieren, und die Filtertopologie so 
 
 \subsection{Arbeitsteilung FPGA/DSP}
 % Acquisition im DSP
-% Erfordert große Mengen Speicher und hoher Rechenaufwand
+% Erfordert große Mengen Speicher und hoher Rechenaufwand. Floating Point
+% Idee Vorberechnung im FPGA verworfen, Implementierungsaufwand Protokoll etc
 % Tracking im FPGA. Tracking erfordert hohe Parallelität bei moderatem Rechenaufwand und hat harte Echtzeitanforderungen.
 % Softcore Prozessor. Auswahl. Aufgabe
+Wie früher im Text schon besprochen haben die Acquisition und Tracking sehr unterschiedliche Anforderungen. Das Acquisition benötigt vor allem Speicher und der Ablauf (FFT, Maximumsuche, etc) ist vergleichsweise komplex. Die Echtzeitanforderungen sind bei der Acquisition nicht sehr hoch. Das Tracking dagegen hat harte Echtzeitanforderungen, aber der Rechenaufwand ist moderat, und der Ablauf ist recht einfach. Der DSP und FPGA haben in beiden Bereichen jeweils Vor- und Nachteile, weshalb es sinnvoll ist die Aufgaben auf die beiden Komponenten zu verteilen.
+
+Der DSP kann seine Vorzüge bei der Acquisition ausspielen: Er hat einen großen Arbeitsspeicher, ist auf Signalverarbeitung ausgelegt und Programme können in einer Hochsprache wie C geschrieben werden, was nebenbei das Debugging vereinfacht.
+
+Für das Tracking ist der FPGA ideal geeignet, da die $\geq 6$ Trackingkanäle in programmierbarer Hardware implementiert werden können und damit vollständig parallel ablaufen. Auch das Tracking erfordert allerdings einige Berechnungen, die sich einfacher in C als in VHDL beschreiben lassen. Um die Echtzeitanforderung einzuhalten werden diese Berechnungen aber nicht an den DSP übergeben, sondern von einem Softcore Prozessor im FPGA berechnet. Dieser übernimmt die berechnet die Loop
+
 
 \subsection{Softwareschnittstelle FPGA/DSP}
 %Character Device Treiber
