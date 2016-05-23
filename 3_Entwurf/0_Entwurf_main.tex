@@ -83,7 +83,10 @@ Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gp
 
 \paragraph{Andere Einstellungen} Neben den oben genannten Parametern bietet das MAX2769 Frontend noch viele weitere Einstellungen. Die meisten wurden dabei auf den Voreinstellungen belassen. Abweichend davon wurde beim Flugmodell die Phantomspeisung abgeschaltet und LNA1 ausgewählt, da dieser für passive Antennen ausgelegt ist wie sie im \dscubesat verwendet werden\footnote{Bei dem COM1 Board wurde währende der Entwicklung eine aktive Antenne und der dafür optimierte LNA2 verwendet.}. Die \gls{AGC} ist zwar aktiviert, dürfte aber bei 1-Bit Sampling keinen Einfluss haben. Der \emph{GAINREF} Parameter wurde auf 255 gesetzt. Weiterhin wurde durch ausprobieren herausgefunden, dass sich die Erfolgsrate der Acquisition leicht verbessert wenn der Hochpassfilter vor dem \gls{PGA} abgeschaltet wird (\emph{FHIPEN}$=0$).
 
+\subsection{Echtzeitanforderungen} \label{echtzeitanforderungen}
+Die beiden Phasen Acquistion und Tracking haben unterschiedliche Echtzeitanforderungen: Das Tracking hat harte Echtzeitanforderungen: Erstens müssen laufend Träger- und Codekopie erzeugt und mit dem Eingangssignal multipliziert werden. Dies sind die höchsten Echtzeitanforderungen im \si{\nano\second} Bereich, da dies je Sample, also alle $1/f_S$ geschehen muss. Die Neuberechnung der Loop Parameter hat harte Echtzeitanforderungen im \si{\milli\second}, da dies lediglich nach jeder Integrationsdauer ($\gpsTcode=\SI{1}{\ms}$) passieren muss. Die Blöcke die lediglich Echtzeitanforderungen im \si{\milli\second} Bereich haben sind in \FR{Trackingloop.png} grün markiert.
 
+Die Acquisition hat lediglich weiche Echtzeitanforderung im Sekundenbereich, da sich die Dopplerverschiebung nur relativ langsam verändert (schlimmstenfalls \SI{61}{\Hz/\second}, siehe \ref{maxdopplershift}). Falls die Acquisition länger als geplant dauert, kann der Trackingloop trotzdem noch einrasten wenn sich die Dopplerverschiebung nicht zu stark geändert hat.
 
 \section{Planung}
 Um die Arbeitspakete und Anforderungen zu identifizieren ist es zunächst wichtig zu verstehen wie die Demodulation des GPS Signals prinzipiell abläuft. Dies wird deshalb im ersten Abschnitt beschrieben. Im zweiten Abschnitt werden die Arbeitspakete dann den einzelnen Hardware Komponenten zugeordnet. Da die COM Hardware mit dem DSP und dem FPGA zwei komplexe Datenverarbeitende Komponenten besitzt, die Daten miteinander austauschen wird im dritten Abschnitt der Entwurf der Software Schnittstelle zwischen DSP und FPGA beschrieben. Der letzte Abschnitt beschreibt die Simulation, von der während des Entwurfs und Implementierung viel Gebrauch gemacht wurde, um Konzepte und Ideen zu prüfen.
@@ -159,16 +162,19 @@ Dafür sind die Filterkoeffizienten zu quantisieren, und die Filtertopologie so 
 % Idee Vorberechnung im FPGA verworfen, Implementierungsaufwand Protokoll etc
 % Tracking im FPGA. Tracking erfordert hohe Parallelität bei moderatem Rechenaufwand und hat harte Echtzeitanforderungen.
 % Softcore Prozessor. Auswahl. Aufgabe
-Wie früher im Text schon besprochen haben die Acquisition und Tracking sehr unterschiedliche Anforderungen. Das Acquisition benötigt vor allem Speicher und der Ablauf (FFT, Maximumsuche, etc) ist vergleichsweise komplex. Die Echtzeitanforderungen sind bei der Acquisition nicht sehr hoch. Das Tracking dagegen hat harte Echtzeitanforderungen, aber der Rechenaufwand ist moderat, und der Ablauf ist recht einfach. Der DSP und FPGA haben in beiden Bereichen jeweils Vor- und Nachteile, weshalb es sinnvoll ist die Aufgaben auf die beiden Komponenten zu verteilen.
+FPGAs und CPUs haben in verschiedenen Bereichen Vorteile und Nachteile: FPGAs eignen sich vor allem parallelisierbare Aufgaben. Für sequentielle Aufgaben ist dagegen der Implementierungsaufwand hoch, da dies immer einen Zustandsautomaten erfordert. Im Falle des \comboard hat außerdem der DSP deutlich mehr Speicher zur Verfügung. Wie früher im Text schon besprochen haben die Acquisition und Tracking sehr unterschiedliche Anforderungen: Die Acquisition benötigt vor allem Speicher und der Ablauf (FFT, Maximumsuche, etc) ist vergleichsweise komplex. Die Echtzeitanforderungen sind bei der Acquisition nicht sehr hoch. Das Tracking dagegen hat harte Echtzeitanforderungen, aber der Rechenaufwand ist moderat, und der Ablauf ist recht einfach. Daher ist es sinnvoll die Aufgaben auf die beiden Komponenten aufzuteilen.
 
 Der DSP kann seine Vorzüge bei der Acquisition ausspielen: Er hat einen großen Arbeitsspeicher, ist auf Signalverarbeitung ausgelegt und Programme können in einer Hochsprache wie C geschrieben werden, was nebenbei das Debugging vereinfacht.
 
-Für das Tracking ist der FPGA ideal geeignet, da die $\geq 6$ Trackingkanäle in programmierbarer Hardware implementiert werden können und damit vollständig parallel ablaufen. Auch das Tracking erfordert allerdings einige Berechnungen, die sich einfacher in C als in VHDL beschreiben lassen. Um die Echtzeitanforderung einzuhalten werden diese Berechnungen aber nicht an den DSP übergeben, sondern von einem Softcore Prozessor im FPGA berechnet. Dieser übernimmt die berechnet die Loop
+Für das Tracking ist der FPGA ideal geeignet, da die $\geq 6$ Trackingkanäle in programmierbarer Hardware implementiert werden können und damit vollständig parallel ablaufen. Auch das Tracking erfordert allerdings einige Berechnungen, die sich einfacher in C als in VHDL beschreiben lassen. Um die Echtzeitanforderung einzuhalten werden diese Berechnungen aber nicht an den DSP übergeben. Stattdessen soll dies von einem Softcore Prozessor innerhalb FPGA der dort in programmierbarer Logik implement wird.
 
 
+
+% Komponenten: Acquisition, Tracking...
 \subsection{Softwareschnittstelle FPGA/DSP}
 %Character Device Treiber
 %Je Kanal ein FIFO
+% Auf Software Seite werden die Kanäle durch Klassen repräsentiert. Abstraktion der Hardware Kanäle
 
 \subsection{Matlab Simulation}
 %Trackingloop in Simulink
