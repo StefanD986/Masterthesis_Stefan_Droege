@@ -37,13 +37,13 @@ Der BF518 DSP bietet zur Anbindung an externe Peripherie und Speicher die \gls{E
 
 Die EBIU Schnittstelle ist an den \gls{DMA} Controller den BF518 angeschlossen. Damit können sehr schnell große Datenmengen von Peripherie in den RAM des DSP übertragen werden.
 
-Auf dem \comboard sind nicht alle Steuersignale der EBIU Schnittstelle an den FPGA herangeführt. Daher kann für Zugriffe auf den FPGA lediglich der \gls{AMC} genutzt werden. Im Unterschied zum synchronen Speicherinterface wird hier kein Takt verwendet, und Schreib-/Lesevorgänge werden ausschließlich über die Steuerleitungen signalisiert. Um sicherzugehen, dass die Gegenseite die Kommandos erkannt hat werden Wartezustände eingebaut. Dadurch ist die Anbindung über das Asynchrone Speicherinterface langsamer als das synchrone Speicherinterface.
+Auf dem \comboard sind nicht alle Steuersignale der EBIU Schnittstelle an den FPGA herangeführt. Daher kann für Zugriffe auf den FPGA lediglich der \gls{AMC} genutzt werden. Im Unterschied zum synchronen Speicherinterface wird hier kein Takt verwendet, und Schreib-/Lesevorgänge werden ausschließlich über die Steuerleitungen signalisiert. Um sicherzugehen, dass die Gegenseite die Kommandos erkannt hat werden Wartezustände eingebaut. Dadurch ist die Anbindung über das Asynchrone Speicherinterface langsamer als das synchrone Speicherinterface. Auf Clientseite muss dazu eine State Machine implementiert werden, die protokolliert in welcher Phase (siehe \FR{EBIU_readwrite.pdf}) der Datenübertragung sich die Schnittstelle gerade befindet.
 %Addressbus
 %Datenbus
 %Write Enable
 %DMA
 
-
+\FGimg[Timingdiagramm EBIU Asynchronous Read Write]{EBIU_readwrite.pdf}{Timing der Signale der EBIU Schnittstelle für einen asynchronen Schreib- bzw. Lesevorgang. Der Takt ist auf Clientseite nicht unbedingt benötigt. Nicht alle Steuersignale sind auf dem \comboard an den FPGA geführt. (entnommen aus \cite{BlackfinHWReference}, S. 7-14)}{0.98\textwidth}
 
 \subsection{FPGA}
 Der FPGA hat, wie bereits erwähnt, einerseits die Aufgabe eines Bindeglieds zwischen GPS Frontend und DSP, andererseits bietet die programmierbare Logik hervorragende Voraussetzungen um parallelisierbare Prozesse mit Echtzeitanforderungen zu implementieren. 
