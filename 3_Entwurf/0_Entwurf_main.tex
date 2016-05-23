@@ -9,13 +9,41 @@ In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand de
 \subsection{Rohdatenpuffer}
 Voraussetzung für das Tracking ist die erfolgreiche Acquisition, wofür eine gewisse Menge Rohdaten benötigt werden. Aufgrund der Bitwechsel Problemetik (\ref{DatenmengeAcq}) beträgt die maximal sinnvolle Pufferlänge $2\times\SI{10}{\ms}$. Für den Entwurf wurde sich an der Implementierung in der Simulation in \cite{borre2007software} orientiert, wo ein \SI{10}{\ms} Segment in der zweiten Phase der Acquisition verwendet wird.
 
-\subsection{Komponenten und benötigte Daten für Acquisition und Positionsbestimmung}
-In \FR{GPS_UML_component1.pdf} sind die Komponenten dargestellt, und die von ihnen bereitgestellten bzw. benötigten Daten. Das Diagramm macht noch keine Aussage darüber wo (ob auf DSP oder FPGA) oder wie die Komponenten realisiert werden.
+\subsection{Komponenten und Schnittstellen des GPS Empfängers}
+In \FR{GPS_UML_component1.pdf} ist ein Entwurf der Komponenten des GPS Empfängers dargestellt, und die von ihnen bereitgestellten bzw. benötigten Daten. Das Diagramm macht noch keine Aussage darüber wo (ob auf DSP oder FPGA) oder wie (Hardware oder Software) die Komponenten realisiert werden.
 
-Die Komponente \emph{Acquisition} benötigt das oben genannten Segment Rohdaten. Die Acquisition Ergebnisse beziehen sich außerdem immer auf die Rohdaten und damit auf einen bestimmten Zeitpunkt. Für die Acquisition selbst ist der Zeitpunkt nicht wichtig, aber beim Initialisieren der Trackingloops wird die Information benötigt, und muss daher irgendwo festgehalten werden. Die Trackingloops erhalten von dem Frontend Rohdaten (anders als die Acquisition Komponente allerdings als kontinuierlichen Datenstrom) und demodulieren das Signal. Aus dem demodulierten Signal extrahiert die \emph{NAV Daten Extraktion} Komponente die NAV Daten. Wie in Abschnitt \ref{positionsbestimmung} erklärt, reichen die NAV Daten alleine zu Positionsbestimmung nicht aus. Deshalb benötigt die Komponente \emph{Positionsbestimmung} diese zusätzliche Information noch von den Trackingloops.
+Die \emph{Frontend} Komponente ist hier nicht als direktes Abbild des MAX2769 ICs zu verstehen, sondern kann noch durch Code im FPGA abstrahiert werden. Bei der \emph{Rohdaten} Schnittstelle wird zudem erst einmal nicht unterschieden ob diese Segmentweise (wie von \emph{Acquisition} benötigt) oder als kontinuierlicher Datenstrom (wie von \emph{Trackingloop} benötigt) bereitgestellt werden. 
+
+Die \emph{Acquisition} Komponente errechnet aus den Rohdaten die Loop Parameter (Dopplerverschiebung etc). Außerdem gelten die Rohdaten immer nur individuell für ein Segment Rohdaten und damit für einen bestimmten Zeitpunkt. Für die Acquisition selbst ist der Zeitpunkt nicht wichtig, aber beim Initialisieren der Trackingloops wird die Information benötigt, und muss daher irgendwo festgehalten werden. Dies ist durch die Schnittstelle \emph{Zeitstempel} symbolisiert.
+
+Die Trackingloops erhalten von dem Frontend Rohdaten und demodulieren das Signal. Aus dem demodulierten Signal extrahiert die Komponente \emph{NAV Daten Extraktion} die NAV Daten. Wie in Abschnitt \ref{positionsbestimmung} erklärt, reichen die NAV Daten alleine zu Positionsbestimmung nicht aus. Deshalb benötigt die Komponente \emph{Positionsbestimmung} zusätzlich Informationen über die Codephase von den Trackingloops.
 
 
-\FGimg[Komponentendiagramm GPS Empfänger]{GPS_UML_component1.pdf}{Die abstrahierten Komponenten des GPS Empfängers und die von ihnen benötigten bzw. bereitgestellten Daten.}{0.8\textwidth}
+\FGimg[Komponentendiagramm GPS Empfänger]{GPS_UML_component1.pdf}{Die abstrahierten Komponenten des GPS Empfängers und die von ihnen benötigten bzw. bereitgestellten Daten.}{0.7\textwidth}
+
+
+\subsection{Echtzeitanforderungen} \label{echtzeitanforderungen}
+Die beiden Phasen Acquistion und Tracking haben unterschiedliche Echtzeitanforderungen: Das Tracking hat harte Echtzeitanforderungen: Erstens müssen laufend Träger- und Codekopie erzeugt und mit dem Eingangssignal multipliziert werden. Dies sind die höchsten Echtzeitanforderungen im \si{\nano\second} Bereich, da dies je Sample, also alle $1/f_S$ geschehen muss. Die Neuberechnung der Loop Parameter hat harte Echtzeitanforderungen im \si{\milli\second}, da dies lediglich nach jeder Integrationsdauer ($\gpsTcode=\SI{1}{\ms}$) passieren muss. Die Blöcke die lediglich Echtzeitanforderungen im \si{\milli\second} Bereich haben sind in \FR{Trackingloop.png} grün markiert.
+
+Die Acquisition hat lediglich weiche Echtzeitanforderung im Sekundenbereich, da sich die Dopplerverschiebung nur relativ langsam verändert (schlimmstenfalls \SI{61}{\Hz/\second}, siehe \ref{maxdopplershift}). Falls die Acquisition länger als geplant dauert, kann der Trackingloop trotzdem noch einrasten wenn sich die Dopplerverschiebung nicht zu stark geändert hat.
+
+\subsection{Arbeitsteilung FPGA/DSP}
+% Acquisition im DSP
+% Erfordert große Mengen Speicher und hoher Rechenaufwand. Floating Point
+% Idee Vorberechnung im FPGA verworfen, Implementierungsaufwand Protokoll etc
+% Tracking im FPGA. Tracking erfordert hohe Parallelität bei moderatem Rechenaufwand und hat harte Echtzeitanforderungen.
+% Softcore Prozessor. Auswahl. Aufgabe
+Das \comboard bietet mit dem DSP und dem FPGA zwei Rechenknoten an, die in verschiedenen Bereichen Vorteile und Nachteile haben: FPGAs eignen sich vor allem für gut parallelisierbare Aufgaben. Für sequentielle Aufgaben ist dagegen der Implementierungsaufwand hoch, da dies immer einen Zustandsautomaten erfordert. Im Falle des \comboard hat außerdem der DSP deutlich mehr Speicher zur Verfügung. Wie früher im Text schon besprochen haben die Acquisition und Tracking sehr unterschiedliche Anforderungen: Die Acquisition benötigt vor allem Speicher und der Ablauf (FFT, Maximumsuche, etc) ist vergleichsweise komplex. Die Echtzeitanforderungen sind bei der Acquisition nicht sehr hoch. Das Tracking dagegen hat harte Echtzeitanforderungen, aber der Rechenaufwand ist moderat, und der Ablauf ist recht einfach. Daher ist es sinnvoll die Aufgaben auf die beiden Komponenten aufzuteilen.
+
+Der DSP kann seine Vorzüge bei der Acquisition ausspielen: Er hat einen großen Arbeitsspeicher, ist auf Signalverarbeitung ausgelegt und Programme können in einer Hochsprache wie C geschrieben werden, was nebenbei das Debugging vereinfacht.
+
+Für das Tracking ist der FPGA ideal geeignet, da die $\geq 6$ Trackingkanäle in programmierbarer Hardware implementiert werden können und damit vollständig parallel ablaufen. Auch das Tracking erfordert allerdings einige Berechnungen, die sich einfacher in C als in VHDL beschreiben lassen. Um die Echtzeitanforderung einzuhalten werden diese Berechnungen aber nicht an den DSP übergeben. Stattdessen soll dies von einem Softcore Prozessor innerhalb FPGA der dort in programmierbarer Logik implement wird.
+
+In \FR{GPS_UML_deployment1.png} ist die Verteilung der Komponenten auf die verschiedenen Rechenknoten dargestellt. Die Komponente \emph{Tracking} aus \FR{GPS_UML_component1.pdf} ist hier auf die zwei Knoten \emph{Softcore CPU} und \emph{Tracking} aufgeteilt worden: Für jeden Kanal existiert ein \emph{TrackingHW} Knoten, der die in \FR{Trackingloop.png} weiß eingefärbten Blöcke implementiert. Für alle Kanäle gemeinsam implementiert das auf dem Softcore Prozessor laufende Programm \emph{TrackingSW} die in \FR{Trackingloop.png} grün eingefärbten Blöcke. Zur Erinnerung: Die grün eingefärbten Blöcke waren zwar algorithmisch aufwändiger, mussten dafür aber mit einer geringeren Frequenz ausgeführt werden. Durch diese Arbeitsteilung werden die Ressourcen optimal ausgenutzt.
+
+Im DSP soll die GPS Empfänger Anwendung laufen, die zum einen die Acquisition und zum anderen die weitere Signalverarbeitung zur NAV Daten Extraktion und Positionsbestimmung übernimmt. Auf der Hardware Ebene kommuniziert der DSP mit dem FPGA über die \gls{EBIU} Schnittstelle \cite{BlackfinHWReference}, die ein Interface für externen Speicher implementiert. 
+
+\FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.png}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.9\textwidth}
 
 \subsection{Frontend Parameter}
 Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. Die Dokumentation des MAX2769 Frontend ICs ist leider an vielen Stellen sehr lückenhaft. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
@@ -90,16 +118,16 @@ Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gp
 
 \paragraph{Andere Einstellungen} Neben den oben genannten Parametern bietet das MAX2769 Frontend noch viele weitere Einstellungen. Die meisten wurden dabei auf den Voreinstellungen belassen. Abweichend davon wurde beim Flugmodell die Phantomspeisung abgeschaltet und LNA1 ausgewählt, da dieser für passive Antennen ausgelegt ist wie sie im \dscubesat verwendet werden\footnote{Bei dem COM1 Board wurde währende der Entwicklung eine aktive Antenne und der dafür optimierte LNA2 verwendet.}. Die \gls{AGC} ist zwar aktiviert, dürfte aber bei 1-Bit Sampling keinen Einfluss haben. Der \emph{GAINREF} Parameter wurde auf 255 gesetzt. Weiterhin wurde durch ausprobieren herausgefunden, dass sich die Erfolgsrate der Acquisition leicht verbessert wenn der Hochpassfilter vor dem \gls{PGA} abgeschaltet wird (\emph{FHIPEN}$=0$).
 
-\subsection{Echtzeitanforderungen} \label{echtzeitanforderungen}
-Die beiden Phasen Acquistion und Tracking haben unterschiedliche Echtzeitanforderungen: Das Tracking hat harte Echtzeitanforderungen: Erstens müssen laufend Träger- und Codekopie erzeugt und mit dem Eingangssignal multipliziert werden. Dies sind die höchsten Echtzeitanforderungen im \si{\nano\second} Bereich, da dies je Sample, also alle $1/f_S$ geschehen muss. Die Neuberechnung der Loop Parameter hat harte Echtzeitanforderungen im \si{\milli\second}, da dies lediglich nach jeder Integrationsdauer ($\gpsTcode=\SI{1}{\ms}$) passieren muss. Die Blöcke die lediglich Echtzeitanforderungen im \si{\milli\second} Bereich haben sind in \FR{Trackingloop.png} grün markiert.
-
-Die Acquisition hat lediglich weiche Echtzeitanforderung im Sekundenbereich, da sich die Dopplerverschiebung nur relativ langsam verändert (schlimmstenfalls \SI{61}{\Hz/\second}, siehe \ref{maxdopplershift}). Falls die Acquisition länger als geplant dauert, kann der Trackingloop trotzdem noch einrasten wenn sich die Dopplerverschiebung nicht zu stark geändert hat.
 
 \section{Planung}
-Um die Arbeitspakete und Anforderungen zu identifizieren ist es zunächst wichtig zu verstehen wie die Demodulation des GPS Signals prinzipiell abläuft. Dies wird deshalb im ersten Abschnitt beschrieben. Im zweiten Abschnitt werden die Arbeitspakete dann den einzelnen Hardware Komponenten zugeordnet. Da die COM Hardware mit dem DSP und dem FPGA zwei komplexe Datenverarbeitende Komponenten besitzt, die Daten miteinander austauschen wird im dritten Abschnitt der Entwurf der Software Schnittstelle zwischen DSP und FPGA beschrieben. Der letzte Abschnitt beschreibt die Simulation, von der während des Entwurfs und Implementierung viel Gebrauch gemacht wurde, um Konzepte und Ideen zu prüfen.
+Nachdem im vorherigen Abschnitt die Rahmenbedingungen  entworfenen  wurden können nun die Arbeitspakete für die Implementierung etwas genauer festgelegt werden. 
+
+Als erster Meilenstein wurde festgelegt Rohdaten vom MAX2769 Frontend sammeln zu können. Dazu muss die Schnittstelle zwischen FPGA und DSP implementiert werden, wofür auf FPGA Seite ein Gegenstück zu der EBIU Schnittstelle des DSP implementiert werden muss. Auf DSP Seite muss ein Kerneltreiber geschrieben werden um die Schnittstelle für Programme im User-Space zu abstrahieren. Im FPGA muss Logik implementiert werden, die die AD Wandler Schnittstelle
+
 
 \begin{enumerate}
 \item Schnittstelle zum Übertragen der Rohdaten zum DSP
+
     \begin{enumerate}
     \item Kerneltreiber schreiben
     \item EBIU Schnittstelle im FPGA implementieren
@@ -161,21 +189,6 @@ Dafür sind die Filterkoeffizienten zu quantisieren, und die Filtertopologie so 
 %\subsubsection{NAV Daten Auswertung}
 %Präambel usw
 
-\subsection{Arbeitsteilung FPGA/DSP}
-% Acquisition im DSP
-% Erfordert große Mengen Speicher und hoher Rechenaufwand. Floating Point
-% Idee Vorberechnung im FPGA verworfen, Implementierungsaufwand Protokoll etc
-% Tracking im FPGA. Tracking erfordert hohe Parallelität bei moderatem Rechenaufwand und hat harte Echtzeitanforderungen.
-% Softcore Prozessor. Auswahl. Aufgabe
-Das \comboard bietet mit dem DSP und dem FPGA zwei Rechenknoten an, die in verschiedenen Bereichen Vorteile und Nachteile haben: FPGAs eignen sich vor allem für gut parallelisierbare Aufgaben. Für sequentielle Aufgaben ist dagegen der Implementierungsaufwand hoch, da dies immer einen Zustandsautomaten erfordert. Im Falle des \comboard hat außerdem der DSP deutlich mehr Speicher zur Verfügung. Wie früher im Text schon besprochen haben die Acquisition und Tracking sehr unterschiedliche Anforderungen: Die Acquisition benötigt vor allem Speicher und der Ablauf (FFT, Maximumsuche, etc) ist vergleichsweise komplex. Die Echtzeitanforderungen sind bei der Acquisition nicht sehr hoch. Das Tracking dagegen hat harte Echtzeitanforderungen, aber der Rechenaufwand ist moderat, und der Ablauf ist recht einfach. Daher ist es sinnvoll die Aufgaben auf die beiden Komponenten aufzuteilen.
-
-Der DSP kann seine Vorzüge bei der Acquisition ausspielen: Er hat einen großen Arbeitsspeicher, ist auf Signalverarbeitung ausgelegt und Programme können in einer Hochsprache wie C geschrieben werden, was nebenbei das Debugging vereinfacht.
-
-Für das Tracking ist der FPGA ideal geeignet, da die $\geq 6$ Trackingkanäle in programmierbarer Hardware implementiert werden können und damit vollständig parallel ablaufen. Auch das Tracking erfordert allerdings einige Berechnungen, die sich einfacher in C als in VHDL beschreiben lassen. Um die Echtzeitanforderung einzuhalten werden diese Berechnungen aber nicht an den DSP übergeben. Stattdessen soll dies von einem Softcore Prozessor innerhalb FPGA der dort in programmierbarer Logik implement wird.
-
-In \FR{GPS_UML_deployment1.png} ist die Verteilung der Komponenten auf die verschiedenen Rechenknoten dargestellt. Die Softcore CPU übernimmt die Berechnung der Loop Parameter für alle Trackingloops. Die \emph{Tracking} Kanäle benötigen zwar die Softcore CPU für die Funktion aber CPU und \emph{Tracking} Kanäle sind weitestgehend unabhängig und sind deshalb als eigenständige \emph{devices} modelliert. Im DSP soll die GPS Empfänger Anwendung laufen, die zum einen die Acquisition und zum anderen die weitere Signalverarbeitung zur NAV Daten Extraktion und Positionsbestimmung übernimmt. Auf der Hardware Ebene kommuniziert der DSP mit dem FPGA über die \gls{EBIU} Schnittstelle \cite{BlackfinHWReference}, die ein Interface für externen Speicher implementiert. 
-
-\FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.png}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.9\textwidth}
 
 % Komponenten: Acquisition, Tracking...
 \subsection{Softwareschnittstelle FPGA/DSP}
