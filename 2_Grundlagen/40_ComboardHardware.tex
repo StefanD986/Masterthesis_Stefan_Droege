@@ -4,9 +4,9 @@ In diesem Abschnitt wird ein Überblick über die für diese Arbeit relevanten T
 
 Die für den GPS Empfänger relevanten Teile des \comboard sind: 
 \begin{itemize}
-\item Ein leistungsfähiger \gls{DSP} für Signalverarbeitung und Systemmanagement Aufgaben.
-\item Ein \gls{FPGA} der zum einen für die Bildverarbeitung der Kameras notwendig ist, aber auch beim GPS beim Tracking zum Einsatz kommt.
-\item Ein GPS HF Frontend, was die Digitalisierung der von den GPS Antennen kommenden HF Signale übernimmt.
+\item Ein leistungsfähiger \gls{DSP} (Analog Devices ADSP-BF518) für Signalverarbeitung und Systemmanagement Aufgaben.
+\item Ein \gls{FPGA} (Xilinx XC6SLX9) der zum einen für die Bildverarbeitung der Kameras notwendig ist, aber auch beim GPS beim Tracking zum Einsatz kommt.
+\item Ein GPS HF Frontend (Maxim Integrated MAX2769), was die Digitalisierung der von den GPS Antennen kommenden HF Signale übernimmt.
 \end{itemize}
 
 \FGimg[Oberseite der COM Leiterplatte.]{COMTop.png}{Oberseite der COM Leiterplatte.}{9cm}
@@ -31,6 +31,19 @@ Der Referenzoszillator ist ein \gls{TCXO} mit \SI{16.368}{MHz}\footnote{Auf der 
 Auf dem \gls{DSP} des \comboard läuft ein embedded Linux System und der Zugriff auf den FPGA und die SPI Schnittstelle erfolgt über Treiber die als ladbare Kernelmodule ausgeführt sind \FR{LinuxSystem.png}. Anwendungsprogramme (wie der GPS Prozess) können dann über die Linux Devices auf die Hardware zugreifen. Dadurch ist die Low-Level Programmierung klar von der Anwendungsprogrammierung getrennt. Weitere Vorteile des Linux Systems sind das einfache Multitasking und der Möglichkeit der Verwendung von Standardbibliotheken. Einige Nachteile gegenüber einer \emph{Bare Metal} Implementierung sind allerdings die fehlende Echtzeitfähigkeit, weshalb in dieser Arbeit der DSP nur für nicht-zeitkritische Berechnungen, verwendet wird.
 
 \FGimg[Systemarchitektur Linux]{LinuxSystem.png}{Prinzipielle Systemarchitektur eines Linux Systems. Die Hardware wird durch den Kernel und die Kerneltreiber abstrahiert}{0.7\textwidth}
+
+\paragraph{EBIU Schnittstelle}
+Der BF518 DSP bietet zur Anbindung an externe Peripherie und Speicher die \gls{EBIU} Schnittstelle zur Verfügung. Die EBIU Schnittstelle besteht aus einem \SI{16}{\bit} Datenbus, einem \SI{19}{\bit} Adressbus und dazugehörigen Steuersignalen. Damit lassen sich sowohl synchrone Speicher (also getaktete) als auch asynchrone (zustandsgesteuerte) Speicher ansprechen. Die Peripherie ist natürlich nicht auf Speicher begrenzt, aber die Peripherie muss aus Sicht des DSP \emph{wie} ein Speicher ansprechbar sein. Aus Sicht des auf dem DSP laufenden Programms (bzw Betriebssystem) wird einfach auf eine bestimmte Speicherregion zugegriffen. Zugriffe auf diese Speicherregion aktivieren den externen Daten-/Adressbus.
+
+Die EBIU Schnittstelle ist an den \gls{DMA} Controller den BF518 angeschlossen. Damit können sehr schnell große Datenmengen von Peripherie in den RAM des DSP übertragen werden.
+
+Auf dem \comboard sind nicht alle Steuersignale der EBIU Schnittstelle an den FPGA herangeführt. Daher kann für Zugriffe auf den FPGA lediglich der \gls{AMC} genutzt werden. Im Unterschied zum synchronen Speicherinterface wird hier kein Takt verwendet, und Schreib-/Lesevorgänge werden ausschließlich über die Steuerleitungen signalisiert. Um sicherzugehen, dass die Gegenseite die Kommandos erkannt hat werden Wartezustände eingebaut. Dadurch ist die Anbindung über das Asynchrone Speicherinterface langsamer als das synchrone Speicherinterface.
+%Addressbus
+%Datenbus
+%Write Enable
+%DMA
+
+
 
 \subsection{FPGA}
 Der FPGA hat, wie bereits erwähnt, einerseits die Aufgabe eines Bindeglieds zwischen GPS Frontend und DSP, andererseits bietet die programmierbare Logik hervorragende Voraussetzungen um parallelisierbare Prozesse mit Echtzeitanforderungen zu implementieren. 
