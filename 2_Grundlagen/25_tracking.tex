@@ -1,7 +1,7 @@
 \subsection{Tracking}
 Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird lediglich durchgeführt, wenn neue GPS Satelliten gesucht werden, beispielsweise nach dem Systemstart, oder wenn das Signal verloren wird. Sobald die Parameter (PRN, Codephase, Dopplershift) durch die Acquisition bestimmt wurden, werden diese an den eigentlichen Demodulator, den Trackingloop, weitergegeben. Der Begriff Trackingloop kommt daher, dass die bei der Acquisition bestimmte Codephase bzw. Dopplershift jeweils nur Momentaufnahmen sind. Dopplershift und Codephase ändern sich ständig und auch Ungenauigkeiten der Takterzeugung beim Empfänger müssen ausgeglichen werden. Der Trackingloop hat die Aufgabe die in der Acquisitonphase bestimmten Werte mittels eines Regelkreises (\emph{control loop}) nachzuführen (\emph{to track}). 
 
-\FGimg[Blockschaltbild GPS Trackingloop]{Trackingloop.png}{Blockschaltbild des GPS Trackingloops. Der Trackingloop besteht aus zwei Regelkreisen, die die LO-Frequenz bzw. die Codefrequenz nachführen.}{0.9\textwidth}
+\FGimg[Blockschaltbild GPS Trackingloop]{Trackingloop.png}{Blockschaltbild des GPS Trackingloops. Der Trackingloop besteht aus zwei Regelkreisen, die die LO-Frequenz bzw. die Codefrequenz nachführen. Grün markierte Blöcke haben weichere Echtzeitanforderungen (\ref{echtzeitanforderungen}).}{0.9\textwidth}
 
 \FR{Trackingloop.png} zeigt ein Blockschaltbild des Trackingloops. Im Folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Anschließend wird ein Überblick über die Funktion des gesamten Trackingloops gegeben. Eine detaillierte Beschreibung des ist in \cite{borre2007software} zu finden.
 
