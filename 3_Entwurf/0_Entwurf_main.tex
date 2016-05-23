@@ -162,13 +162,13 @@ Dafür sind die Filterkoeffizienten zu quantisieren, und die Filtertopologie so 
 % Idee Vorberechnung im FPGA verworfen, Implementierungsaufwand Protokoll etc
 % Tracking im FPGA. Tracking erfordert hohe Parallelität bei moderatem Rechenaufwand und hat harte Echtzeitanforderungen.
 % Softcore Prozessor. Auswahl. Aufgabe
-FPGAs und CPUs haben in verschiedenen Bereichen Vorteile und Nachteile: FPGAs eignen sich vor allem parallelisierbare Aufgaben. Für sequentielle Aufgaben ist dagegen der Implementierungsaufwand hoch, da dies immer einen Zustandsautomaten erfordert. Im Falle des \comboard hat außerdem der DSP deutlich mehr Speicher zur Verfügung. Wie früher im Text schon besprochen haben die Acquisition und Tracking sehr unterschiedliche Anforderungen: Die Acquisition benötigt vor allem Speicher und der Ablauf (FFT, Maximumsuche, etc) ist vergleichsweise komplex. Die Echtzeitanforderungen sind bei der Acquisition nicht sehr hoch. Das Tracking dagegen hat harte Echtzeitanforderungen, aber der Rechenaufwand ist moderat, und der Ablauf ist recht einfach. Daher ist es sinnvoll die Aufgaben auf die beiden Komponenten aufzuteilen.
+Das \comboard bietet mit dem DSP und dem FPGA zwei Rechenknoten an, die in verschiedenen Bereichen Vorteile und Nachteile haben: FPGAs eignen sich vor allem für gut parallelisierbare Aufgaben. Für sequentielle Aufgaben ist dagegen der Implementierungsaufwand hoch, da dies immer einen Zustandsautomaten erfordert. Im Falle des \comboard hat außerdem der DSP deutlich mehr Speicher zur Verfügung. Wie früher im Text schon besprochen haben die Acquisition und Tracking sehr unterschiedliche Anforderungen: Die Acquisition benötigt vor allem Speicher und der Ablauf (FFT, Maximumsuche, etc) ist vergleichsweise komplex. Die Echtzeitanforderungen sind bei der Acquisition nicht sehr hoch. Das Tracking dagegen hat harte Echtzeitanforderungen, aber der Rechenaufwand ist moderat, und der Ablauf ist recht einfach. Daher ist es sinnvoll die Aufgaben auf die beiden Komponenten aufzuteilen.
 
 Der DSP kann seine Vorzüge bei der Acquisition ausspielen: Er hat einen großen Arbeitsspeicher, ist auf Signalverarbeitung ausgelegt und Programme können in einer Hochsprache wie C geschrieben werden, was nebenbei das Debugging vereinfacht.
 
 Für das Tracking ist der FPGA ideal geeignet, da die $\geq 6$ Trackingkanäle in programmierbarer Hardware implementiert werden können und damit vollständig parallel ablaufen. Auch das Tracking erfordert allerdings einige Berechnungen, die sich einfacher in C als in VHDL beschreiben lassen. Um die Echtzeitanforderung einzuhalten werden diese Berechnungen aber nicht an den DSP übergeben. Stattdessen soll dies von einem Softcore Prozessor innerhalb FPGA der dort in programmierbarer Logik implement wird.
 
-
+\FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.pdf}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.0\textwidth}
 
 % Komponenten: Acquisition, Tracking...
 \subsection{Softwareschnittstelle FPGA/DSP}
