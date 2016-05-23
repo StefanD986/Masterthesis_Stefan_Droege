@@ -1,13 +1,36 @@
 \section{GPS Signal}
 Der GNSS Empfänger der im Rahmen dieser Arbeit entwickelt werden soll verwendet das \gls{GPS} als Quelle für Navigationsdaten. In diesem Abschnitt soll ein Überblick über die Eigenschaften des Signals, sowie ein Überblick über die Demodulation Signals gegeben werden. Dabei wird sich auf die für diese Arbeit wichtigen Teile beschränkt: Das GPS verwendet mehrere Frequenzen und in neueren Versionen auch mehrere Modulationsverfahren \cite{specification2010gps}. Der im Rahmen dieser Arbeit entworfene Empfänger verwendet lediglich das zivil nutzbare Signal auf der L1 Frequenz mit C/A Kodierung\footnote{Beginnend mit dem Jahr 2016 sollen in Zukunft 2016 auch weitere Übertragungskanäle für zivile Anwendungen zur Verfügung stehen. Siehe \cite{interface1gps}, \cite{specification2010gps} und \cite{navstar2006space}}. Für die anderen Teile des Standards sei auf die offizielle GPS Spezifikation verwiesen (\cite{specification2010gps}) verwiesen. Weiterhin gibt \cite{borre2007software} eine sehr gute Einführung zu \gls{SDR} Empfängern für \gls{GPS} und Galileo. 
 
-Auch wenn GPS aus Sicht des Empfängers kein Netzwerkprotokoll ist, orientiert sich die folgende Beschreibung grob am OSI Modell: Zu Beginn wird die Bitübertragungsschicht (\emph{Physical Layer}) diskutiert. Im zweiten Unterabschnitt wird das verwendete Multiplex Verfahren beschrieben (\emph{\gls{MAC} Layer}). Abschließend werden die übertragenen Nutzdaten beschrieben.
+Auch wenn GPS aus Sicht des Empfängers kein Netzwerkprotokoll ist, orientiert sich die folgende Beschreibung grob am OSI Modell: Zu Beginn wird die Bitübertragungsschicht (\emph{Physical Layer}) diskutiert. Im zweiten Unterabschnitt wird das verwendete Multiplex Verfahren beschrieben (\emph{\gls{MAC} Layer}). Abschließend werden die übertragenen Nutzdaten beschrieben. Einige Zahlenwerte zu Parametern sind in \TR{TabGPSSignalParams} angegeben. Die Bedeutung wird in den folgenden Abschnitten noch erklärt.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Übersicht GPS Signal Parameter]{Übersicht über einige GPS Signal Parameter}
+        \label{TabGPSSignalParams}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c S[table-format=4.4, table-comparator = true]@{\.}s[table-unit-alignment = left] l}
+        \toprule
+        Name             & \multicolumn{2}{c}{Wert} &Beschreibung\\
+        \midrule
+        $\gpsfcarr$      & 1575.42 & \MHz    &  Trägerfrequenz L1\\
+        $\gpsfchip$      & 1.023 & \MHz     & Chippingrate ($1/T_{Chip}$) \\
+        $\gpsTchip$      & \approx 977.5 & \nano\second & Chiplänge \\
+        $\gpsTcode$      & 1 & \milli\second & Codelänge \\
+        $\gpsfbit$       & 50 & \bit\per\second & Informationsrate \\
+        $\gpsTbit$       & 20 & \milli\second & Dauer eines Bits \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
 
 \subsection{Bitübertragungsschicht}
 Die von der darüber liegenden Schicht erhaltenen Daten werden in der Bitübertragungsschicht auf einen Träger moduliert und ausgesendet. 
 
 \paragraph{Träger} 
-Auf dem Satelliten befindet sich eine hoch genaue Taktquelle mit \SI{10.2299999954326}{\MHz}. Durch relativistische Effekte erscheint diese Frequenz für einen Beobachter auf der Erde wie \SI{10.23}{\MHz}. Von dieser Taktquelle sind alle weiteren Frequenzen abgeleitet. Ein Frequenzsynthesizer generiert aus dem Referenztakt durch Vervielfachung mit dem Faktor 154 den Träger für das \gls{PY} Signal für die sogenannte L1 Frequenz (\SI{1575.42}{\MHz}). Der Träger für das zivil genutzte \gls{CA} Signal wird aus dem \gls{PY} Träger durch \SI{90}{\degree} Phasenverschiebung gewonnen.
+Auf dem Satelliten befindet sich eine hoch genaue Taktquelle mit \SI{10.2299999954326}{\MHz}. Durch relativistische Effekte erscheint diese Frequenz für einen Beobachter auf der Erde wie \SI{10.23}{\MHz}. Von dieser Taktquelle sind alle weiteren Frequenzen abgeleitet. Ein Frequenzsynthesizer generiert aus dem Referenztakt durch Vervielfachung mit dem Faktor 154 den Träger für das \gls{PY} Signal für die sogenannte L1 Frequenz ($\gpsfcarr=\SI{1575.42}{\MHz}$). Der Träger für das zivil genutzte \gls{CA} Signal wird aus dem \gls{PY} Träger durch \SI{90}{\degree} Phasenverschiebung gewonnen.
 
 \paragraph{Modulation}
 Die von der darüber liegenden Schicht erhaltenen Daten werden auf den Träger mittels \gls{BPSK} moduliert. \gls{BPSK} bietet, verglichen mit 2ASK und 2FSK, bei gleichem \gls{SNR} die geringste Bit-Error-Rate \cite{dixon1998radio}. Die Zuordnung der $1$en und $0$en zu den Phasenlagen bezieht sich auf das gleichzeitig übertragene \gls{PY} Signal\footnote{Das \gls{PY} Signal ist das militärisch genutzte GPS Signal auf der L1 Frequenz. Wie jedoch später beschrieben wird, ist es zur Dekodierung des \gls{CA} Signals nicht notwendig das \gls{PY} Signal dekodieren zu können}: Die Phasenlage die der \gls{PY} Träger annimmt wenn eine $0$ übertragen wird ist als \SI{0}{\degree} definiert. Wenn das \gls{CA} Signal den Wert $1$ übertragen soll, eilt der \gls{CA} Träger dem \gls{PY} \SI{90}{\degree} vor. Bei einer $0$ eilt das CA Signal \SI{90}{\degree} nach.
@@ -23,7 +46,7 @@ Das ausgesendete Signal ergibt sich durch Addition des \gls{CA} Signals mit dem 
 
 Wie im vorherigen Abschnitt beschrieben, senden alle GPS Satelliten auf derselben Frequenz. Zum Multiplexen der vielen Signale kommt bei GPS \gls{CDMA} zum Einsatz. Dabei wird das eigentliche Informationssignal vor der Modulation auf dem Träger punktweise mit einem Codewort multipliziert. Jeder aktive Satellit hat ein individuelles Codewort zugewiesen. Die unterschiedlichen Codeworte - und damit die Satelliten - werden durch die sogenannte \gls{PRN} identifiziert.
 
-Da die Coderate deutlich größer ist als die Informationrate erhöht sich durch die Multiplikation mit dem Codewort die Bandbreite des Signals stark. Daher zählt \gls{CDMA} zu den \emph{Spread Spectrum} Verfahren (\enquote{\emph{aufspreizen}}).
+Da die Chippingrate deutlich größer ist als die Informationrate erhöht sich durch die Multiplikation mit dem Codewort die Bandbreite des Signals stark. Daher zählt \gls{CDMA} zu den \emph{Spread Spectrum} Verfahren (\enquote{\emph{aufspreizen}}).
 
 Die Codeworte haben die Eigenschaft orthogonal zueinander zu sein, haben also eine geringe Kreuzkorrelation (\FR{GoldcodeXcorr.png}). Außerdem weisen sie für Verschiebungen $k\neq0$ eine sehr geringe Autokorrelation auf (\FR{GoldcodeAKF.png}). Letzteres ist ein weiteres Mittel um Multipath Empfangswege zu unterdrücken: Die reflektierten Signale kommen im Vergleich zum direkten Ausbreitungsweg verzögert an. Bei der Demodulation wird die Frequenzspreizung wieder rückgängig gemacht, was nur bei exakter Übereinstimmung der Codephase $k$ gelingt. Folglich werden die reflektierten Signale stark unterdrückt.
 
@@ -33,7 +56,7 @@ Die Codeworte haben die Eigenschaft orthogonal zueinander zu sein, haben also ei
 
 \FGimg[Goldcode Kreuzkorrelation]{GoldcodeXcorr.png}{Zyklische Kreuzkorrelation ($\mathcal{F}^{-1}(X\cdot Y^*)_k$) zweier unterschiedlicher Goldcode Worte. Die Kreuzkorrelation ist sehr gering (vgl mit \FR{GoldcodeAKF.png})}{.9\textwidth}
 
-Da die Bits des Codeworts keine Information enthalten werden sie zur besseren Unterscheidung als \glspl{Chip} bezeichnet. Die wichtigen Parameter für CDMA sind die \emph{Coderate} und der verwendete Code. Das zivil nutzbare GPS Signal hat eine Coderate von \SI{1.023}{MChip/s} und verwendet \emph{Gold Codefolgen} (benannt nach Robert Gold). Die Goldcodefolgen werden durch die punktweise Modulo-2 Addition zweier \emph{Maximum Length Sequences} \gls{LFSR} erzeugt. Je nach \gls{PRN} werden bei der Addition andere Abgriffe (\emph{Taps}) an dem \gls{LFSR} verwendet. Die erzeugenden Polynome der beiden ML Sequenzen sind $G_1: 1 + x^3 + x^10$ und $G_2: 1 + x^2 + x^3 +x^6 + x^8 + x^9 + x^{10}$. \FR{LFSRGoldcode.png} stellt die Generierung der Gold Codes grafisch dar. Eine Liste mit der Zuordnung der verwendeten Abgriffe ist \cite{specification2010gps} zu entnehmen.
+Da die Bits des Codeworts keine Information enthalten werden sie zur besseren Unterscheidung als \glspl{Chip} bezeichnet. Die wichtigen Parameter für CDMA sind die \emph{Chippingrate} und der verwendete Code. Das zivil nutzbare GPS Signal hat eine Chippingrate von \SI{1.023}{MChip/s} und verwendet \emph{Gold Codefolgen} (benannt nach Robert Gold). Die Goldcodefolgen werden durch die punktweise Modulo-2 Addition zweier \emph{Maximum Length Sequences} durch \gls{LFSR} erzeugt. Je nach \gls{PRN} werden bei der Addition andere Abgriffe (\emph{Taps}) an dem \gls{LFSR} verwendet. Die erzeugenden Polynome der beiden ML Sequenzen sind $G_1: 1 + x^3 + x^10$ und $G_2: 1 + x^2 + x^3 +x^6 + x^8 + x^9 + x^{10}$. \FR{LFSRGoldcode.png} stellt die Generierung der Gold Codes grafisch dar. Eine Liste mit der Zuordnung der verwendeten Abgriffe ist \cite{specification2010gps} zu entnehmen.
 
 \FGimg[Goldcode Erzeugung mittels LFSR]{LFSRGoldcode.png}{Erzeugung der Goldcode Folgen durch punktweise Modulo-2 Addition (\emph{XOR}) zweier Maximum Length Sequences, die jeweils durch ein \gls{LFSR} erzeugt werden. Die Abgriffe, die bei der Addition verwendet werden, sind abhängig von der \gls{PRN}}{.9\textwidth}
 
@@ -50,6 +73,8 @@ Deshalb enthalten die NAV Daten die folgenden Informationen:
 \item den \emph{Almanach} der Information über die Orbits der anderen GPS \gls{SV} gibt.
 \item weitere Statusdaten wie Information über die Ionosphäre.\footnote{Die volle Beschreibung der Daten ist in \cite{specification2010gps} zu finden.}
 \end{itemize}
+
+Der Zeitpunkt der Aussendung der Nachricht ist über das sogenannte \gls{HOW} angegeben. Das \gls{HOW} ist eine verkürzte Version von \gls{TOW}, mit der die Anzahl der Sekunden seit dem letzten Sonntag angegeben wird. Der \gls{HOW} Zähler erhöht sich um 1 in \SI{6}{\second} Schritten (also mit jedem Subframe). Der HOW Wert gibt den TOW Wert zu Beginn des \underline{nächsten} Subframes an.
 
 \paragraph{Datenstruktur}
 Die \emph{NAV Daten} sind in \emph{Frames}, \emph{Subframes} und \emph{Words} unterteilt. Ein \emph{Frame} ist \SI{1500}{\bit} lang, bestehend aus 5 \emph{Subframes}, von je \SI{300}{\bit} Länge. Die \emph{Subframes} sind weiter unterteilt in \emph{Words} von je \SI{30}{\bit} Länge. Zur Erkennung von Übertragungsfehlern ist jedes Word mit 6 Paritätsbits abgesichert. 
@@ -69,8 +94,10 @@ Die Positionsbestimmung mittels GPS erfolgt nach dem Prinzip der \emph{Lateratio
 
 Die Entfernung zu den GPS Satelliten wird über die Laufzeit der Signale bestimmt. Wie oben beschrieben, enthalten die Nutzdaten die Zeit zum Zeitpunkt der Aussendung des Frames und Information über den Orbit des Senders. Über die Ausbreitungsgeschwindigkeit $c_0$ und die Zeitinformation lässt sich dann die Entfernung zum Sender bestimmen. Weil im Allgemeinen davon ausgegangen werden muss, dass die Uhr im Empfänger ungenau ist, wird zusätzlich noch ein viertes Satellitensignal benötigt, was als Zeitreferenz benutzt wird. In der Realität werden üblicherweise noch mehr als vier Satellitensignale erfasst und die Position über die Methode der kleinsten Quadrate gemittelt.
 
-Die Entfernung zu einem GPS Satelliten wird im GPS Jargon \emph{Pseudorange} genannt, da sie noch eventuelle Ungenauigkeiten beinhaltet, die korrigiert werden müssen. Ursachen der Ungenauigkeiten sind zum Beispiel die Brechung der elektromagnetischen Welle in der Ionosphäre und Troposphäre. Auch die Samplingrate $f_S$, mit der das GPS Signal verarbeitet wird spielt eine wichtige Rolle, denn zwischen zwei Samplezeitpunkten schreitet die Welle um den Weg $\epsilon_{r} = c_0/f_S$ fort. Als Beispiel ergibt sich hier bei dem im \dscubesat verwendeten Frontend $\epsilon_{r} = c_0/(\SI{16.369}{\MHz}=\SI{18.3}{\meter})$
+Die Entfernung zu einem GPS Satelliten wird im GPS Jargon \emph{Pseudorange} genannt, da sie noch eventuelle Ungenauigkeiten beinhaltet, die korrigiert werden müssen. Ursachen der Ungenauigkeiten sind zum Beispiel die Brechung der elektromagnetischen Welle in der Ionosphäre und Troposphäre. Die Informationen aus den NAV Daten alleine reichen allerdings noch nicht aus für eine präzise Berechnung der Pseudorange. Wie oben beschrieben gibt \gls{HOW} den \gls{TOW} zu Beginn des nächsten Subframes an. Die Herausforderung ist also den Beginn des Subframes so präzise wie möglich zu bestimmen. Wenn der Bitwechsel herangezogen werden würde, so würde sich eine Unsicherheit von mindestens \SI{\pm1}{\ms} ergeben\footnote{\SI{\pm1}{\ms} ist der Zeitraum über den bei der Demodulation integriert wird. Die Demodulation wird im nächsten Abschnitt genauer besprochen.}. Dies entspricht einer Ungenauigkeit von \SI{\pm300}{\kilo\meter}. Deshalb wird zur genauen Bestimmung des Zeitpunktes zusätzlich die Codephase herangezogen, denn die Codephase muss am Beginn des Subframes gleich $0$ sein. Damit lässt sich die Pseudorange mit einer Genauigkeit von \SI{\pm300}{\meter} bestimmen. Mit Samplingraten die über der Chippingrate liegen kann die Genauigkeit noch erhöht werden, denn zwischen zwei Samplezeitpunkten schreitet die Welle um den Weg $\epsilon_{r} = c_0/f_S$ fort. Als Beispiel ergibt sich hier bei dem im \dscubesat verwendeten Frontend $\epsilon_{r} = c_0/(\SI{16.369}{\MHz}=\SI{18.3}{\meter})$. 
 
-Da sich diese Arbeit vor allem mit der Signalverarbeitung zur Demodulation beschäftigt und weniger mit der Positionsbestimmung an sich, sei an dieser Stelle für genaue Informationen auf \cite{borre2007software}, Kapitel 8.5 verwiesen.
+Für noch genauere Bestimmung der Pseudorange setzen hoch-präzise Empfänger \emph{Carrier-Phase GPS} ein, bei dem zusätzlich auch die Lage des Trägers ausgewertet wird. Damit sind Genauigkeiten im Bereich einiger \si{\deci\meter} möglich.
+
+Da sich diese Arbeit vor allem mit der Signalverarbeitung zur Demodulation beschäftigt und weniger mit der Positionsbestimmung an sich, sei für weitere Informationen auf \cite{borre2007software}, Kapitel 8.5 verwiesen.
 
 \FGimg[Positionsbestimmung mit Lateration]{trilateration.png}{Bestimmung der Position mittels Lateration. Durch Messung der Entfernung zu mindestens drei Punkten mit bekannten Koordinaten kann der Beobachter seine eigenen Koordinaten errechnen. Eine zweite Lösung ist $A'$, die aber durch weitere Messungen ausgeschlossen werden kann.}{0.9\textwidth}
