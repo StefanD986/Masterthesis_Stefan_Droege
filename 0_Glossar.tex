@@ -144,3 +144,21 @@ description={Digitales Modulationsverfahren bei dem '1' und '0' durch die jeweil
 }
 
 \newacronym{PGA}{PGA}{Programmable Gain Amplifier}
+
+\newacronym{zword}{Z-Word}{\gls{l_zword}}
+\newglossaryentry{l_zword}{%
+	name={Time-of-Week}, 
+	description={Anzahl der Sekunden seit dem \emph{zero-time point}. Der \emph{zero-time point} ist der Zeitpunkt um Mitternacht vom 5. Januar 1980 auf den 6. Januar 1980.}
+}
+
+\newacronym{TOW}{TOW}{\gls{l_TOW}}
+\newglossaryentry{l_TOW}{%
+	name={Time-of-Week}, 
+	description={Die Time of Week gibt die Anzahl der Sekunden seit dem letzten Sonntag an. Verkürzte Version des \gls{zword}.}
+}
+
+\newacronym{HOW}{HOW}{\gls{l_HOW}}
+\newglossaryentry{l_HOW}{%
+	name={Hand-over-Word}, 
+	description={Teil der vom GPS \gls{SV} gesendendeten NAV Daten. Der im HOW übertragene Wert gibt die \gls{TOW} zum Zeitpunkt des Beginn des nächsten Subframe an. HOW ist eine verkürzte Version von \gls{TOW}, da ein Subframe \SI{6}{\second} dauert.}
+}

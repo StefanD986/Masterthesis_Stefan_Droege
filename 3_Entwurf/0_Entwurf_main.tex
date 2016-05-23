@@ -9,6 +9,10 @@ In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand de
 \subsection{Rohdatenpuffer}
 Voraussetzung für das Tracking ist die erfolgreiche Acquisition, wofür eine gewisse Menge Rohdaten benötigt werden. Aufgrund der Bitwechsel Problemetik (\ref{DatenmengeAcq}) beträgt die maximal sinnvolle Pufferlänge $2\times\SI{10}{\ms}$. Für den Entwurf wurde sich an der Implementierung in der Simulation in \cite{borre2007software} orientiert, wo ein \SI{10}{\ms} Segment in der zweiten Phase der Acquisition verwendet wird.
 
+\subsection{Benötigte Daten für Acquisition und Positionsbestimmung}
+Die Acquisition benötigt den oben genannten Umfang an Rohdaten. Die Acquisition Ergebnisse beziehen sich außerdem immer auf die Rohdaten und damit auf einen bestimmten Zeitpunkt. Für die Acquisition selbst ist der Zeitpunkt nicht wichtig, aber beim Initialisieren der Trackingloops wird die Information benötigt, und muss daher irgendwo festgehalten werden. 
+
+Für die Positionsbestimmung werden zunächst einmal die NAV Daten benötigt. Die NAV Daten der einzelnen Kanäle müssen dabei zeitlich synchronisiert sein, damit die relative Zeitinformation erhalten bleibt. Außerdem wurde unter \ref{positionsbestimmung} bereits erklärt, dass zur Berechnung der Pseudoranges auch die Codephase ausgewertet werden muss. Deshalb sollen die Trackingkanäle auch die zu den NAV Daten synchronisierten Codephasen bereitstellen.
 
 \subsection{Frontend Parameter}
 Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. Die Dokumentation des MAX2769 Frontend ICs ist leider an vielen Stellen sehr lückenhaft. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
@@ -143,8 +147,6 @@ Da der Doppler Shift die Hauptursache ist entspricht die Abweichung dem maximal 
 Die Schwelle ab der ein Signal nach dem ersten Schritt der Acquisition als „vorhanden“ bewertet wird wird auf ein Peak-to-Average Ratio von 2,5 festgelegt. Dieser Wert wurde durch Simulation für Signale gefunden, die ein gerade noch ausreichendes SNR haben.
 
 
-
-
 Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad und Bandbreite des Loopfilters. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO.
 Die Werte für den Loopfilter wurden zunächst aus (TODO Referenz Buch) übernommen und anschließend, im Hinblick auf den höheren Dynamikbereich der Dopplerverschiebung auf dem Dragsail Cubesat überprüft. Die Extremwerte der Änderungsrate der Dopplerverschiebung wurden bereits in Abschnitt (TODO Link) bestimmt, und sind noch einmal in Tabelle (TODO Tabelle max Dopplershift, Dopplershift Änderung) dargestellt.
 In der Simulation ergab sich, dass die Werte auch für den hier vorliegenden Anwendungsfall optimal sind. Tabelle TODO stellt die verwendeten Loop Filter Werte dar.
@@ -168,10 +170,16 @@ Der DSP kann seine Vorzüge bei der Acquisition ausspielen: Er hat einen großen
 
 Für das Tracking ist der FPGA ideal geeignet, da die $\geq 6$ Trackingkanäle in programmierbarer Hardware implementiert werden können und damit vollständig parallel ablaufen. Auch das Tracking erfordert allerdings einige Berechnungen, die sich einfacher in C als in VHDL beschreiben lassen. Um die Echtzeitanforderung einzuhalten werden diese Berechnungen aber nicht an den DSP übergeben. Stattdessen soll dies von einem Softcore Prozessor innerhalb FPGA der dort in programmierbarer Logik implement wird.
 
-\FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.pdf}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.0\textwidth}
+In \FR{GPS_UML_deployment1.png} ist die Verteilung der Komponenten auf die verschiedenen Rechenknoten dargestellt. Die Softcore CPU übernimmt die Berechnung der Loop Parameter für alle Trackingloops. Die \emph{Tracking} Kanäle benötigen zwar die Softcore CPU für die Funktion aber CPU und \emph{Tracking} Kanäle sind weitestgehend unabhängig und sind deshalb als eigenständige \emph{devices} modelliert. Im DSP soll die GPS Empfänger Anwendung laufen, die zum einen die Acquisition und zum anderen die weitere Signalverarbeitung zur NAV Daten Extraktion und Positionsbestimmung übernimmt. Auf der Hardware Ebene kommuniziert der DSP mit dem FPGA über die \gls{EBIU} Schnittstelle \cite{BlackfinHWReference}, die ein Interface für externen Speicher implementiert. 
+
+\FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.png}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.9\textwidth}
 
 % Komponenten: Acquisition, Tracking...
 \subsection{Softwareschnittstelle FPGA/DSP}
+In diesem Abschnitt wird die Schnittstelle auf der Software Ebene aus Sicht des DSP beschrieben. Eine Anmerkung vorab dazu: Die Beschreibung stellt den Stand zum Zeitpunkt der Entwicklungsphase dar, und wurde für die Rohdatenübertragung auch so implementiert. Für die weitere Entwicklung ist jedoch ein Wechsel auf das \emph{Linux User I/O} Framework angedacht, da dies die weitere Entwicklung vereinfachen wird. Einige Erklärungen dazu folgen im zweiten Unterabschnitt.
+
+
+
 %Character Device Treiber
 %Je Kanal ein FIFO
 % Auf Software Seite werden die Kanäle durch Klassen repräsentiert. Abstraktion der Hardware Kanäle
