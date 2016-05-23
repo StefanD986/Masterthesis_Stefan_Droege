@@ -9,10 +9,13 @@ In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand de
 \subsection{Rohdatenpuffer}
 Voraussetzung für das Tracking ist die erfolgreiche Acquisition, wofür eine gewisse Menge Rohdaten benötigt werden. Aufgrund der Bitwechsel Problemetik (\ref{DatenmengeAcq}) beträgt die maximal sinnvolle Pufferlänge $2\times\SI{10}{\ms}$. Für den Entwurf wurde sich an der Implementierung in der Simulation in \cite{borre2007software} orientiert, wo ein \SI{10}{\ms} Segment in der zweiten Phase der Acquisition verwendet wird.
 
-\subsection{Benötigte Daten für Acquisition und Positionsbestimmung}
-Die Acquisition benötigt den oben genannten Umfang an Rohdaten. Die Acquisition Ergebnisse beziehen sich außerdem immer auf die Rohdaten und damit auf einen bestimmten Zeitpunkt. Für die Acquisition selbst ist der Zeitpunkt nicht wichtig, aber beim Initialisieren der Trackingloops wird die Information benötigt, und muss daher irgendwo festgehalten werden. 
+\subsection{Komponenten und benötigte Daten für Acquisition und Positionsbestimmung}
+In \FR{GPS_UML_component1.pdf} sind die Komponenten dargestellt, und die von ihnen bereitgestellten bzw. benötigten Daten. Das Diagramm macht noch keine Aussage darüber wo (ob auf DSP oder FPGA) oder wie die Komponenten realisiert werden.
 
-Für die Positionsbestimmung werden zunächst einmal die NAV Daten benötigt. Die NAV Daten der einzelnen Kanäle müssen dabei zeitlich synchronisiert sein, damit die relative Zeitinformation erhalten bleibt. Außerdem wurde unter \ref{positionsbestimmung} bereits erklärt, dass zur Berechnung der Pseudoranges auch die Codephase ausgewertet werden muss. Deshalb sollen die Trackingkanäle auch die zu den NAV Daten synchronisierten Codephasen bereitstellen.
+Die Komponente \emph{Acquisition} benötigt das oben genannten Segment Rohdaten. Die Acquisition Ergebnisse beziehen sich außerdem immer auf die Rohdaten und damit auf einen bestimmten Zeitpunkt. Für die Acquisition selbst ist der Zeitpunkt nicht wichtig, aber beim Initialisieren der Trackingloops wird die Information benötigt, und muss daher irgendwo festgehalten werden. Die Trackingloops erhalten von dem Frontend Rohdaten (anders als die Acquisition Komponente allerdings als kontinuierlichen Datenstrom) und demodulieren das Signal. Aus dem demodulierten Signal extrahiert die \emph{NAV Daten Extraktion} Komponente die NAV Daten. Wie in Abschnitt \ref{positionsbestimmung} erklärt, reichen die NAV Daten alleine zu Positionsbestimmung nicht aus. Deshalb benötigt die Komponente \emph{Positionsbestimmung} diese zusätzliche Information noch von den Trackingloops.
+
+
+\FGimg[Komponentendiagramm GPS Empfänger]{GPS_UML_component1.pdf}{Die abstrahierten Komponenten des GPS Empfängers und die von ihnen benötigten bzw. bereitgestellten Daten.}{0.8\textwidth}
 
 \subsection{Frontend Parameter}
 Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. Die Dokumentation des MAX2769 Frontend ICs ist leider an vielen Stellen sehr lückenhaft. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
