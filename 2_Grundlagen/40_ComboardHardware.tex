@@ -32,8 +32,12 @@ Auf dem \gls{DSP} des \comboard läuft ein embedded Linux System und der Zugriff
 
 \FGimg[Systemarchitektur Linux]{LinuxSystem.png}{Prinzipielle Systemarchitektur eines Linux Systems. Die Hardware wird durch den Kernel und die Kerneltreiber abstrahiert}{0.7\textwidth}
 
-\paragraph{EBIU Schnittstelle}
-Der BF518 DSP bietet zur Anbindung an externe Peripherie und Speicher die \gls{EBIU} Schnittstelle zur Verfügung. Die EBIU Schnittstelle besteht aus einem \SI{16}{\bit} Datenbus, einem \SI{19}{\bit} Adressbus und dazugehörigen Steuersignalen. Damit lassen sich sowohl synchrone Speicher (also getaktete) als auch asynchrone (zustandsgesteuerte) Speicher ansprechen. Die Peripherie ist natürlich nicht auf Speicher begrenzt, aber die Peripherie muss aus Sicht des DSP \emph{wie} ein Speicher ansprechbar sein. Aus Sicht des auf dem DSP laufenden Programms (bzw Betriebssystem) wird einfach auf eine bestimmte Speicherregion zugegriffen. Zugriffe auf diese Speicherregion aktivieren den externen Daten-/Adressbus.
+\paragraph{EBIU Schnittstelle} \label{ebiuinterface}
+Der BF518 DSP bietet zur Anbindung an externe Peripherie und Speicher die \gls{EBIU} Schnittstelle zur Verfügung. Die EBIU Schnittstelle besteht aus einem \SI{16}{\bit} Datenbus, einem \SI{19}{\bit} Adressbus und dazugehörigen Steuersignalen \FR{EBIU_blockdiagram.pdf}. Damit lassen sich sowohl synchrone Speicher (also getaktete) als auch asynchrone (zustandsgesteuerte) Speicher ansprechen. Die Peripherie ist natürlich nicht auf Speicher begrenzt, aber die Peripherie muss aus Sicht des DSP \emph{wie} ein Speicher ansprechbar sein. Aus Sicht des auf dem DSP laufenden Programms (bzw Betriebssystem) wird einfach auf eine bestimmte Speicherregion zugegriffen. Zugriffe auf diese Speicherregion aktivieren den externen Daten-/Adressbus.
+
+\FGimg[EBIU Blockdiagramm]{EBIU_blockdiagram.pdf}{EBIU Blockdiagramm. Die EBIU bietet eine Schnittstelle zu externen synchronen und asynchronen Speichern oder Peripheriegeräten (entnommen aus \cite{BlackfinHWReference}).}{0.8\textwidth}
+
+\FGimg[EBIU Memory Map]{EBIU_memmap.png}{Memory Map des ADSP-BF518 mit den für die EBIU reservierten Bereiche.}{0.65\textwidth}
 
 Die EBIU Schnittstelle ist an den \gls{DMA} Controller den BF518 angeschlossen. Damit können sehr schnell große Datenmengen von Peripherie in den RAM des DSP übertragen werden.
 
@@ -43,9 +47,13 @@ Auf dem \comboard sind nicht alle Steuersignale der EBIU Schnittstelle an den FP
 %Write Enable
 %DMA
 
-\FGimg[Timingdiagramm EBIU Asynchronous Read Write]{EBIU_readwrite.pdf}{Timing der Signale der EBIU Schnittstelle für einen asynchronen Schreib- bzw. Lesevorgang. Der Takt ist auf Clientseite nicht unbedingt benötigt. Nicht alle Steuersignale sind auf dem \comboard an den FPGA geführt. (entnommen aus \cite{BlackfinHWReference}, S. 7-14)}{0.98\textwidth}
+\FGimg[Timingdiagramm EBIU Asynchronous Read Write]{EBIU_readwrite.pdf}{Timing der Signale der EBIU Schnittstelle für einen asynchronen Schreib- bzw. Lesevorgang. Der Takt ist auf Clientseite nicht unbedingt benötigt. Nicht alle Steuersignale sind auf dem \comboard an den FPGA geführt. (entnommen aus \cite{BlackfinHWReference}}{0.98\textwidth}
 
 \subsection{FPGA}
-Der FPGA hat, wie bereits erwähnt, einerseits die Aufgabe eines Bindeglieds zwischen GPS Frontend und DSP, andererseits bietet die programmierbare Logik hervorragende Voraussetzungen um parallelisierbare Prozesse mit Echtzeitanforderungen zu implementieren. 
+Ein FPGA ist eine Integrierter Schaltkreis in dem sich digitale Schaltkreise realisieren lassen. Der FPGA besteht einfach gesagt aus einer großen Anzahl von Gattern und Flip-Flops. Die Programmierung von FPGAs erfolgt üblicherweise über eine Hardwarebeschreibungssprache (kurz HDL) wie z.B. \emph{VHDL} oder \emph{Verilog}. Mit der HDL wird beschrieben \emph{was} die Schaltung machen soll. \emph{Wie} dies umgesetzt wird wird nicht beschrieben. Daher ist HDL Code auch ersteinmal unabhängig von der Realisierung (sofern keine herstellerspezifischen Komponenten verwendet werden). Der HDL Code könnte genau so für die Herstellung eines ASIC genutzt werden.
+
+Die Realisierung wird stattdessen durch ein Synthesewerkzeug entschieden, dass den Quellcode analysiert und in eine Netzliste übersetzt. Die Netzliste beschreibt die Schaltung auf Gatterebene. Mit der Netzliste wird dann durch weitere Tools ein \emph{Place \& Route} durchgeführt, das die Elemente der Netzliste den physischen Ressourcen des FPGAs zuordnet. Zum Schluss wird daraus ein sogenannter \emph{Bitstream} erstellt, der in den FPGA geladen wird.
 
 Neben reiner programmierbare kombinatorischer und sequentieller Logik, bieten heutige FPGAs außerdem dedizierte Hardware, die sich zwar in Logik realisieren lassen würde, aber unnötige Ressourcen verbrauchen würde. So beinhaltet der verwendete \comfpga mehrere \SI{18}{\bit} Hardware Multiplizierer, insgesamt \SI{576}{\kilo\bit} Block RAM, verschiedene PLL und Digital Clock Management Module und unterstützt mehrere IO Level Standards verschiedenen IO Bänken.
+
+Die Programmierung des FPGA ist flüchtig, wodurch der FPGA auf dem \comboard sehr flexibel einsetzbar ist. Für dieses Projekt hat der FPGA einerseits die Aufgabe eines Bindeglieds zwischen GPS Frontend und DSP, andererseits bietet die programmierbare Logik hervorragende Voraussetzungen um parallelisierbare Prozesse mit Echtzeitanforderungen zu implementieren.

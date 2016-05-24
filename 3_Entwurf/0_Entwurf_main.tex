@@ -45,6 +45,15 @@ Im DSP soll die GPS Empfänger Anwendung laufen, die zum einen die Acquisition u
 
 \FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.png}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.9\textwidth}
 
+\subsection{Auswahl des Softcore Prozessors}
+Im vorherigen Abschnitt wurde bereits die Verwendung einer Softcore CPU für einige Berechnungen im FPGA erwähnt. In einem FPGA lassen sich (in gewissen Grenzen) beliebige digitale Schaltungen synthetisieren. Funktionsblöcke, werden dabei als IP-Cores oder Softcores bezeichnet, und werden zum Beispiel als VHDL Quellcode oder als Netzlisten angeboten. Eine Softcore CPU ist also ein Prozessorkern, der über den Quellcode beschrieben wird und damit in das restliche System eingebunden werden kann. Es gibt zahlreiche kostenlose und freie Softcore CPUs auf dem Markt\footnote{Ein Überblick gibt \cite{SoftcoreOverview}}. In diesem Abschnitt soll kurz die Auswahl der Softcore CPU für den GPS Empfänger erklärt und begründet werden. 
+
+Üblicherweise bieten FPGA Hersteller bereits eigene Softcore CPUs an und als Teil der Entwicklungsumgebung Werkzeuge an um diese zu instantiieren. Für Xilinx ist dies z.B. der MicroBlaze Prozessor. Aus eigener Erfahrung verstecken jedoch die Entwurfswerkzeuge viel von der darunterliegenden Technik, wodurch das Design komplexer und weniger durchschaubar wird. Für den hier vorliegenden Fall sind die durch die CPU zu erledigenden Aufgaben relativ einfach, deshalb wurde nach einem Prozessor gesucht, der wenig Ressourcen verbraucht. Weiterhin sollte die für die Entwicklung verwendete Toolchain auf \emph{gcc} basieren, aus dem einfachen Grund, dass \emph{gcc} eine der bekanntesten Compiler Toolchains ist, in der Praxis bewährt ist und somit Einarbeitungszeit spart.
+
+Die Wahl viel zunächst auf den Zylin ZPU Softcore, laut eigener Aussage die kleinste 32-bit CPU mit gcc Toolchain \cite{ZPUgithub}. Die ZPU ist ein Stack Prozessor, arbeitet also ohne Register. Das Prinzip ist ähnlich zu Taschenrechnern die mit Umgekehrt Polnischer Notation arbeiten. Zylin legt mit der ZPU Spezifikation zunächst einmal nur den Befehlscode fest. Es gibt zahlreiche Implementierungen mit verschiedenen Schwerpunkten. Leider ist durch diese Fragmentierung die Dokumentation sehr lückenhaft, und die Codequalität ist teilweise sehr schlecht. Nach mehreren Versuchen den ZPU Kern, in Form der ZPUFlex Implementierung, in das System zu integrieren wurde das Vorhaben aufgegeben.
+
+Stattdessen wurde als Softcore der MBlite Core von Tamar Kranenburg ausgewählt. Der Entwickler hat den Prozessor in seiner Masterarbeit \cite{MBliteThesis} sehr gut dokumentiert und die Codequalität ist gut. Der MBlite Core ist eine Variante des Xilinx Microblaze und vollständig kompatibel dazu, womit die gcc Toolchain des Microblaze verwendet werden kann. Als Microblaze Variante ist er auch ein 32-bit Prozessor in Harvard Architektur. Die Implementierung kann je nach Anforderung an Ressourcenverbrauch oder Leistungsfähigkeit angepasst werden. Für die Anwendung im GPS Empfänger ist zum Beispiel der Hardware Multiplizierer und Barrel Shifter vorteilhaft. Die Anbindung von Peripherie kann über Memory Mapped I/O geschehen, oder über den Wishbone Bus (ein Bus Standard zur Anbindung verschiedener Cores innerhalb von integrierten Schaltkreisen). Für die Anbindung der \emph{TrackingHW} Instanzen wurde die Anbindung mit Memory Mapped I/O gewählt. Weitere Informationen zum MBlite Prozessor sind in \cite{MBliteThesis} nachzulesen.
+
 \subsection{Frontend Parameter}
 Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. Die Dokumentation des MAX2769 Frontend ICs ist leider an vielen Stellen sehr lückenhaft. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
 
@@ -122,36 +131,60 @@ Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gp
 \section{Planung}
 Nachdem im vorherigen Abschnitt die Rahmenbedingungen  entworfenen  wurden können nun die Arbeitspakete für die Implementierung etwas genauer festgelegt werden. 
 
-Als erster Meilenstein wurde festgelegt Rohdaten vom MAX2769 Frontend sammeln zu können. Dazu muss die Schnittstelle zwischen FPGA und DSP implementiert werden, wofür auf FPGA Seite ein Gegenstück zu der EBIU Schnittstelle des DSP implementiert werden muss. Auf DSP Seite muss ein Kerneltreiber geschrieben werden um die Schnittstelle für Programme im User-Space zu abstrahieren. Im FPGA muss Logik implementiert werden, die die AD Wandler Schnittstelle
+Als erster Meilenstein wurde festgelegt Rohdaten vom MAX2769 Frontend sammeln zu können. Dazu muss die Schnittstelle zwischen FPGA und DSP implementiert werden, wofür auf FPGA Seite ein Gegenstück zu der EBIU Schnittstelle (\ref{ebiuinterface}) des DSP implementiert werden muss. Auf DSP Seite muss ein Kerneltreiber geschrieben werden um die Schnittstelle für Programme im User-Space zu abstrahieren. Da über die EBIU Schnittstelle lediglich \enquote{speicherartige} Peripherie angesprochen werden kann muss im FPGA Logik implementiert werden, die die AD Wandler Schnittstelle zu einem Speicher ähnlichen abstrahiert.
 
+Als zweiter Meilenstein soll mit den nun verfügbaren Rohdaten in Matlab Acquisition und Tracking simuliert werden. Das Buch \cite{borre2007software} stellt mit dem SoftGNSS Empfänger eine Simulationsumgebung Bereit. Mit der Simulation und der funktionierenden Schnittstelle zu den Rohdaten können dann die Frontend Parameter optimiert werden.
+
+Die Simulation im SoftGNSS Matlab Code ist nicht auf Echtzeitverarbeitung ausgelegt und unterscheidet sich deshalb stark von der endgültigen Implementierung im FPGA. Deshalb ist der dritte Meilenstein die Simulation des Tracking an eine Implementierung FPGA anzupassen. Dazu wird ein Simulink Modell erstellt welches sukzessive von einer High-Level Simulation  an die FPGA Implementierung angepasst wird.
+
+Der nächste Meilenstein ist die Implementierung des Tracking im FPGA. Ausgehend von den Erkenntnissen der Low-Level Simulation in Simulink sollen die einzelnen Module in VHDL geschrieben und getestet werden. Insbesondere das Testen ist hier wichtig, da Debugging im FPGA zeitaufwändig ist.
+Teil des Trackingloop ist wie schon erwähnt auch ein Softcore Prozessor. Hier wird auf einen vorgefertigten Softcore zurückgegriffen, dieser muss jedoch noch in das System integriert werden. Parallel dazu muss der Software Teil des Trackingloop geschrieben werden. Dazu müssen einige Mathematikfunktionen für Festkommaarithmetik implementiert werden.
+
+Als nächster Meilenstein ist die Acquisition im DSP zu integrieren. Dazu muss zum Einen der Acquisition Algorithmus programmiert werden. Zum anderen muss die Kommunikation mit dem FPGA Teil implementiert werden, um Rohdaten anfordern zu können und die Ergebnisse an die Tracking Kanäle weitergegeben werden. Zusätzlich muss die Steuerung implementiert werden, die zum Beispiel überwacht ob ein Kanal die Verbindung verliert, beispielsweise weil ein Satellit außer Sicht geht.
+
+Als fünfter Meilenstein ist die Extraktion der NAV Daten zu implementieren. Auch hier muss wieder die Kommunikation mit dem FPGA implementiert werden um die demodulierten Signale einzulesen. Da mit Verbindungsabbrüchen oder Übertragungsfehlern zu rechnen ist, muss diese Komponente auch solche Ausnahmen behandeln. 
+
+Als finaler Meilenstein muss dann die Positionsbestimmung implementiert werden. Hier muss ebenfalls wieder die Kommunikation mit dem FPGA implementiert werden um die Codephase abzufragen. Mit den NAV Daten muss dann die Pseudorange berechnet werden. Weiterhin müssen aus den NAV Daten die Position der aussendenden Satelliten berechnet werden. Zu der Positionsbestimmung kann auch das Mitteln der Position gehören, oder die Berechnung eines Orbits des \dscubesat. Die Anforderungen hier sind noch nicht festgelegt.
+
+Im folgenden ist noch eine Übersicht über die Schritte abgebildet. Die Meilensteine 1 bis 3 sind zu diesem Zeitpunkt bisher implementiert worden.
 
 \begin{enumerate}
 \item Schnittstelle zum Übertragen der Rohdaten zum DSP
-
     \begin{enumerate}
-    \item Kerneltreiber schreiben
-    \item EBIU Schnittstelle im FPGA implementieren
-    \item FIFO im FPGA implementieren
+    \item Linux Kerneltreiber
+    \item EBIU Schnittstelle im FPGA
+    \item GPS Frontend Abstraktion (z.B. FIFO) im FPGA
     \end{enumerate}
-\item Simulation der Acquisition in Matlab
-\item Simulation des Trackings in Matlab
+\item Simulation in Matlab
     \begin{enumerate}
-    \item Zuerst \emph{High Level} Simulation
+    \item Acquisition \& Tracking mit SoftGNSS Receiver
+    \item Tracking Simulation in Simulink
     \item Sukzessive an die Implementierung im FPGA anpassen
     \end{enumerate}
 \item Implementierung des Tracking im FPGA
     \begin{enumerate}
-    \item Programmierbare Hardware
-    \item Implementierung des Softcore Prozessors
-    \item Schreiben der Firmware für den Softcore Prozessor
+    \item \emph{TrackingHW} Komponente in VHDL
+    \item Integrieren des Softcore Prozessors
+    \item Schreiben der Software (\emph{TrackingSW} Komponente)
     \end{enumerate}
 \item Implementierung der Acquisition im DSP
+\begin{enumerate}
+    \item Anfordern von Rohdaten
+    \item Senden der Ergebnisse an Tracking Kanäle
+    \item Steuerung und Überwachung des Kanal Status
+\end{enumerate}
 \item Extraktion der NAV Daten
 \begin{enumerate}
     \item Frame Synchronisation
-    \item \ldots
+    \item Paritätskontrolle
+    \item Ausnahmebehandlung bei Fehlerhaften Daten
 \end{enumerate}
 \item Berechnung der Position
+    \begin{enumerate}
+    \item Positionsberechnung der GPS Satelliten
+    \item Pseudorange Berechnung
+    \item Koordinatentransformation
+    \end{enumerate}
 \end{enumerate}
 
 % Meilensteine:
@@ -168,19 +201,37 @@ Als erster Meilenstein wurde festgelegt Rohdaten vom MAX2769 Frontend sammeln zu
 % Softwareschnittstelle FPGA<-> DSP
 % Implementierung Acquisiton DSP
 
+\subsection{Schnittstelle zum Übertragen der Rohdaten}
+In diesem Abschnitt wird die Schnittstelle auf der Software Ebene aus Sicht des DSP beschrieben. Es wird schon einmal eine grobe Erklärung des Ablaufs auf Anwendungs-, Kernel- und Hardware Ebene gegeben. Weitere Details werden später noch im Kapitel \ref{Kerneltreiber} gegeben. Eine Anmerkung vorab: Die Beschreibung stellt den Stand zum Zeitpunkt der Entwicklungsphase dar, und wurde für die Rohdatenübertragung auch so implementiert und funktioniert. Für die weitere Entwicklung ist jedoch ein Wechsel auf das \emph{Linux User I/O} Framework angedacht, da dies zukünftige Entwicklungsschritte vereinfachen wird. 
+%Einige Erklärungen dazu folgen im zweiten Unterabschnitt.
+
+\subsubsection{Linux File I/O Schnittstelle}
+Unter Linux werden Hardware/Software Schnittstellen typischerweise über \emph{device files} (auch \emph{special files} genannt) realisiert. Dabei abstrahiert ein Treiber die darunterliegende Hardware so, dass die Anwendung Daten durch einfach Lese-/ Schreib Operationen lesen und schreiben kann, genau wie bei einer \enquote{normalen} Datei. Es gibt einige verschiedene Typen von device files, von denen die wichtigsten \emph{Character Devices} und \emph{Block Devices} sind. 
+
+\emph{Block Devices} liefern die Daten, wie der Name schon sagt, blockweise\footnote{Die Blockgröße kann dabei natürlich auch einfach nur ein Zeichen sein. Damit ist der wahlfreie Zugriff das Hauptunterscheidungsmerkmal.} aus und verfügen über wahlfreien Zugriff. Typische Beispiele sind Festplatten.
+
+\emph{Character Devices} liefern die Daten Zeichenweise aus, eine Positionierung innerhalb des Datenstroms ist dabei nicht möglich. Typische Beispiele sind Maus und Tastatur. Hier ist offensichtlich, dass wahlfreier Zugriff nicht möglich ist. Die Rohdatenschnittstelle verhält sich ähnlich, es können immer nur so viele Daten gelesen werden, wie zur Verfügung stehen, ein Wahlfreier Zugriff darüber hinaus ist nicht möglich. Deshalb soll die Schnittstelle als Character Device implementiert werden. Der Treiber erzeugt dann ein Character Device File, z.B. \lstinline$/dev/gps$. Damit können die Rohdaten auf Anwendungsseite mit einfachen Funktionen der C Standardbibliothek (\lstinline$fid=fopen("/dev/gps", "r")$ und \lstinline$fread(fid, ...)$ usw.) gelesen werden.
+
+
+\subsubsection{Treiberebene}
+Der Aufruf einer der oben genannten Funktionen (\lstinline$fopen()$ und \lstinline$fread()$ usw.) ruft einen System Calls auf, beispielsweise  \lstinline$open()$ oder \lstinline$read()$. 
+
+Der Treiber muss für ein Characterdevice einige Funktionen implementieren, die in der Linux Header Datei \lstinline$fs.h$ mit der Struktur \lstinline$fops$ angegeben sind. Die Struktur \lstinline$fops$ enthält Zeiger auf die Gegenstücke zu den System Calls, z.B. \lstinline$fops.read = gps_read$.
+
+Nachdem der Linux Kernel festgestellt hat, welches Kernelmodul für die Datei zuständig ist, leitet er die System Calls an die Gegenstücke im Treiber weiter. Innerhalb des Gegenstück, bsp. \lstinline$gps_read()$ passiert dann alles was notwendig ist um die angeforderten Daten zu liefern. Für den Fall \lstinline$gps_read()$
+
+
+
+Auf der FPGA Seite müssen die Daten gepuffert werden, da der DSP nicht immer sofort bereit ist die Daten zu empfangen. Dazu werden die Daten in einen FIFO geschrieben. 
+
+\subsubsection{User I/O Schnittstelle}
+Am Anfang des Abschnitts wurde bereits erwähnt, dass die im obigen Abschnitt beschriebene File I/O Schnittstelle nur den bisherigen Entwicklungsstand widerspiegelt. Für das reine Übertragen der Rohdaten funktioniert diese auch sehr gut. Aber wenn man sich noch einmal \FR{GPS_UML_deployment1.png} ansieht, müssen für die Meilensteine 4-5 noch zahlreiche weitere Daten übertragen werden. 
 
 \paragraph{Entwurf der Parameter für die Acquisition}
-Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums.
-Die derzeit aktiven Satelliten haben die Codes mit den PRN 1-32 zugewiesen. Der Bereich der möglichen Codephasen ergibt sich aus der Dauer einer Codeperiode (Codelänge/Chippingrate TODO), und der Sampling Frequenz des Frontend ICs (TODO Formel): N=fs/(fchip/Lcode)=16.369MHz/(1.023Mchip/s/1023) = 16369 MHz *TODO Fußnote: Die Samplingfrequenz im Flugmodell beträgt 16.368 MHz).
-
-Da der Doppler Shift die Hauptursache ist entspricht die Abweichung dem maximal erwarteten Doppler Shift. Wie in Kapitel (todo link) besprochen, ist der erwartete Doppler Shift (TODO +-)45 kHz.
-
-Die Schwelle ab der ein Signal nach dem ersten Schritt der Acquisition als „vorhanden“ bewertet wird wird auf ein Peak-to-Average Ratio von 2,5 festgelegt. Dieser Wert wurde durch Simulation für Signale gefunden, die ein gerade noch ausreichendes SNR haben.
+%Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums. Die derzeit aktiven Satelliten haben die Codes mit den PRN 1-32 zugewiesen. Der Bereich der möglichen Codephasen ergibt sich aus der Dauer einer Codeperiode (Codelänge/Chippingrate TODO), und der Sampling Frequenz des Frontend ICs (TODO Formel): N=fs/(fchip/Lcode)=16.369MHz/(1.023Mchip/s/1023) = 16369 MHz *TODO Fußnote: Die Samplingfrequenz im Flugmodell beträgt 16.368 MHz). Da der Doppler Shift die Hauptursache ist entspricht die Abweichung dem maximal erwarteten Doppler Shift. Wie in Kapitel (todo link) besprochen, ist der erwartete Doppler Shift (TODO +-)45 kHz. Die Schwelle ab der ein Signal nach dem ersten Schritt der Acquisition als „vorhanden“ bewertet wird wird auf ein Peak-to-Average Ratio von 2,5 festgelegt. Dieser Wert wurde durch Simulation für Signale gefunden, die ein gerade noch ausreichendes SNR haben.
 
 
-Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad und Bandbreite des Loopfilters. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO.
-Die Werte für den Loopfilter wurden zunächst aus (TODO Referenz Buch) übernommen und anschließend, im Hinblick auf den höheren Dynamikbereich der Dopplerverschiebung auf dem Dragsail Cubesat überprüft. Die Extremwerte der Änderungsrate der Dopplerverschiebung wurden bereits in Abschnitt (TODO Link) bestimmt, und sind noch einmal in Tabelle (TODO Tabelle max Dopplershift, Dopplershift Änderung) dargestellt.
-In der Simulation ergab sich, dass die Werte auch für den hier vorliegenden Anwendungsfall optimal sind. Tabelle TODO stellt die verwendeten Loop Filter Werte dar.
+%Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad und Bandbreite des Loopfilters. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO. Die Werte für den Loopfilter wurden zunächst aus (TODO Referenz Buch) übernommen und anschließend, im Hinblick auf den höheren Dynamikbereich der Dopplerverschiebung auf dem Dragsail Cubesat überprüft. Die Extremwerte der Änderungsrate der Dopplerverschiebung wurden bereits in Abschnitt (TODO Link) bestimmt, und sind noch einmal in Tabelle (TODO Tabelle max Dopplershift, Dopplershift Änderung) dargestellt. In der Simulation ergab sich, dass die Werte auch für den hier vorliegenden Anwendungsfall optimal sind. Tabelle TODO stellt die verwendeten Loop Filter Werte dar.
 
 \paragraph{Filter Topologie und Festkommaentwurf}
 Im Hinblick auf die Echtzeitfähigkeit und Stabilität des Regelkreises muss auf die Performanz und die begrenzte Rechengenauigkeit, der Berechnungen geachtet werden. Während in der Matlab Simulation, die nicht Echtzeitfähig ist, mit Fließkommawerten doppelter Genauigkeit gerechnet wird, soll in der Implementierung mit Festkommawerten gerechnet werden.
@@ -192,7 +243,7 @@ Dafür sind die Filterkoeffizienten zu quantisieren, und die Filtertopologie so 
 
 % Komponenten: Acquisition, Tracking...
 \subsection{Softwareschnittstelle FPGA/DSP}
-In diesem Abschnitt wird die Schnittstelle auf der Software Ebene aus Sicht des DSP beschrieben. Eine Anmerkung vorab dazu: Die Beschreibung stellt den Stand zum Zeitpunkt der Entwicklungsphase dar, und wurde für die Rohdatenübertragung auch so implementiert. Für die weitere Entwicklung ist jedoch ein Wechsel auf das \emph{Linux User I/O} Framework angedacht, da dies die weitere Entwicklung vereinfachen wird. Einige Erklärungen dazu folgen im zweiten Unterabschnitt.
+
 
 
 
