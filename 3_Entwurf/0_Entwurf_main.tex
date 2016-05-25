@@ -222,7 +222,14 @@ Der Treiber muss für ein Characterdevice einige Funktionen implementieren, die 
 Nachdem der Linux Kernel festgestellt hat, welches Kernelmodul für die Datei zuständig ist, leitet er die System Calls an die Gegenstücke im Treiber weiter. Innerhalb des Gegenstück, bsp. \lstinline$gps_read$ passiert dann alles was notwendig ist um die angeforderten Daten zu liefern. Für den Fall \lstinline$gps_read$ bedeutet das: Die EBIU Schnittstelle muss für den Asynchronen Zugriff konfiguriert werden. Dann muss überprüft werden wie viele Daten zum Lesen verfügbar sind. Dann muss der DMA Controller initialisiert werden mit der Quell- und Zieladresse und der Anzahl zu lesenden Bytes. Zum Schluss muss die DMA Übertragung freigegeben werden und nach Beendigung der Kernel über die Anzahl gelesenen Bytes informiert werden.
 
 \subsubsection{Hardware Ebene}
-Auf der FPGA Seite müssen die Daten gepuffert werden, da der DSP nicht immer sofort bereit ist die Daten zu empfangen. Dazu werden die Daten in eine \gls{FIFO} Warteschlange geschrieben. 
+Auf der FPGA Seite müssen die Daten gepuffert werden, da der DSP nicht immer sofort bereit ist die Daten zu empfangen. Dazu werden die Daten in eine \gls{FIFO} Warteschlange geschrieben. (\FR{GPS_UML_Rohdatenpuffer.pdf}). Zur DSP Seite hin ist der FIFO durch weitere Komponenten als eine Speicherzelle abstrahiert, sodass der DSP über die EBIU Schnittstelle auf den FIFO zugreifen kann. 
+
+Eine Alternative wäre den Puffer als kontinuierlichen Speicherbereich zu realisieren. 
+Der Zugriff erfolgt dabei durch Lesen von einer Speicheradresse. Sobald das Wort gelesen wurde 
+
+Die Realisierung als FIFO hat den Vorteil, dass keine Schre
+
+\FGimg[Rohdatenschnittstelle auf Hardware Ebene]{GPS_UML_Rohdatenpuffer.pdf}{Rohdatenschnittstelle auf Hardware Ebene. Die Rohdaten werden in einen FIFO geschrieben. Der DSP kann auf den FIFO über das EBIU Interface wie auf einen Speicher zugreifen.}{0.7\textwidth}
 
 \subsubsection{User I/O Schnittstelle}
 Am Anfang des Abschnitts wurde bereits erwähnt, dass die im obigen Abschnitt beschriebene File I/O Schnittstelle nur den bisherigen Entwicklungsstand widerspiegelt. Für das reine Übertragen der Rohdaten funktioniert diese auch sehr gut. Aber wenn man sich noch einmal \FR{GPS_UML_deployment1.png} ansieht, müssen für die Meilensteine 4-5 noch zahlreiche weitere Daten übertragen werden. 
