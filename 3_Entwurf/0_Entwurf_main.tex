@@ -257,20 +257,12 @@ Da der Doppler Shift die Hauptursache ist entspricht die Abweichung der maximal 
 Die Schwelle, ab der ein Signal nach dem ersten Schritt der Acquisition als \enquote{vorhanden} bewertet wird, wird auf ein \emph{Peak-to-Second-Peak Ratio} von \num{2.5} festgelegt. Dieser Wert wurde aus dem SoftGNSS Simulator übernommen und ist der Wert, den Signale erreichen, die ein gerade noch für das Tracking ausreichendes SNR haben.
 
 \subsection{Tracking Loop Filter}
-Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad $\zeta$ und Bandbreite $B$ des geschlossenen Regelkreises. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO. Die Übertragungsfunktion des geschlossenen Regelkreises ist
-\begin{equation}
-    H(s) = \frac{2\cdot \zeta \omega_n}{}
-\end{equation}
+Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad $\zeta$ und Bandbreite $B_L$ des geschlossenen Regelkreises. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO. 
+
 Die Werte für den Loopfilter wurden zunächst aus \cite{borre2007software} bzw. dem SoftGNSS Simulator übernommen und anschließend, im Hinblick auf den höheren Dynamikbereich der Dopplerverschiebung auf dem Dragsail Cubesat überprüft. Die Extremwerte der Änderungsrate der Dopplerverschiebung wurden bereits in Abschnitt \ref{Dopplereffekt} bestimmt. In der Simulation ergab sich, dass der Trackingloop auch bei der maximalen erwarteten Änderung der Dopplerverschiebung von \SI{61}{\Hz\per\second} zuverlässig regelt. 
 
 \TR{TabLoopFilter} stellt die verwendeten Loop Parameter dar.
-Die Beziehung zwischen $\zeta$ und $B$ und den eigentlichen Filterparametern $\tau_1$ und $\tau_2$ wurde in \cite{parkinsonGPS} hergeleitet:
-
-\begin{align}
-    \omega_n &= \frac{B \cdot 8 \cdot \zeta}{4 \cdot \zeta^2 + 1}\\
-    \tau_1 &= \frac{k}{\omega_n^2}\\
-    \tau_2 &= \frac{2 \cdot \zeta}{\omega_n}
-\end{align}
+Die Beziehung zwischen $\zeta$ und $B_L$ und den eigentlichen Koeffizienten des digitalen Filters wurde bereits in Abschnitt \ref{loopfilter} beschrieben.
 
 
 \begin{table}[htbp]
@@ -295,8 +287,13 @@ Die Beziehung zwischen $\zeta$ und $B$ und den eigentlichen Filterparametern $\t
 \end{table}
 
 \paragraph{Filter Topologie und Festkommaentwurf}
-Im Hinblick auf die Echtzeitfähigkeit und Stabilität des Regelkreises muss auf die Performanz und die begrenzte Rechengenauigkeit, der Berechnungen geachtet werden. Während in der Matlab Simulation, die nicht Echtzeitfähig ist, mit Fließkommawerten doppelter Genauigkeit gerechnet wird, soll in der Implementierung mit Festkommawerten gerechnet werden.
-Dafür sind die Filterkoeffizienten zu quantisieren, und die Filtertopologie so anzupassen, dass der durch die Festkommazahl darstellbare Dynamikbereich optimal ausgenutzt wird. Die Details des Festkomma Entwurfs werden im Folgenden besprochen.
+Im Hinblick auf die Echtzeitfähigkeit und Stabilität des Regelkreises muss auf die Performanz und die begrenzte Rechengenauigkeit, der Berechnungen geachtet werden. Während in der Matlab Simulation, die nicht Echtzeitfähig ist, mit Fließkommawerten doppelter Genauigkeit gerechnet wird, soll in der Implementierung mit Festkommawerten gerechnet werden. Festkommaalgorithmen sind zwar in der Entwurfsphase deutlich aufwändiger, aber bringen in der Implementierung erhebliche Performanzvorteile.
+
+Für den Festkommaentwurf muss das Zahlenformat sorgfältig ausgewählt werden, damit der durch die Festkommazahl darstellbare Dynamikbereich optimal ausgenutzt wird. Im Folgenden wird der Festkommaentwurf für die Filter besprochen\footnote{Eine Einführung zu Festkommazahlen, der hier verwendeten Notation und Berechnungen damit wird in Appendix \ref{AppendixFestkomma} gegeben.}.
+
+\paragraph{Rahmenbedingungen} Der verwendete Softcore ist ein \SI{32}{\bit} Prozessor, weshalb nur Zahlenformate mit maximal  \SI{32}{\bit} in Betracht kommen\footnote{Auf Hochsprachenebene lassen sich natürlich auch \SI{>32}{\bit} Worte verarbeiten. Dies geht aber auf Kosten der Performanz.}. Weiterhin verfügt der Prozessor über \SI{32}{\bit} Multiplizierer. Da das Produkt wieder in \SI{32}{\bit} passen muss, sollen Multiplikand und Multiplikator maximal \SI{16}{\bit} umfassen.
+
+\paragraph{Skalierung der Filterkoeffizienten}
 
 %\subsubsection{NAV Daten Auswertung}
 %Präambel usw
