@@ -75,17 +75,21 @@ Als Beispiel ist in \FR{EarlyLate_delayed.png} die Kreuzkorrelation zwischen ein
 
 Da der Code Loop Diskriminator ähnlich wie im Falle PLL nur eine Phasendifferenz angibt, der Code NCO aber eine Frequenz erwartet, gibt es auch hier wieder einen Loop Filter, der die Phasendifferenz addiert. Genau wie beim Carrier Loop Filter ist der Code Loop Filter ein \emph{PI-Glied}.
 
-\subsubsection{Loop Filter}
-Die Regelkreise werden hier als PLL zweiter Ordnung modelliert \cite{borre2007software}. Wie schon erwähnt ist der Loop Filter ein \emph{PI-Glied}, hat also die Übertragungsfunktion \cite{gardner2005phaselock}
+\subsubsection{Loop Filter} \label{loopfilter}
+Die Regelkreise werden hier als PLL zweiter Ordnung modelliert \cite{borre2007software}. Das Modell ist in \FR{SecondOrderPLL.png} dargestellt. Wie schon erwähnt ist der Loop Filter ein \emph{PI-Glied}, hat also die Übertragungsfunktion \cite{gardner2005phaselock}
 \begin{equation}
+\label{Eq:analogloopfilter}
     F(s)=\frac{1 + \tau_2 \cdot s}{\tau_1 s}
 \end{equation}
 
-\FGimg[PLL zweiter Ordnung]{}{}{}
+\FGimg[PLL zweiter Ordnung]{SecondOrderPLL.png}{PLL zweiter Ordnung, bestehend aus Phasenkomparator, Filter $F(s)$ und VCO $N(s)$}{0.9\textwidth}
+
 Der VCO hat die Übertragungsfunktion eines \emph{I-Glieds} \cite{gardner2005phaselock}
 \begin{equation}
     N(s)=\frac{K_0}{s}
 \end{equation}
+
+Der Loop Diskriminator ist durch ein einfaches \emph{P-Glied} mit Verstärkungsfaktor $K_d$ modelliert.
 
 Zusammen ergibt sich damit die Übertragungsfunktion des geschlossenen Regelkreises zweiter Ordnung zu:
 \begin{align}
@@ -93,12 +97,26 @@ Zusammen ergibt sich damit die Übertragungsfunktion des geschlossenen Regelkrei
          &= \frac{K_0 ~K_d \cdot (\tau_2 ~s + 1)}{\tau_1 ~s^2 + K_0 ~K_d~\tau_2~s+K_0~K_d}\\
          &= \frac{2  ~ \zeta  ~ \omega_n ~ s + \omega_n^2}{s^2 + 2 ~\zeta~\omega_n~s + \omega_n}
 \end{align}
-Der geschlossene Regelkreis hat damit die Form eines \emph{PDT2-Glieds}. Im letzten Schritt wurden deshalb die für \emph{PDT2-Glieder} üblichen Parameter $\omega_n$, die Eigenfrequenz und $\zeta$, die Dämpfung eingeführt.
+Der geschlossene Regelkreis hat damit die Form eines \emph{PDT2-Glieds}. Im letzten Schritt wurden deshalb die für \emph{PDT2-Glieder} üblichen Parameter $\omega_n$, die Eigenfrequenz und $\zeta$, die Dämpfung eingeführt \cite{gardner2005phaselock}.
 \begin{align}
-    \omega_n &=\sqrt{\frac{K_0~K_d}{\tau_1}} \\
-    \zeta &=\frac{\tau_2~\omega_n}{2}
+    \omega_n &=\sqrt{\frac{K_0~K_d}{\tau_1}} \label{Eq:omegaN}\\
+    \zeta &=\frac{\tau_2~\omega_n}{2} \label{Eq:zeta}
 \end{align}
 In \cite{parkinsonGPS} wurde darüber hinaus der Zusammenhang zur Rauschbandbreite $B_L$ einer PLL zweiter Ordnung hergeleitet:
 \begin{equation}
-    B_L = \frac{\omega_n \cdot (4\zeta^2+1)}{8\zeta}
+    B_L = \frac{\omega_n \cdot (4\zeta^2+1)}{8\zeta} \label{Eq:NoiseBW}
 \end{equation}
+
+\paragraph{Zeitdiskretes Filter}
+Die bisherige Erklärung bezog sich lediglich auf einen zeitkontiniuierlichen Regelkreis. Im GPS Empfänger wird das Signal allerdings abgetastet, es kommt daher ein digitales Loop Filter zum Einsatz. Das digitale Filter kann aus \eqref{Eq:analogloopfilter} mit Bilinearer Tranformation\footnote{Bilineare Tranformation: $s=\frac{2\cdot(z-1)}{T\cdot(z+1)}$ mit $T$ dem Kehrwert der Abtastrate.} gewonnen werden:
+\begin{align}
+    F(z) &= \frac{b_0+b_1 \cdot z^{-1}}{a_0 + a_1 z^{-1}}\\
+         &= \frac{\frac{T+2\tau_2}{2 \tau_1}+\frac{T+2\tau_2}{2 \tau_1} \cdot z^{-1}}{1-z^{-1}}
+\end{align}
+Damit ergeben sich die Koeffizienten des digitalen Loop Filters, in Abhängigkeit von Rauschbandbreite und Dämpfung, nach Einsetzen von \eqref{Eq:omegaN},  \eqref{Eq:zeta} und \eqref{Eq:NoiseBW} zu:
+\begin{align}
+    b_0 &= \frac{16 ~B_L ~\zeta^2\cdot(4~\zeta^2+2 ~B_L~ T + 1)}{K_0 ~K_d \cdot (4 ~\zeta^2+1)^2} \\
+    b_1 &= \frac{-16 ~B_L ~\zeta^2\cdot(4~\zeta^2-2 ~B_L~ T + 1)}{K_0 ~K_d \cdot (4 ~\zeta^2+1)^2}\\
+    a_0 &= 1 \\
+    a_1 &= -1
+\end{align}
