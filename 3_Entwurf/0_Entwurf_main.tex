@@ -286,15 +286,51 @@ Die Beziehung zwischen $\zeta$ und $B_L$ und den eigentlichen Koeffizienten des 
 }
 \end{table}
 
-\paragraph{Filter Topologie und Festkommaentwurf}
+\subsubsection{Festkommaentwurf der Loop Filter}
 Im Hinblick auf die Echtzeitfähigkeit und Stabilität des Regelkreises muss auf die Performanz und die begrenzte Rechengenauigkeit, der Berechnungen geachtet werden. Während in der Matlab Simulation, die nicht Echtzeitfähig ist, mit Fließkommawerten doppelter Genauigkeit gerechnet wird, soll in der Implementierung mit Festkommawerten gerechnet werden. Festkommaalgorithmen sind zwar in der Entwurfsphase deutlich aufwändiger, aber bringen in der Implementierung erhebliche Performanzvorteile.
 
 Für den Festkommaentwurf muss das Zahlenformat sorgfältig ausgewählt werden, damit der durch die Festkommazahl darstellbare Dynamikbereich optimal ausgenutzt wird. Im Folgenden wird der Festkommaentwurf für die Filter besprochen\footnote{Eine Einführung zu Festkommazahlen, der hier verwendeten Notation und Berechnungen damit wird in Appendix \ref{AppendixFestkomma} gegeben.}.
 
 \paragraph{Rahmenbedingungen} Der verwendete Softcore ist ein \SI{32}{\bit} Prozessor, weshalb nur Zahlenformate mit maximal  \SI{32}{\bit} in Betracht kommen\footnote{Auf Hochsprachenebene lassen sich natürlich auch \SI{>32}{\bit} Worte verarbeiten. Dies geht aber auf Kosten der Performanz.}. Weiterhin verfügt der Prozessor über \SI{32}{\bit} Multiplizierer. Da das Produkt wieder in \SI{32}{\bit} passen muss, sollen Multiplikand und Multiplikator maximal \SI{16}{\bit} umfassen.
 
-\paragraph{Skalierung der Filterkoeffizienten}
+\paragraph{Berechnung der Filterkoeffizienten}
+Mit den Formeln \eqref{Eq:FilterB0} bis \eqref{Eq:FilterA1} lassen sich die Koeffizienten der digitalen Filter zahlenwertmäßig berechnen. Die Parameter $B_L$ und $\zeta$ sind bereits oben in \TR{TabLoopFilter} aufgeführt. Zur Berechnung fehlen noch die Parameter $K_0$ (das VCO Gain) und $K_d$ (das Phasendiskriminator Gain). 
 
+
+\subparagraph{Carrier Loop}
+Wie man sehr gut in \FR{arctandiscriminator.png} sehen kann ist für den Carrier Loop Diskriminator $K_{d,carr}=1$. Das VCO Gain ist
+\begin{equation}
+    K_{0,carr} = \frac{2 pi \gpsfsamp}{2^N}
+\end{equation}
+wobei N für den Carrier Loop $N_{carr}=28$ ist. Warum sich das Gain genau so ergibt soll hier zunächst noch nicht erklärt werden, dies wird später im Abschnitt \ref{VCOimplementierung} klar.
+
+\subparagraph{Code Loop}
+Der Phasendiskriminator der beim Codeloop zum Einsatz kommt  $K_{d,carr}=1$. Das VCO Gain ist
+\begin{equation}
+    K_{0,carr} = \frac{2 pi \gpsfsamp}{2^N}
+\end{equation}
+wobei N für den Carrier Loop $N_{carr}=28$ ist. Warum sich das Gain genau so ergibt soll hier zunächst noch nicht erklärt werden, dies wird später im Abschnitt \ref{VCOimplementierung} klar.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Filter Koeffizienten]{Trackingloop Parameter}
+        \label{TabFilterKoeff}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c c}
+        \toprule
+                & Carrier Loop      & Code Loop     \\
+        \midrule
+        $b_0$   &  \num{67.3347}    & \num{13.2880} \\
+        $b_1$   &  \num{-65.0977}   &  \num{-13.1985}\\
+        $a_0$   &  \num{1}          &  \num{1}      \\
+        $a_1$   &  \num{-1}         &  \num{-1}     \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
 %\subsubsection{NAV Daten Auswertung}
 %Präambel usw
 
