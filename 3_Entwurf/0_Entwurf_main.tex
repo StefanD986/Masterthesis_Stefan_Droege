@@ -202,7 +202,7 @@ Im folgenden ist noch eine Übersicht über die Schritte abgebildet. Die Meilens
 % Implementierung Acquisiton DSP
 
 \subsection{Schnittstelle zum Übertragen der Rohdaten}
-In diesem Abschnitt wird die Schnittstelle auf der Software Ebene aus Sicht des DSP beschrieben. Es wird schon einmal eine grobe Erklärung des Ablaufs auf Anwendungs-, Kernel- und Hardware Ebene gegeben. Weitere Details werden später noch im Kapitel \ref{Kerneltreiber} gegeben. Eine Anmerkung vorab: Die Beschreibung stellt den Stand zum Zeitpunkt der Entwicklungsphase dar, und wurde für die Rohdatenübertragung auch so implementiert und funktioniert. Für die weitere Entwicklung ist jedoch ein Wechsel auf das \emph{Linux User I/O} Framework angedacht, da dies zukünftige Entwicklungsschritte vereinfachen wird. 
+In diesem Abschnitt wird die Schnittstelle auf der Software Ebene aus Sicht des DSP beschrieben. Es wird schon einmal eine grobe Erklärung des Ablaufs auf Anwendungs-, Kernel- und Hardware Ebene gegeben. Weitere Details werden später noch im Kapitel \ref{Kerneltreiber} gegeben. Eine Anmerkung vorab: Die Beschreibung stellt den Stand zum Zeitpunkt der Entwicklungsphase dar und wurde für die Rohdatenübertragung auch so implementiert und funktioniert. Für die weitere Entwicklung ist jedoch ein Wechsel auf das \emph{Linux User I/O} Framework angedacht, da dies zukünftige Entwicklungsschritte vereinfachen wird. 
 %Einige Erklärungen dazu folgen im zweiten Unterabschnitt.
 
 \subsubsection{Linux File I/O Schnittstelle}
@@ -226,7 +226,7 @@ Auf der FPGA Seite müssen die Daten gepuffert werden, da der DSP nicht immer so
 
 Eine bessere Variante ist die Daten in eine \gls{FIFO} Warteschlange zu schreiben (\FR{FIFO_vs_plain_memory.png} Variante A). Hierbei bildet der Adressdekoder lediglich den FIFO Ausgang auf eine einzige Speicherzelle ab. Zum Lesen von mehreren Datenwörtern wird immer wieder von der selben Speicherzelle gelesen und der FIFO im FPGA sorgt automatisch dafür, dass das nächste Wort bereit steht.
 
-\FR{GPS_UML_Rohdatenpuffer.pdf} zeigt noch ein bisschen mehr den internen Aufbau auf FPGA Seite. Der \emph{Slave EBIU Controller} ist hier das Gegenstück im FPGA zu dem EBIU Controller im DSP ( \FR{EBIU_blockdiagram.pdf}). Er sorgt dafür die externe Asynchrone Schnittstelle auf den internen synchronen Daten- und Adressbus umzusetzen. Der Adressdekoder wertet den Adressbus aus und selektiert die entsprechenden Komponenten, die ihre Daten auf den Bus legen sollen.
+\FR{GPS_UML_Rohdatenpuffer.pdf} zeigt noch ein bisschen mehr den internen Aufbau auf FPGA Seite. Der \emph{Slave EBIU Controller} ist hier das Gegenstück im FPGA zu dem EBIU Controller im DSP ( \FR{EBIU_blockdiagram.pdf}). Er sorgt dafür die externe Asynchrone Schnittstelle auf den internen synchronen Daten- und Adressbus umzusetzen. Der Adressdekoder wertet den Adressbus aus und selektiert die entsprechenden Komponente, die ihre Daten auf den Bus legen soll.
 
 
 \FGimg[Vergleich FIFO und RAM Block Puffer]{FIFO_vs_plain_memory.png}{Vergleich des FIFO Datenpuffers (\emph{A}) mit dem Speicherblock Puffer (\emph{B}). Der entscheidende Nachteil von \emph{B} ist, dass die Schreib- und Lesezeiger über die Schnittstellengrenze hinweg synchronisiert werden müssen.}{0.95\textwidth}
@@ -234,14 +234,65 @@ Eine bessere Variante ist die Daten in eine \gls{FIFO} Warteschlange zu schreibe
 \FGimg[Rohdatenschnittstelle auf Hardware Ebene]{GPS_UML_Rohdatenpuffer.pdf}{Rohdatenschnittstelle auf Hardware Ebene. Die Rohdaten werden in einen FIFO geschrieben. Der DSP kann auf den FIFO über das EBIU Interface wie auf einen Speicher zugreifen.}{0.6\textwidth}
 
 \subsubsection{User I/O Schnittstelle}
-Am Anfang des Abschnitts wurde bereits erwähnt, dass die im obigen Abschnitt beschriebene File I/O Schnittstelle nur den bisherigen Entwicklungsstand widerspiegelt. Für das reine Übertragen der Rohdaten funktioniert diese auch sehr gut. Aber wenn man sich noch einmal \FR{GPS_UML_deployment1.png} ansieht, müssen für die Meilensteine 4-5 noch zahlreiche weitere Daten übertragen werden. 
+Am Anfang des Abschnitts wurde bereits erwähnt, dass die im obigen Abschnitt beschriebene File I/O Schnittstelle nur den bisherigen Entwicklungsstand widerspiegelt. Für das reine Übertragen der Rohdaten funktioniert diese auch sehr gut, da dies ein Stream-orientiertes Interface ist. Aber wenn man sich noch einmal \FR{GPS_UML_deployment1.png} ansieht, müssen für die Meilensteine 4-5 noch zahlreiche weitere Daten übertragen werden, wie z. B. die Loop Parameter nach Beendigung der Acquisition.
+
+Freilich lässt sich dies auch allen in ein Kernelmodul verpacken. Jedoch birgt steigende Komplexität immer die Gefahr von Fehlern. Fehler die auf Kernelebene passieren, können möglicherweise zum Systemabsturz führen. Mit dem \emph{User I/O} Framework bietet der Kernel auch Mittel an User-Space Programmen direkten Zugriff auf Hardware zu geben. Das Kernel Modul sorgt hilft lediglich bei der Einrichtung, verfügt aber selbst über relativ wenig Intelligenz. 
+
+Eine Detaillierte Beschreibung würde an dieser Stelle zu weit gehen, insbesondere, da der Entwurf für diese Erweiterung nicht durchgeführt wurde. Das User I/O Framework ist in \cite{uioHowto} dokumentiert. Der kurze Abschnitt soll mehr als Hinweis für zukünftige Arbeiten dienen.
+
 % Je mehr intelligenz in das Kernel modul gepackt werden muss, desto größer ist die gefahr das etwas schief läuft -> Systemabsturz
 
-\paragraph{Entwurf der Parameter für die Acquisition}
-%Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums. Die derzeit aktiven Satelliten haben die Codes mit den PRN 1-32 zugewiesen. Der Bereich der möglichen Codephasen ergibt sich aus der Dauer einer Codeperiode (Codelänge/Chippingrate TODO), und der Sampling Frequenz des Frontend ICs (TODO Formel): N=fs/(fchip/Lcode)=16.369MHz/(1.023Mchip/s/1023) = 16369 MHz *TODO Fußnote: Die Samplingfrequenz im Flugmodell beträgt 16.368 MHz). Da der Doppler Shift die Hauptursache ist entspricht die Abweichung dem maximal erwarteten Doppler Shift. Wie in Kapitel (todo link) besprochen, ist der erwartete Doppler Shift (TODO +-)45 kHz. Die Schwelle ab der ein Signal nach dem ersten Schritt der Acquisition als „vorhanden“ bewertet wird wird auf ein Peak-to-Average Ratio von 2,5 festgelegt. Dieser Wert wurde durch Simulation für Signale gefunden, die ein gerade noch ausreichendes SNR haben.
+\subsection{Entwurf der Parameter für die Acquisition}
+Die wichtigen Parameter für die Acquisiton sind die Grenzen des zu durchsuchenden Raums (\#Codes $\times$ \#Codephasen $\times$ \#Frequenzklassen) und der Schwellwert ab der ein Signal als \emph{erkannt} gewertet werden soll.
+
+Die Menge der zu durchsuchenden Codes ist durch die Anzahl der aktiven GPS Satelliten gegeben, denen die PRN 1 bis 32 zugewiesen sind. 
+
+Der Menge der möglichen Codephasen ergibt sich aus der Codedauer $\gpsTcode$ und der Frontend Sampling Frequenz\footnote{Die Samplingfrequenz im Flugmodell beträgt \SI{16.368}{\mega\hertz}. Das während der Entwicklung benutzte COM Board nutzt eine Samplingfrequenz von  \SI{16.369}{\mega\hertz}} des Frontend ICs:  
+\begin{equation}
+    N=fs\cdot \gpsTcode=\SI{16.368}{\mega\hertz}\cdot \SI{1}{\milli\second} = 16369
+\end{equation} 
+
+Da der Doppler Shift die Hauptursache ist entspricht die Abweichung der maximal erwarteten Dopplerverschiebung. Wie in Kapitel \ref{Dopplereffekt} besprochen, ist der erwartete Doppler Shift \SI{\pm45}{\kilo\hertz}. In der SoftGNSS Simulation wird eine Klassengröße von \SI{500}{\Hz} verwendet, die in Versuchen gute Ergebnisse gezeigt hat. Damit ergeben sich 180 Frequenzklassen.
+
+Die Schwelle, ab der ein Signal nach dem ersten Schritt der Acquisition als \enquote{vorhanden} bewertet wird, wird auf ein \emph{Peak-to-Second-Peak Ratio} von \num{2.5} festgelegt. Dieser Wert wurde aus dem SoftGNSS Simulator übernommen und ist der Wert, den Signale erreichen, die ein gerade noch für das Tracking ausreichendes SNR haben.
+
+\subsection{Tracking Loop Filter}
+Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad $\zeta$ und Bandbreite $B$ des geschlossenen Regelkreises. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO. Die Übertragungsfunktion des geschlossenen Regelkreises ist
+\begin{equation}
+    H(s) = \frac{2\cdot \zeta \omega_n}{}
+\end{equation}
+Die Werte für den Loopfilter wurden zunächst aus \cite{borre2007software} bzw. dem SoftGNSS Simulator übernommen und anschließend, im Hinblick auf den höheren Dynamikbereich der Dopplerverschiebung auf dem Dragsail Cubesat überprüft. Die Extremwerte der Änderungsrate der Dopplerverschiebung wurden bereits in Abschnitt \ref{Dopplereffekt} bestimmt. In der Simulation ergab sich, dass der Trackingloop auch bei der maximalen erwarteten Änderung der Dopplerverschiebung von \SI{61}{\Hz\per\second} zuverlässig regelt. 
+
+\TR{TabLoopFilter} stellt die verwendeten Loop Parameter dar.
+Die Beziehung zwischen $\zeta$ und $B$ und den eigentlichen Filterparametern $\tau_1$ und $\tau_2$ wurde in \cite{parkinsonGPS} hergeleitet:
+
+\begin{align}
+    \omega_n &= \frac{B \cdot 8 \cdot \zeta}{4 \cdot \zeta^2 + 1}\\
+    \tau_1 &= \frac{k}{\omega_n^2}\\
+    \tau_2 &= \frac{2 \cdot \zeta}{\omega_n}
+\end{align}
 
 
-%Die entscheidenden Entwurfsparameter für den Carrier- und Code Tracking Loop sind die Parameter Dämpfungsgrad und Bandbreite des Loopfilters. Zusammen bestimmen diese die Schnelligkeit mit der der Regelkreis einrastet und die Rauschbandbreite des Steuersignals für den LO. Die Werte für den Loopfilter wurden zunächst aus (TODO Referenz Buch) übernommen und anschließend, im Hinblick auf den höheren Dynamikbereich der Dopplerverschiebung auf dem Dragsail Cubesat überprüft. Die Extremwerte der Änderungsrate der Dopplerverschiebung wurden bereits in Abschnitt (TODO Link) bestimmt, und sind noch einmal in Tabelle (TODO Tabelle max Dopplershift, Dopplershift Änderung) dargestellt. In der Simulation ergab sich, dass die Werte auch für den hier vorliegenden Anwendungsfall optimal sind. Tabelle TODO stellt die verwendeten Loop Filter Werte dar.
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Tracking Loop Parameter]{Trackingloop Parameter}
+        \label{TabLoopFilter}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c l}
+        \toprule
+        Name             & Wert & Beschreibung \\
+        \midrule
+        $B_{carrier}$ & \SI{25}{\Hz} &  Rauschbandbreite Carrier Loop Filter\\
+        $\zeta_{carrier}$ & \num{0.7}& Dämpfung Carrier Loop Filter \\
+        $B_{carrier}$ & \SI{5}{\Hz} &  Rauschbandbreite Code Loop Filter\\
+        $\zeta_{carrier}$ & \SI{0.7}& Dämpfung Code Loop Filter \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
 
 \paragraph{Filter Topologie und Festkommaentwurf}
 Im Hinblick auf die Echtzeitfähigkeit und Stabilität des Regelkreises muss auf die Performanz und die begrenzte Rechengenauigkeit, der Berechnungen geachtet werden. Während in der Matlab Simulation, die nicht Echtzeitfähig ist, mit Fließkommawerten doppelter Genauigkeit gerechnet wird, soll in der Implementierung mit Festkommawerten gerechnet werden.
