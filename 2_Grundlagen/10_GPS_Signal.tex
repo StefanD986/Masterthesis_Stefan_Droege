@@ -1,5 +1,5 @@
 \section{GPS Signal}
-Der GNSS Empfänger der im Rahmen dieser Arbeit entwickelt werden soll verwendet das \gls{GPS} als Quelle für Navigationsdaten. In diesem Abschnitt soll ein Überblick über die Eigenschaften des Signals, sowie ein Überblick über die Demodulation Signals gegeben werden. Dabei wird sich auf die für diese Arbeit wichtigen Teile beschränkt: Das GPS verwendet mehrere Frequenzen und in neueren Versionen auch mehrere Modulationsverfahren \cite{specification2010gps}. Der im Rahmen dieser Arbeit entworfene Empfänger verwendet lediglich das zivil nutzbare Signal auf der L1 Frequenz mit C/A Kodierung\footnote{Beginnend mit dem Jahr 2016 sollen in Zukunft 2016 auch weitere Übertragungskanäle für zivile Anwendungen zur Verfügung stehen. Siehe \cite{interface1gps}, \cite{specification2010gps} und \cite{navstar2006space}}. Für die anderen Teile des Standards sei auf die offizielle GPS Spezifikation verwiesen (\cite{specification2010gps}) verwiesen. Weiterhin gibt \cite{borre2007software} eine sehr gute Einführung zu \gls{SDR} Empfängern für \gls{GPS} und Galileo. 
+Der GNSS Empfänger der im Rahmen dieser Arbeit entwickelt werden soll verwendet das \gls{GPS} als Quelle für Navigationsdaten. In diesem Abschnitt soll ein Überblick über die Eigenschaften des Signals, sowie ein Überblick über die Demodulation Signals gegeben werden. Dabei wird sich auf die für diese Arbeit wichtigen Teile beschränkt: Das GPS verwendet mehrere Frequenzen und in neueren Versionen auch mehrere Modulationsverfahren \cite{specification2010gps}. Der im Rahmen dieser Arbeit entworfene Empfänger verwendet lediglich das zivil nutzbare Signal auf der L1 Frequenz mit C/A Kodierung\footnote{Beginnend mit dem Jahr 2016 sollen auch weitere Übertragungskanäle für zivile Anwendungen zur Verfügung stehen. Siehe \cite{interface1gps}, \cite{specification2010gps} und \cite{navstar2006space}}. Für die anderen Teile des Standards sei auf die offizielle GPS Spezifikation verwiesen (\cite{specification2010gps}) verwiesen. Weiterhin gibt \cite{borre2007software} eine sehr gute Einführung zu \gls{SDR} Empfängern für \gls{GPS} und Galileo. 
 
 Auch wenn GPS aus Sicht des Empfängers kein Netzwerkprotokoll ist, orientiert sich die folgende Beschreibung grob am OSI Modell: Zu Beginn wird die Bitübertragungsschicht (\emph{Physical Layer}) diskutiert. Im zweiten Unterabschnitt wird das verwendete Multiplex Verfahren beschrieben (\emph{\gls{MAC} Layer}). Abschließend werden die übertragenen Nutzdaten beschrieben. Einige Zahlenwerte zu Parametern sind in \TR{TabGPSSignalParams} angegeben. Die Bedeutung wird in den folgenden Abschnitten noch erklärt.
 
@@ -17,8 +17,9 @@ Auch wenn GPS aus Sicht des Empfängers kein Netzwerkprotokoll ist, orientiert s
         \midrule
         $\gpsfcarr$      & 1575.42 & \MHz    &  Trägerfrequenz L1\\
         $\gpsfchip$      & 1.023 & \MHz     & Chippingrate ($1/T_{Chip}$) \\
-        $\gpsTchip$      & \approx 977.5 & \nano\second & Chiplänge \\
-        $\gpsTcode$      & 1 & \milli\second & Codelänge \\
+        $\gpsTchip$      & \approx 977.5 & \nano\second & Chipweite \\
+        $\gpsLcode$      & 1023 &  & Codelänge \\
+        $\gpsTcode$      & 1 & \milli\second & Codedauer \\
         $\gpsfbit$       & 50 & \bit\per\second & Informationsrate \\
         $\gpsTbit$       & 20 & \milli\second & Dauer eines Bits \\
         \bottomrule

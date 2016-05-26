@@ -74,3 +74,31 @@ Als Beispiel ist in \FR{EarlyLate_delayed.png} die Kreuzkorrelation zwischen ein
 \FGimg[Early-Late Gate bei verspäteter Codekopie]{EarlyLate_delayed.png}{Kreuzkorrelation in der Umgebung von $k=0$ für ein Eingangssignal dem die Codekopie um $1/4$ Chip nacheilt. Das Signal ist 4-fach überabgetastet. Der Early Korrelator zeigt einen größeren Wert an, weil das Eingangssignal in Bezug auf die Codekopie voreilt.}{0.8\textwidth}
 
 Da der Code Loop Diskriminator ähnlich wie im Falle PLL nur eine Phasendifferenz angibt, der Code NCO aber eine Frequenz erwartet, gibt es auch hier wieder einen Loop Filter, der die Phasendifferenz addiert. Genau wie beim Carrier Loop Filter ist der Code Loop Filter ein \emph{PI-Glied}.
+
+\subsubsection{Loop Filter}
+Die Regelkreise werden hier als PLL zweiter Ordnung modelliert \cite{borre2007software}. Wie schon erwähnt ist der Loop Filter ein \emph{PI-Glied}, hat also die Übertragungsfunktion \cite{gardner2005phaselock}
+\begin{equation}
+    F(s)=\frac{1 + \tau_2 \cdot s}{\tau_1 s}
+\end{equation}
+
+\FGimg[PLL zweiter Ordnung]{}{}{}
+Der VCO hat die Übertragungsfunktion eines \emph{I-Glieds} \cite{gardner2005phaselock}
+\begin{equation}
+    N(s)=\frac{K_0}{s}
+\end{equation}
+
+Zusammen ergibt sich damit die Übertragungsfunktion des geschlossenen Regelkreises zweiter Ordnung zu:
+\begin{align}
+    \frac{\Phi_{out}(s)}{\Phi_{in}(s)}=H(s) &= \frac{K_d ~ F(s)~ N(s)}{1+K_d ~ F(s)~ N(s)}\\
+         &= \frac{K_0 ~K_d \cdot (\tau_2 ~s + 1)}{\tau_1 ~s^2 + K_0 ~K_d~\tau_2~s+K_0~K_d}\\
+         &= \frac{2  ~ \zeta  ~ \omega_n ~ s + \omega_n^2}{s^2 + 2 ~\zeta~\omega_n~s + \omega_n}
+\end{align}
+Der geschlossene Regelkreis hat damit die Form eines \emph{PDT2-Glieds}. Im letzten Schritt wurden deshalb die für \emph{PDT2-Glieder} üblichen Parameter $\omega_n$, die Eigenfrequenz und $\zeta$, die Dämpfung eingeführt.
+\begin{align}
+    \omega_n &=\sqrt{\frac{K_0~K_d}{\tau_1}} \\
+    \zeta &=\frac{\tau_2~\omega_n}{2}
+\end{align}
+In \cite{parkinsonGPS} wurde darüber hinaus der Zusammenhang zur Rauschbandbreite $B_L$ einer PLL zweiter Ordnung hergeleitet:
+\begin{equation}
+    B_L = \frac{\omega_n \cdot (4\zeta^2+1)}{8\zeta}
+\end{equation}
