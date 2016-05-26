@@ -115,8 +115,8 @@ Die bisherige Erklärung bezog sich lediglich auf einen zeitkontiniuierlichen Re
 \end{align}
 Damit ergeben sich die Koeffizienten des digitalen Loop Filters, in Abhängigkeit von Rauschbandbreite und Dämpfung, nach Einsetzen von \eqref{Eq:omegaN},  \eqref{Eq:zeta} und \eqref{Eq:NoiseBW} zu:
 \begin{align}
-    b_0 &= \frac{16 ~B_L ~\zeta^2\cdot(4~\zeta^2+2 ~B_L~ T + 1)}{K_0 ~K_d \cdot (4 ~\zeta^2+1)^2} \\
-    b_1 &= \frac{-16 ~B_L ~\zeta^2\cdot(4~\zeta^2-2 ~B_L~ T + 1)}{K_0 ~K_d \cdot (4 ~\zeta^2+1)^2}\\
-    a_0 &= 1 \\
-    a_1 &= -1
+    b_0 &= \frac{16 ~B_L ~\zeta^2\cdot(4~\zeta^2+2 ~B_L~ T + 1)}{K_0 ~K_d \cdot (4 ~\zeta^2+1)^2} \label{Eq:FilterB0}\\
+    b_1 &= \frac{-16 ~B_L ~\zeta^2\cdot(4~\zeta^2-2 ~B_L~ T + 1)}{K_0 ~K_d \cdot (4 ~\zeta^2+1)^2} \label{Eq:FilterB1}\\
+    a_0 &= 1 \label{Eq:FilterA0}\\
+    a_1 &= -1 \label{Eq:FilterA1}
 \end{align}
