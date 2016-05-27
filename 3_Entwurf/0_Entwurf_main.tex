@@ -300,12 +300,13 @@ Mit den Formeln \eqref{Eq:FilterB0} bis \eqref{Eq:FilterA1} lassen sich die Koef
 \subparagraph{Carrier Loop}
 Wie man sehr gut in \FR{arctandiscriminator.png} sehen kann ist für den Carrier Loop Diskriminator $K_{d,carr}=1$. Das VCO Gain ist
 \begin{equation}
-    K_{0,carr} = \frac{2 pi \gpsfsamp}{2^N}
+    K_{0,carr} = \frac{2 \pi \gpsfsamp}{2^N}
 \end{equation}
 wobei N für den Carrier Loop $N_{carr}=28$ ist. Warum sich das Gain genau so ergibt soll hier zunächst noch nicht erklärt werden, dies wird später im Abschnitt \ref{VCOimplementierung} klar.
 
 \subparagraph{Code Loop}
-Der Phasendiskriminator der beim Codeloop zum Einsatz kommt  $K_{d,carr}=1$. Das VCO Gain ist
+Die Charakteristik des Code Phasen Diskriminators wurde bereits in \FR{CodeDiskriminatorCharacteristic.png} dargestellt. Daraus lässt sich ablesen, dass $K_{d,code}=-\frac{2}{\Delta t}$ ist, mit $\Delta t$ der zeitlichen Differenz der Code Kopien zum pünktlichen Code. 
+
 \begin{equation}
     K_{0,carr} = \frac{2 pi \gpsfsamp}{2^N}
 \end{equation}
