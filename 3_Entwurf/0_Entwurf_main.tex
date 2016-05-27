@@ -289,7 +289,7 @@ Die Beziehung zwischen $\zeta$ und $B_L$ und den eigentlichen Koeffizienten des 
 \subsubsection{Festkommaentwurf der Loop Filter}
 Im Hinblick auf die Echtzeitfähigkeit und Stabilität des Regelkreises muss auf die Performanz und die begrenzte Rechengenauigkeit, der Berechnungen geachtet werden. Während in der Matlab Simulation, die nicht Echtzeitfähig ist, mit Fließkommawerten doppelter Genauigkeit gerechnet wird, soll in der Implementierung mit Festkommawerten gerechnet werden. Festkommaalgorithmen sind zwar in der Entwurfsphase deutlich aufwändiger, aber bringen in der Implementierung erhebliche Performanzvorteile.
 
-Für den Festkommaentwurf muss das Zahlenformat sorgfältig ausgewählt werden, damit der durch die Festkommazahl darstellbare Dynamikbereich optimal ausgenutzt wird. Im Folgenden wird der Festkommaentwurf für die Filter besprochen\footnote{Eine Einführung zu Festkommazahlen, der hier verwendeten Notation und Berechnungen damit wird in Appendix \ref{AppendixFestkomma} gegeben.}.
+Für den Festkommaentwurf muss das Zahlenformat sorgfältig ausgewählt werden, damit der durch die Festkommazahl darstellbare Dynamikbereich optimal ausgenutzt wird. Im Folgenden wird der Festkommaentwurf für die Filter besprochen\footnote{Eine Einführung zu Festkommazahlen, der hier verwendeten Notation und Berechnungen damit, wird in Appendix \ref{AppendixFestkomma} gegeben.}.
 
 \paragraph{Rahmenbedingungen} Der verwendete Softcore ist ein \SI{32}{\bit} Prozessor, weshalb nur Zahlenformate mit maximal  \SI{32}{\bit} in Betracht kommen\footnote{Auf Hochsprachenebene lassen sich natürlich auch \SI{>32}{\bit} Worte verarbeiten. Dies geht aber auf Kosten der Performanz.}. Weiterhin verfügt der Prozessor über \SI{32}{\bit} Multiplizierer. Da das Produkt wieder in \SI{32}{\bit} passen muss, sollen Multiplikand und Multiplikator maximal \SI{16}{\bit} umfassen.
 
@@ -300,18 +300,19 @@ Mit den Formeln \eqref{Eq:FilterB0} bis \eqref{Eq:FilterA1} lassen sich die Koef
 \subparagraph{Carrier Loop}
 Wie man sehr gut in \FR{arctandiscriminator.png} sehen kann ist für den Carrier Loop Diskriminator $K_{d,carr}=1$. Das VCO Gain ist
 \begin{equation}
-    K_{0,carr} = \frac{2 \pi \gpsfsamp}{2^N}
+    K_{0,carr} = \frac{2 \pi \gpsfsamp}{2^{N_{carr}}}
 \end{equation}
-wobei N für den Carrier Loop $N_{carr}=28$ ist. Warum sich das Gain genau so ergibt soll hier zunächst noch nicht erklärt werden, dies wird später im Abschnitt \ref{VCOimplementierung} klar.
+mit $N_{carr}=28$ ist. Warum sich das Gain genau so ergibt hängt mit der Implementierung des NCO zusammen und soll hier zunächst noch nicht erklärt werden, dies folgt später im Kapitel \ref{VCOimplementierung}.
 
 \subparagraph{Code Loop}
-Die Charakteristik des Code Phasen Diskriminators wurde bereits in \FR{CodeDiskriminatorCharacteristic.png} dargestellt. Daraus lässt sich ablesen, dass $K_{d,code}=-\frac{2}{\Delta t}$ ist, mit $\Delta t$ der zeitlichen Differenz der Code Kopien zum pünktlichen Code. 
+Die Charakteristik des Code Phasen Diskriminators wurde bereits in \FR{CodeDiskriminatorCharacteristic.png} dargestellt. Daraus lässt sich ablesen, dass $K_{d,code}=-2$ ist. Das Code NCO Gain ist 
 
 \begin{equation}
-    K_{0,carr} = \frac{2 pi \gpsfsamp}{2^N}
+    K_{0,code} = \frac{\gpsfsamp}{2^{N_{code}}}
 \end{equation}
-wobei N für den Carrier Loop $N_{carr}=28$ ist. Warum sich das Gain genau so ergibt soll hier zunächst noch nicht erklärt werden, dies wird später im Abschnitt \ref{VCOimplementierung} klar.
+mit $N_{code}=29$ ist. Auch hier sei dies erst einmal ohne Begründung, die später noch gegeben wird (\ref{VCOimplementierung}).
 
+Damit können nun Zahlenwerte für die Koeffizienten berechnet werden (\TR{TabFilterKoeff}). 
 \begin{table}[htbp]
     \ttabbox
     {
@@ -324,14 +325,17 @@ wobei N für den Carrier Loop $N_{carr}=28$ ist. Warum sich das Gain genau so er
         \toprule
                 & Carrier Loop      & Code Loop     \\
         \midrule
-        $b_0$   &  \num{67.3347}    & \num{13.2880} \\
-        $b_1$   &  \num{-65.0977}   &  \num{-13.1985}\\
+        $b_0$   &  \num{175.75332042763836}    & \num{435.8462885553382} \\
+        $b_1$   &  \num{-169.9143396825341}   &  \num{-432.9112967132147}\\
         $a_0$   &  \num{1}          &  \num{1}      \\
         $a_1$   &  \num{-1}         &  \num{-1}     \\
         \bottomrule
     \end{tabular}
 }
 \end{table}
+
+\subparagraph{Filtertopologie}
+\FGimg[Filtertopologien]{FilterTopology.png}{Topologien für digitale Filter. Die vermutlich bekanntesten Filtertopologien sind DF1 (oben) und DF2 (unten). Beide Formen haben Vor- und Nachteile. Für die Implementierung in dieser Arbeit ist die DF1 Topologie vorteilhaft.}{0.8\textwidth}
 %\subsubsection{NAV Daten Auswertung}
 %Präambel usw
 
