@@ -411,12 +411,13 @@ Die Formate der einzelnen Signale sind in \TR{TabKoeffFixpointFormat} zusammenge
 %Präambel usw
 
 \subsection{Schnittstelle Softcore CPU / Trackingkanäle}
-In \FR{GPS_UML_deployment1.png} und Abschnitt \ref{ArbeitsteilungFPGADSP} wurde bereits erwähnt, dass der Trackingloop teils in teils in Software im Softcore Prozessor, teils in programmierbarer FPGA Logik implementiert wird. In diesem Abschnitt wird die Schnittstelle zwischen den beiden Teilkomponenten beschrieben.
+In \FR{GPS_UML_deployment1.png} und Abschnitt \ref{ArbeitsteilungFPGADSP} wurde bereits erwähnt, dass der Trackingloop teils in Software im Softcore Prozessor, teils in programmierbarer FPGA Logik implementiert wird. In diesem Abschnitt wird die Schnittstelle zwischen den beiden Teilkomponenten beschrieben.
 
 Die in Software implementierten Teile sind in \FR{Trackingloop.png} grün markiert. Daraus ergeben sich die Anforderung an die durch die Schnittstelle auszutauschenden Daten: Zur Berechnung werden die Werte der \emph{Early}, \emph{Prompt} und \emph{Late} Integratoren benötigt, jeweils aus in I und Q. Ausgabewerte sind das Carrier bzw. Code NCO Steuerwort. Weitere Ausgabewerte, die nicht in \FR{Trackingloop.png} sichtbar sind, sind die Parameter PRN, Codephase und einige Steuerflags.
 
-Die Ein- und Ausgabeparameter werden über Register gelesen, bzw. geschrieben. Auf Hardware Ebene bildet der Adressdekoder der Softcore CPU die Register jedes Kanals auf einen kontinuierlichen Speicherbereich am Ende des adressierbaren Speichers ab. Auf Software Seite werden die Register durch ein C \lstinline$struct$ angesprochen. 
+Die Ein- und Ausgabeparameter werden über Register gelesen, bzw. geschrieben. Auf Hardware Ebene bildet der Adressdekoder der Softcore CPU die Register jedes Kanals auf einen Speicherbereich am Ende des adressierbaren Speichers ab  (\FR{TLMemoryLayout.pdf}). Auf Software Seite werden die Register durch ein C \lstinline$struct$ angesprochen. Weitere Details zu der Bedeutung der einzelenen Register folgen später noch im Kapitel \ref{ImplMemoryMapTrackingloop}
 
+\FGimg[Trackingloop Softcore CPU Memory Map]{TLMemoryLayout.pdf}{Memory Layout der Trackingloop Register im Speicher.}{0.95\textwidth}
 	%t_iq Early; 		// Size: 4 byte --> Offset 0	(0x00)
 	%t_iq Prompt; 		// Size: 4 byte --> Offset 4	(0x04)
 	%t_iq Late; 		// Size: 4 byte --> Offset 8	(0x08)
@@ -428,13 +429,20 @@ Die Ein- und Ausgabeparameter werden über Register gelesen, bzw. geschrieben. A
 
 
 
-
 %Character Device Treiber
 %Je Kanal ein FIFO
 % Auf Software Seite werden die Kanäle durch Klassen repräsentiert. Abstraktion der Hardware Kanäle
 
 \subsection{Matlab Simulation}
 %Trackingloop in Simulink
+In diesem Abschnitt soll kurz die Simulation in Matlab besprochen werden. Für die Simulation wurde zum einen Gebrauch gemacht von dem zu dem Buch \cite{borre2007software} gehörenden SoftGNSS Empfängers. Zum anderen wurde ein eigene Simulink Simulation des Trackings entwickelt. 
+
+\paragraph{SoftGNSS} Die verwendete Simulationssoftware SoftGNSS ist Teil des Buchs \cite{borre2007software} und beinhaltet einen vollständigen Software Defined GNSS Empfänger. Die Software ist durch das Buch und den Code selbst dokumentiert weshalb in diesem Abschnitt weniger die Funktion des Empfängers selbst beschrieben werden soll, sondern stattdessen die Anwendung in diesem Projekt. Von der Simulation wurde während der Entwicklung viel Gebrauch gemacht, um die Funktion des entwickelten Rohdateninterface zu verifizieren. Der SoftGNSS Empfänger implementiert alle Schritte, von Acquisition über Tracking und NAV Daten Extraktion bis zur Positionsbestimmung. Um das Rohdateninterface zu testen wurde ein Matlab Skript geschrieben, um die von dem Rohdateninterface kommenden Daten auf ein für den SoftGNSS Empfänger geeignetes Format umzuwandeln. Mit den umgewandelten Daten können dann die Schritte durchgeführt werden und 
+
+\paragraph{Simulink Simulation}
+Der oben beschriebene SoftGNSS Empfänger implementiert die Schritte anders als sie in der Hardware im FPGA implementiert werden: Beispielsweise werden die \gls{CA} Codes mit einer Look-Up-Table generiert, statt durch ein LFSR. Es wird außerdem mit Fließkommawerten gerechnet, wohingegen die FPGA Implementierung nur einzelne Bits, bzw. Festkommawerte verwendet. Bevor mit der FPGA Implementierung begonnen wurde, wurde deshalb eine eigene Simulink Simulation des Trackingloops entwickelt, mit der der Hardware Trackingloop im FPGA so gut wie möglich nachgebildet wird. Anhand dessen konnten dann z.B. die Auswirkungen von  der Quantisierung der Filterkoeffizienten oder Verzögerungen bei der Berechnung der Loop Parameter getestet werden. 
+
+
 
 %High Level Simulation sukzessive angepasst an Implementierung in Hardware
 %Acquisition Skripte
