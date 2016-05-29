@@ -27,7 +27,7 @@ Die beiden Phasen Acquistion und Tracking haben unterschiedliche Echtzeitanforde
 
 Die Acquisition hat lediglich weiche Echtzeitanforderung im Sekundenbereich, da sich die Dopplerverschiebung nur relativ langsam verändert (schlimmstenfalls \SI{61}{\Hz/\second}, siehe \ref{maxdopplershift}). Falls die Acquisition länger als geplant dauert, kann der Trackingloop trotzdem noch einrasten wenn sich die Dopplerverschiebung nicht zu stark geändert hat.
 
-\subsection{Arbeitsteilung FPGA/DSP}
+\subsection{Arbeitsteilung FPGA/DSP}\label{ArbeitsteilungFPGADSP}
 % Acquisition im DSP
 % Erfordert große Mengen Speicher und hoher Rechenaufwand. Floating Point
 % Idee Vorberechnung im FPGA verworfen, Implementierungsaufwand Protokoll etc
@@ -123,7 +123,7 @@ Trotzdem wurden einige Untersuchungen angestellt, welchen Vorteil höhere Quanti
     }
 \end{table}
 
-Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gpsftcxo/2$, $\gpsftcxo/4$, oder $2\times \gpsftcxo$ annehmen\footnote{Es gibt außerdem noch ein Fractional Clock Divider, über den noch andere Teilraten eingestellt werden können.}. Bei der Auswahl muss ein Kompromiss gemacht werden zwischen Genauigkeit der Pseudorange Schätzung (\ref{positionsbestimmung}) und dem Speicherverbrauch für den Rohdatenpuffer. Unter Berücksichtigung der oben festgelegten Größe des Rohdatenpuffers \SI{10}{\ms} wird die Samplingrate auf  $f_S=\gpsftcxo=\SI{16.368}{\MHz}$ festgelegt. Damit werden mit dem 1-bit Quantisierer mindestens \SI{163.69}{\kilo\bit} Speicher benötigt\footnote{Weil der Puffer als FIFO implementiert wird sind Speichergrößen von Zweierpotenzen vorteilhaft. Daher umfasst der Puffer \SI{262144}{\bit}, und damit etwa \SI{16}{\ms}}.
+Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gpsftcxo/2$, $\gpsftcxo/4$, oder $2\times \gpsftcxo$ annehmen\footnote{Es gibt außerdem noch ein Fractional Clock Divider, über den noch andere Teilraten eingestellt werden können.}. Bei der Auswahl muss ein Kompromiss gemacht werden zwischen Genauigkeit der Pseudorange Schätzung (\ref{positionsbestimmung}) und dem Speicherverbrauch für den Rohdatenpuffer. Unter Berücksichtigung der oben festgelegten Größe des Rohdatenpuffers \SI{10}{\ms} wird die Samplingrate auf  $f_S=\gpsftcxo=\SI{16.368}{\MHz}$ festgelegt. Damit werden mit dem 1-bit Quantisierer mindestens \SI{163.68}{\kilo\bit} Speicher benötigt\footnote{Weil der Puffer als FIFO implementiert wird sind Speichergrößen von Zweierpotenzen vorteilhaft. Daher umfasst der Puffer \SI{262144}{\bit}, und damit etwa \SI{16}{\ms}}.
 
 \paragraph{Andere Einstellungen} Neben den oben genannten Parametern bietet das MAX2769 Frontend noch viele weitere Einstellungen. Die meisten wurden dabei auf den Voreinstellungen belassen. Abweichend davon wurde beim Flugmodell die Phantomspeisung abgeschaltet und LNA1 ausgewählt, da dieser für passive Antennen ausgelegt ist wie sie im \dscubesat verwendet werden\footnote{Bei dem COM1 Board wurde währende der Entwicklung eine aktive Antenne und der dafür optimierte LNA2 verwendet.}. Die \gls{AGC} ist zwar aktiviert, dürfte aber bei 1-Bit Sampling keinen Einfluss haben. Der \emph{GAINREF} Parameter wurde auf 255 gesetzt. Weiterhin wurde durch ausprobieren herausgefunden, dass sich die Erfolgsrate der Acquisition leicht verbessert wenn der Hochpassfilter vor dem \gls{PGA} abgeschaltet wird (\emph{FHIPEN}$=0$).
 
@@ -224,7 +224,7 @@ Nachdem der Linux Kernel festgestellt hat, welches Kernelmodul für die Datei zu
 \subsubsection{Hardware Ebene}
 Auf der FPGA Seite müssen die Daten gepuffert werden, da der DSP nicht immer sofort bereit ist die Daten zu empfangen. Dazu gibt es verschiedene Möglichkeiten: Die Daten können beispielsweise einfach in einen Speicher geschrieben werden, der durch einen im FPGA implementierten Adressdekoder  auf einen Speicherbereich des DSP abgebildet wird (\FR{FIFO_vs_plain_memory.png} Variante B). Der entscheidende Nachteil hierbei ist jedoch, dass die Schreib- und Lesezeiger über die Schnittstellengrenze hinweg synchronisiert werden müssen, weil sonst keine Erkennung möglich ist ob der Puffer voll oder leer ist. Insbesondere, weil eine Synchronisation über Taktgrenzen hinweg immer problematisch ist, ist diese Variante sehr ungünstig.
 
-Eine bessere Variante ist die Daten in eine \gls{FIFO} Warteschlange zu schreiben (\FR{FIFO_vs_plain_memory.png} Variante A). Hierbei bildet der Adressdekoder lediglich den FIFO Ausgang auf eine einzige Speicherzelle ab. Zum Lesen von mehreren Datenwörtern wird immer wieder von der selben Speicherzelle gelesen und der FIFO im FPGA sorgt automatisch dafür, dass das nächste Wort bereit steht.
+Eine bessere Variante ist die Daten in eine \gls{FIFO} Warteschlange zu schreiben (\FR{FIFO_vs_plain_memory.png} Variante A). Hierbei bildet der Adressdekoder lediglich den FIFO Ausgang auf eine einzige Speicherzelle ab. Außerdem wird die Anzahl der im FIFO bereitstehenden Worte auf eine zweite Speicherzelle abgebildet. Zum Lesen von mehreren Datenwörtern wird immer wieder von der selben Speicherzelle gelesen und der FIFO im FPGA sorgt automatisch dafür, dass das nächste Wort bereit steht.
 
 \FR{GPS_UML_Rohdatenpuffer.pdf} zeigt noch ein bisschen mehr den internen Aufbau auf FPGA Seite. Der \emph{Slave EBIU Controller} ist hier das Gegenstück im FPGA zu dem EBIU Controller im DSP ( \FR{EBIU_blockdiagram.pdf}). Er sorgt dafür die externe Asynchrone Schnittstelle auf den internen synchronen Daten- und Adressbus umzusetzen. Der Adressdekoder wertet den Adressbus aus und selektiert die entsprechenden Komponente, die ihre Daten auf den Bus legen soll.
 
@@ -236,9 +236,9 @@ Eine bessere Variante ist die Daten in eine \gls{FIFO} Warteschlange zu schreibe
 \subsubsection{User I/O Schnittstelle}
 Am Anfang des Abschnitts wurde bereits erwähnt, dass die im obigen Abschnitt beschriebene File I/O Schnittstelle nur den bisherigen Entwicklungsstand widerspiegelt. Für das reine Übertragen der Rohdaten funktioniert diese auch sehr gut, da dies ein Stream-orientiertes Interface ist. Aber wenn man sich noch einmal \FR{GPS_UML_deployment1.png} ansieht, müssen für die Meilensteine 4-5 noch zahlreiche weitere Daten übertragen werden, wie z. B. die Loop Parameter nach Beendigung der Acquisition.
 
-Freilich lässt sich dies auch allen in ein Kernelmodul verpacken. Jedoch birgt steigende Komplexität immer die Gefahr von Fehlern. Fehler die auf Kernelebene passieren, können möglicherweise zum Systemabsturz führen. Mit dem \emph{User I/O} Framework bietet der Kernel auch Mittel an User-Space Programmen direkten Zugriff auf Hardware zu geben. Das Kernel Modul sorgt hilft lediglich bei der Einrichtung, verfügt aber selbst über relativ wenig Intelligenz. 
+Freilich lässt sich dies auch alles in ein Kernelmodul verpacken. Jedoch birgt steigende Komplexität immer die Gefahr von Fehlern. Fehler die auf Kernelebene passieren, können möglicherweise zum Systemabsturz führen. Mit dem \emph{User I/O} Framework bietet der Kernel die Möglichkeit User-Space Programmen direkten Zugriff auf begrenzte Teile der Hardware zu geben. Das Kernel Modul hilft lediglich bei der Einrichtung, verfügt aber selbst über relativ wenig Intelligenz. 
 
-Eine Detaillierte Beschreibung würde an dieser Stelle zu weit gehen, insbesondere, da der Entwurf für diese Erweiterung nicht durchgeführt wurde. Das User I/O Framework ist in \cite{uioHowto} dokumentiert. Der kurze Abschnitt soll mehr als Hinweis für zukünftige Arbeiten dienen.
+Eine detaillierte Beschreibung würde an dieser Stelle zu weit gehen, insbesondere, da der Entwurf für diese Erweiterung nicht durchgeführt wurde. Das User I/O Framework ist in \cite{uioHowto} dokumentiert. Der kurze Abschnitt soll mehr als Hinweis für zukünftige Arbeiten dienen.
 
 % Je mehr intelligenz in das Kernel modul gepackt werden muss, desto größer ist die gefahr das etwas schief läuft -> Systemabsturz
 
@@ -249,7 +249,7 @@ Die Menge der zu durchsuchenden Codes ist durch die Anzahl der aktiven GPS Satel
 
 Der Menge der möglichen Codephasen ergibt sich aus der Codedauer $\gpsTcode$ und der Frontend Sampling Frequenz\footnote{Die Samplingfrequenz im Flugmodell beträgt \SI{16.368}{\mega\hertz}. Das während der Entwicklung benutzte COM Board nutzt eine Samplingfrequenz von  \SI{16.369}{\mega\hertz}} des Frontend ICs:  
 \begin{equation}
-    N=fs\cdot \gpsTcode=\SI{16.368}{\mega\hertz}\cdot \SI{1}{\milli\second} = 16369
+    N=fs\cdot \gpsTcode=\SI{16.368}{\mega\hertz}\cdot \SI{1}{\milli\second} = 16368
 \end{equation} 
 
 Da der Doppler Shift die Hauptursache ist entspricht die Abweichung der maximal erwarteten Dopplerverschiebung. Wie in Kapitel \ref{Dopplereffekt} besprochen, ist der erwartete Doppler Shift \SI{\pm45}{\kilo\hertz}. In der SoftGNSS Simulation wird eine Klassengröße von \SI{500}{\Hz} verwendet, die in Versuchen gute Ergebnisse gezeigt hat. Damit ergeben sich 180 Frequenzklassen.
@@ -293,6 +293,10 @@ Für den Festkommaentwurf muss das Zahlenformat sorgfältig ausgewählt werden, 
 
 \paragraph{Rahmenbedingungen} Der verwendete Softcore ist ein \SI{32}{\bit} Prozessor, weshalb nur Zahlenformate mit maximal  \SI{32}{\bit} in Betracht kommen\footnote{Auf Hochsprachenebene lassen sich natürlich auch \SI{>32}{\bit} Worte verarbeiten. Dies geht aber auf Kosten der Performanz.}. Weiterhin verfügt der Prozessor über \SI{32}{\bit} Multiplizierer. Da das Produkt wieder in \SI{32}{\bit} passen muss, sollen Multiplikand und Multiplikator maximal \SI{16}{\bit} umfassen.
 
+\subparagraph{Bedingung A:} Maximale Wortlänge von Ein-/Ausgabewerten und Zwischenergebnissen: \SI{32}{\bit}
+\subparagraph{Bedingung B:} Maximale Wortlänge von Multiplikand und Multiplikator: \SI{16}{\bit}
+
+
 \paragraph{Berechnung der Filterkoeffizienten}
 Mit den Formeln \eqref{Eq:FilterB0} bis \eqref{Eq:FilterA1} lassen sich die Koeffizienten der digitalen Filter zahlenwertmäßig berechnen. Die Parameter $B_L$ und $\zeta$ sind bereits oben in \TR{TabLoopFilter} aufgeführt. Zur Berechnung fehlen noch die Parameter $K_0$ (das VCO Gain) und $K_d$ (das Phasendiskriminator Gain). 
 
@@ -316,7 +320,7 @@ Damit können nun Zahlenwerte für die Koeffizienten berechnet werden (\TR{TabFi
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Filter Koeffizienten]{Trackingloop Parameter}
+        \caption[Filter Koeffizienten]{Koeffizienten des digitalen Filters, für die in \TR{TabLoopFilter} angegebenen Parameter und $K_0$, $K_d$ wie im Text beschrieben.}
         \label{TabFilterKoeff}
     }
     {
@@ -334,14 +338,93 @@ Damit können nun Zahlenwerte für die Koeffizienten berechnet werden (\TR{TabFi
 }
 \end{table}
 
-\subparagraph{Filtertopologie}
+\paragraph{Filtertopologie}
+Bevor die Quantisierung der Filterkoeffizienten besprochen wird soll noch der Einfluss der Filtertopologie besprochen werden, da dies Einfluss hat auf den späteren Festkomma Entwurf. In \FR{FilterTopology.png} sind die vermutlich bekanntesten Topologien für digitale Filter abgebildet, DF1 und DF2. Beide Formen sind vom Ergebnis in der Theorie Äquivalent, aber haben jeder Vor- und Nachteile in der Implementierung. Der Hauptvorteil der DF2 ist, dass weniger Speicherelemente benötigt werden. Dies ist vor allem bei Filtern mit hoher Ordnung von Vorteil. Da das hier verwendete Filter nur ein Filter erster Ordnung zum Einsatz kommt unterscheidet sich die Anzahl der Speicherelemente nicht\footnote{In der Grafik ist zwar auf den ersten Blick bei DF2 ein Speicherelement weniger erforderlich. Es wird aber noch ein temporäres Speicherelement für $w$ benötigt.}. Ein Nachteil in der Praxis der DF2 ist, dass die Werte in den Speicherelementen zahlenwertmäßig größere Werte annehmen. Bei begrenzter Bitanzahl bedeutet das einen Dynamikverlust.
+
+Dieses Problem tritt bei der DF1 nicht auf und ist deshalb auch die Filtertopologie die später in der Implementierung eingesetzt wird.
+
 \FGimg[Filtertopologien]{FilterTopology.png}{Topologien für digitale Filter. Die vermutlich bekanntesten Filtertopologien sind DF1 (oben) und DF2 (unten). Beide Formen haben Vor- und Nachteile. Für die Implementierung in dieser Arbeit ist die DF1 Topologie vorteilhaft.}{0.8\textwidth}
+
+\paragraph{Festkommaentwurf}
+Mit der Festlegung der Filtertopologie und den Rahmenbedingungen kann nun der Festkommaentwurf gemacht werden: 
+
+\subparagraph{Carrier Loop Filter}
+$x$ ist der Ausgang des Loop Diskriminators und kann Werte $[-\pi/2, \pi/2]$ annehmen. Weiterhin ist es ein Multiplikand, womit sich mit Bedingung B das Format Q1.14 ergibt. Die Filterkoeffizienten $b_{0,1}$ sind die dazugehörigen Multiplikatoren, womit, mit den Zahlenwerten aus \TR{TabFilterKoeff}, das Format Q8.7 resultiert. Als Produkt aus $x$ und $b_{0,1}$ haben $c$ und $d$ dann das Format Q9.21. 
+
+Um das Format für $y$ zu bestimmen muss der maximale Absolutwert von $y$ abgeschätzt werden: $y$ ist das Steuerwort \gpsfcw für den Carrier NCO, das proportional zu der LO Frequenz ist: $FCW=f_{LO} \cdot \frac{2^{N_{carr}}}{f_S}$. Die maximale LO Frequenz ist die nominale LO Frequenz $f_{ZF}=\SI{2.046}{\MHz}$ plus der maximalen Dopplerverschiebung, die in Kapitel \ref{Dopplereffekt} berechnet wurde. In der folgenden Berechnung wird bei außerdem noch ein Sicherheitsfaktor von \SI{400}{\percent} eingeplant: 
+\begin{equation}
+    f_{LO,max} = f_{ZF} + 4 \cdot f_{d,max} = \SI{2.230}{\MHz}
+\end{equation}
+
+Damit ergibt sich für FCW ein Maximalwert von 
+\begin{equation}
+    \textrm{FCW}_{carr,max} = f_{LO,max} \cdot \frac{2^{N_{carr}}}{f_S} \approx \num{36.57e6}
+\end{equation}
+wofür $m=26$ Vorkommastellen benötigt werden. Damit kann das Format für $y$ zu Q26.5  festgelegt werden. $f=a_1 y\cdot z^{-1} $ und hat damit ebenfalls das Format Q26.5.
+
+Unter der Voraussetzung, dass $y_{max}=\textrm{FCW}_{max}$ muss $g_{max}=y_{max}$ gelten und damit hat $g$ auch das Format Q26.5. Die selbe Überlegung gilt für $f$. Damit sind alle Formate der Variablen und Zwischenergebnisse bestimmt.
+
+\subparagraph{Code Loop Filter}
+Für den Code Loop Filter können ähnliche Überlegungen angestellt werden. $x$ hat hier einen Wertebereich $[-1, 1]$, woraus sich aber das selbe Format ergibt. Die Dopplerverschiebung des Trägers geht mit einem Faktor von $1/1540$ auch in die vom Empfänger wahrgenommene Chippingfrequenz ein (\cite{parkinsonGPS}, S. 374), womit sich die maximale Codefrequenz wie folgt ergibt (wieder mit \SI{400}{\percent} Sicherheitsfaktor):
+\begin{equation}
+    f_{Chip,max} = \gpsfchip + 4 \cdot \frac{f_{d,max}}{1540}\approx \SI{1.024}{\MHz}
+\end{equation}
+Der Proportionalitätsfaktor für das NCO Steuerwort ist beim Code Loop Filter  $\frac{2^{N_{code}}}{f_S}$ mit $2^{N_{code}}=29$. Damit ist 
+\begin{equation}
+    \textrm{FCW}_{code,max} = f_{Chip,max} \cdot \frac{2^{N_{code}}}{f_S} \approx \num{33.56e6}
+\end{equation}
+Also  hat $y$ im Code Loop Filter  ebenfalls das Format Q26.5. Die restlichen Werte können nach dem selben Schema wie oben berechnet werden.
+
+Die Formate der einzelnen Signale sind in \TR{TabKoeffFixpointFormat} zusammengefasst.
+
+%fixdf1['d'][i] = int32(x_Q1_14[i]*b0_Q8_7); # Result d is Q9.21
+%fixdf1['c'][i] = int32(x_Q1_14[i-1]*b1_Q8_7); # Result c is Q9.21
+%fixdf1['f'][i] = int32(-fixdf1['y'][i-1]); # Q26.5
+%fixdf1['g'][i] = int32((fixdf1['c'][i]>>16) + fixdf1['f'][i]); #
+%fixdf1['y'][i] = int32((fixdf1['d'][i]>>16) + fixdf1['g'][i]); #Q26.5
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Filter Koeffizienten]{Festkommaformate der Signale und Koeffizienten im Loop Filter}
+        \label{TabKoeffFixpointFormat}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c c}
+        \toprule
+                & Carrier Loop      & Code Loop     \\
+        \midrule
+        $b_{0,1}$&  Q8.7            & Q8.7 \\
+        $x$     &   Q1.14           & Q1.14 \\
+        $d$     &   Q9.21           & Q9.21 \\
+        $c$     &   Q9.21           & Q9.21 \\
+        $g$     &   Q26.5           & Q26.5 \\
+        $f$     &   Q26.5           & Q26.5\\
+        $y$     &   Q26.5           & Q26.5 \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
 %\subsubsection{NAV Daten Auswertung}
 %Präambel usw
 
+\subsection{Schnittstelle Softcore CPU / Trackingkanäle}
+In \FR{GPS_UML_deployment1.png} und Abschnitt \ref{ArbeitsteilungFPGADSP} wurde bereits erwähnt, dass der Trackingloop teils in teils in Software im Softcore Prozessor, teils in programmierbarer FPGA Logik implementiert wird. In diesem Abschnitt wird die Schnittstelle zwischen den beiden Teilkomponenten beschrieben.
 
-% Komponenten: Acquisition, Tracking...
-\subsection{Softwareschnittstelle FPGA/DSP}
+Die in Software implementierten Teile sind in \FR{Trackingloop.png} grün markiert. Daraus ergeben sich die Anforderung an die durch die Schnittstelle auszutauschenden Daten: Zur Berechnung werden die Werte der \emph{Early}, \emph{Prompt} und \emph{Late} Integratoren benötigt, jeweils aus in I und Q. Ausgabewerte sind das Carrier bzw. Code NCO Steuerwort. Weitere Ausgabewerte, die nicht in \FR{Trackingloop.png} sichtbar sind, sind die Parameter PRN, Codephase und einige Steuerflags.
+
+Die Ein- und Ausgabeparameter werden über Register gelesen, bzw. geschrieben. Auf Hardware Ebene bildet der Adressdekoder der Softcore CPU die Register jedes Kanals auf einen kontinuierlichen Speicherbereich am Ende des adressierbaren Speichers ab. Auf Software Seite werden die Register durch ein C \lstinline$struct$ angesprochen. 
+
+	%t_iq Early; 		// Size: 4 byte --> Offset 0	(0x00)
+	%t_iq Prompt; 		// Size: 4 byte --> Offset 4	(0x04)
+	%t_iq Late; 		// Size: 4 byte --> Offset 8	(0x08)
+	%int32_t code_fcw; 	// Size: 4 byte --> Offset 12	(0x0C)
+	%int32_t carrier_fcw; 	// Size: 4 byte --> Offset 16	(0x10)
+	%int32_t PRN; 		// Size: 4 byte --> Offset 20	(0x14)
+	%int32_t codephase; 	// Size: 4 byte --> Offset 24	(0x18)
+	%int32_t flags; 		// Size: 4 byte --> Offset 28	(0x1C)
 
 
 
