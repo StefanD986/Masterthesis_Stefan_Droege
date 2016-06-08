@@ -10,11 +10,23 @@ Einleitung zur Implementierung
 \subsection{Acquisition}
 
 \section{FPGA}
+In diesem Abschnitt sollen die Entities des Tracking Loop beschrieben werden. Dabei wird vor allem auf die 
+Die MBlite Softcore CPU wird hier nicht im Detail besprochen, aber die Schnittstelle zwischen Softcore und Tracking Loop Instanzen, und der Interrupt Controller der implementiert wurde. 
+% Synchronität
 \subsection{Schnittstellen}
 
 \subsection{Tracking Loop}
+\subsubsection{Gold Code LFSR}
+\subsubsection{Code Replika Generator}
+\subsubsection{Code NCO}
+\subsubsection{Carrier NCO}
+\subsubsection{Korrelatoren und Integrate \& Dump}
+
+\subsubsection{FIFOs}
+
 \label{ImplMemoryMapTrackingloop}
 \subsubsection{VCO}\label{VCOimplementierung}
 
-\subsection{Softcore Prozessor}
-
+\subsection{MBlite Prozessor}
+%Instruction und Data Memory. Addressmapping.
+\subsection{MBlite Firmware}
