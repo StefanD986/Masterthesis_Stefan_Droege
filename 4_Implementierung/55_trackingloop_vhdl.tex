@@ -1,0 +1,13 @@
+\subsection{Tracking Loop}
+Der Trackingloop ist teils in Hardware und Teils in Software im MBlite Softcore Prozessor implementiert. In diesem Teil wird der Hardware Teil beschrieben. Die Bezihungen der einzelnen Klassen des Tracking Loop sind in \FR{Impl_UML_TL_classdiagram.pdf} dargestellt. Alle dort abgebildeten Komponenten sind in der Bibliothek \lstinline$gps$ zusammengefasst. Nicht dargestellt ist das \emph{Package} \lstinline$tracking_loop_pkg$, welches die Typdefinitionen, einige Konstanten und Component Deklarationen zusammenfasst.
+
+Die Struktur der Implementierung des Tracking Loops orientiert sich grob an dem in \FR{Trackingloop.png} dargestellten Blockschaltbild.
+
+\FGimg[Klassendiagramm des Tracking Loop]{Impl_UML_TL_classdiagram.pdf}{Klassendiagramm des Trackingloop. Die VHDL \emph{Entities} sind als UML \emph{Interfaces} modelliert, und die dazugehörigen VHDL \emph{Architectures} als UML \emph{Klassen}}{0.95\textwidth}
+
+\subsubsection{tracking\_loop}
+\subsubsection{Gold Code LFSR}
+\subsubsection{Code Replika Generator}
+\subsubsection{Code NCO}
+\subsubsection{Carrier NCO}
+\subsubsection{Korrelatoren und Integrate \& Dump}

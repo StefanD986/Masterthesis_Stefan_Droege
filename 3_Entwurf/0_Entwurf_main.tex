@@ -442,7 +442,7 @@ In diesem Abschnitt soll kurz die Simulation in Matlab besprochen werden. Für d
 \paragraph{Simulink Simulation}
 Der oben beschriebene SoftGNSS Empfänger implementiert die Schritte anders als sie in der Hardware im FPGA implementiert werden: Beispielsweise werden die \gls{CA} Codes vorab mit einer Look-Up-Table generiert, statt in Echtzeit durch ein LFSR. Es wird außerdem mit Fließkommawerten gerechnet, wohingegen die FPGA Implementierung nur einzelne Bits, bzw. Festkommawerte verwendet. Bevor mit der FPGA Implementierung begonnen wurde, wurde deshalb eine eigene Simulink Simulation des Trackingloops entwickelt, mit der der Hardware Trackingloop im FPGA so gut wie möglich nachgebildet wird. Anhand dessen konnten dann z.B. die Auswirkungen  der Quantisierung der Filterkoeffizienten oder Verzögerungen bei der Berechnung der Loop Parameter getestet werden. 
 
-\FGimg[Trackingloop Simulink Simulation]{Simulink_Trackingloop.png}{Simulink Blockdiagramm der Trackingloop Simulation.}{1.1\textwidth}
+\FGimg[Tracking Loop Simulink Simulation]{Simulink_Trackingloop.png}{Simulink Blockdiagramm der Tracking Loop Simulation. Grün markiert sind die Teile des Tracking Loop, die in Realität mit \SI{1}{\milli\second} Abtastrate ausgeführt werden und Rot markiert die Teile die mit etwa \SI{61}{\nano\second} Abtastrate ausgeführt werden.}{1.1\textwidth}
 
 
 
