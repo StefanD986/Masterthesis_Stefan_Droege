@@ -1,11 +1,21 @@
 \subsection{Tracking Loop}
 Der Trackingloop ist teils in Hardware und Teils in Software im MBlite Softcore Prozessor implementiert. In diesem Teil wird der Hardware Teil beschrieben. Die Bezihungen der einzelnen Klassen des Tracking Loop sind in \FR{Impl_UML_TL_classdiagram.pdf} dargestellt. Alle dort abgebildeten Komponenten sind in der Bibliothek \lstinline$gps$ zusammengefasst. Nicht dargestellt ist das \emph{Package} \lstinline$tracking_loop_pkg$, welches die Typdefinitionen, einige Konstanten und Component Deklarationen zusammenfasst.
 
-Die Struktur der Implementierung des Tracking Loops orientiert sich grob an dem in \FR{Trackingloop.png} dargestellten Blockschaltbild.
-
 \FGimg[Klassendiagramm des Tracking Loop]{Impl_UML_TL_classdiagram.pdf}{Klassendiagramm des Trackingloop. Die VHDL \emph{Entities} sind als UML \emph{Interfaces} modelliert, und die dazugehörigen VHDL \emph{Architectures} als UML \emph{Klassen}}{0.95\textwidth}
 
 \subsubsection{tracking\_loop}
+\FGimg[Entity/Architecture des Carrier NCO]{UML_class_carrier_nco.pdf}{Entity und Architecture welche die Trägerkopie erzeugt.}{10cm}
+
+\FGimg[Entity/Architecture des Code NCO]{UML_class_code_nco.pdf}{Entity und Architecture welche die Takt Steuersignale für den Code Kopie Generator erzeugt.}{7cm}
+
+\FGimg[Entity/Architecture des Code Replika Generators]{UML_class_code_replica_generator.pdf}{Entity und Architecture welche die drei Code Kopien erzeugt.}{9cm}
+
+\FGimg[Entity/Architecture des Integrate and Dump Blocks]{UML_class_IandD.pdf}{Entity und Architecture des Integrate and Dump Blocks.}{6.4cm}
+
+\FGimg[Entity/Architecture des Gold Code LFSR]{UML_class_LFSR.pdf}{Entity und Architecture des \gls{LFSR}, das die Gold Code Sequenz erzeugt.}{10cm}
+
+\FGimg[Entity/Architecture Tracking Loop]{UML_class_tracking_loop.pdf}{Die übergeordnete Entity/Architecture des Tracking Loop}{10cm}
+
 \subsubsection{Gold Code LFSR}
 \subsubsection{Code Replika Generator}
 \subsubsection{Code NCO}
