@@ -1,0 +1,6 @@
+\subsubsection{tracking\_loop}
+Diese Komponente ist in \lstinline$tracking_loop.vhd$ beschrieben, und eine Übersicht ist in \FR{UML_class_tracking_loop.pdf} abgebildet. Für jeden Kanal wird eine Instanz dieser Komponente benötigt.
+
+Die Entity hat Schnittstellen zu dem MAX2769 GPS Frontend und zu dem MBlite Softcore. Die Architecture enthält zum einen sämtliche Steuerlogik die notwendig ist um mit dem MBlite Prozessor zu kommunizieren, aber auch um den Trackingloop zu starten. Außerdem ist sie die übergeordnete Einheit, die alle anderen Komponenten enthält.
+
+\FGimg[Entity/Architecture Tracking Loop]{UML_class_tracking_loop.pdf}{Die übergeordnete Entity/Architecture des Tracking Loop}{10cm}

@@ -1,0 +1,57 @@
+\subsubsection{Gold Code LFSR}
+Diese Komponente ist in  \lstinline$ca_lfsr_pkg.vhd$ implementiert und generiert die \gls{CA} Code Sequenz zu einer PRN.
+
+\FGimg[Entity/Architecture des Gold Code LFSR]{UML_class_LFSR.pdf}{Entity und Architecture des \gls{LFSR}, das die Gold Code Sequenz erzeugt.}{8cm}
+
+\paragraph{Schnittstelle (Entity)}
+In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$ca_lfsr$ Komponente beschrieben.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[LFSR Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$ca_lfsr$ Komponente}
+        \label{TabCALFSR_Entity}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c  p{2cm} p{6cm}}
+        \toprule
+        Name                    & I/O  & Typ                               & Beschreibung \\
+        \midrule
+        \lstinline$i_clk$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
+        \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal. Bei \lstinline$i_reset='1'$ werden die LFSR \lstinline$g1$ und \lstinline$g2$ auf den Zustand \lstinline$\"1111111111\"$ zurückgesetzt.\\
+        \lstinline$i_EnaClk$    & I         & \lstinline$std_logic$             & Clock Enable. Nur bei \lstinline$i_EnaClk='1'$ und einer steigende Taktflanke an \lstinline$i_clk$ schieben die LFSR \lstinline$g1$ und \lstinline$g2$ ihren Inhalt eine Position weiter.\\
+        \lstinline$i_PRN$       & I         & \lstinline$unsigned (5 downto 0)$ & Wählt über die PRN Nummer die zu generierende Gold bzw. \gls{CA} Code Sequenz aus. Zulässige Werte sind im Bereich 1 bis 32.\\
+        \lstinline$o_chip$      & O         & \lstinline$std_logic$             & Die generierte \gls{CA} Code Sequenz.\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\paragraph{Implementierung (Architecture)}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[LFSR interne Signale]{Interne Signale der \lstinline$ca_lfsr$ Komponente}
+        \label{TabCALFSR_ArchSignals}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name      & Typ         & Beschreibung \\
+        \midrule
+        \lstinline$g1$  & \lstinline$SLV(10 downto 1)$             & Register, das das LFSR mit dem $G1$ Generatorpolynom realisiert.\\
+        \lstinline$g2$  & \lstinline$SLV(10 downto 1)$             & Register, das das LFSR mit dem $G2$ Generatorpolynom realisiert.\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Die Architecture enthält einen sequentiellen Prozess, der zwei \gls{LFSR} \lstinline$g1$ und \lstinline$g2$ mit Länge $L=10$ realisiert. Wenn \lstinline$i_ClkEna='1'$ ist, wird bei einer steigenden Taktflanke der Inhalt der Register nach links geschoben. An der LSB Stelle wird ein Wert eingeschoben, der sich aus einer Rückkopplung des Schieberegisters ergibt. Daher der Name \emph{Linear Feedback Shift Register} (LFSR).
+
+Die Rückkopplungen sind dabei durch die Generatorpolynome festgelegt, die in der GPS Spezifikation \cite{specification2010gps} genannt sind (siehe auch Abschnitt \ref{basics_cdma} und \FR{LFSRGoldcode.png}). Damit erzeugt jedes der beiden Schieberegister eine sogenannte Maximum-Length Sequenz, eine pseudo-zufällige Bitfolge, mit Länge $L=2^{10}-1$.
+
+Die beiden ML-Sequenzen werden dann nach dem Schema wie in \FR{LFSRGoldcode.png} modulo-2 addiert (was einer XOR Operation entspricht). Wie in \FR{LFSRGoldcode.png} zu sehen sind die Taps (Anzapfungen) bei \lstinline$g2$ Variabel, und werden durch den Wert an \lstinline$i_PRN$ ausgewählt. Zur Auswahl der Taps die einer PRN zugeordnet sind wird die Funktion \lstinline$get_taps(PRN: unsigned(5 downto 0))$ aufgerufen, die  eine Datenstruktur mit den Tap Nummern zurück gibt\footnote{Die Funktion wird bei der Synthese in eine Hardware Look-Up-Table umgesetzt. Daher dient das \lstinline$report$ Statement (welches eine Fehlermeldung ausgibt falls eine unzulässige PRN ausgewählt wurde) lediglich der Simulation und Verifikation. Solche nicht-synthetisierbaren Elemente, die lediglich der Verifikation dienen, werden auch an anderen Stellen im Code verwendet, worauf im weiteren Verlauf aber nicht gesondert hingewiesen wird.}.
+

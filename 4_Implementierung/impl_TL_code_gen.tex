@@ -1,0 +1,55 @@
+\subsubsection{Code Replika Generator}
+Diese Komponente ist in  \lstinline$code_replica_generator_pkg.vhd$ implementiert und erzeugt drei, zueinander um $\gpsTchip /2$ verzögerte, Codekopien (\emph{Early}, \emph{Prompt}, und \emph{Late}).
+
+\paragraph{Schnittstelle (Entity)}
+In \TR{TabCodeGen_Entity} ist die Schnittstelle der \lstinline$code_replica_generator$ Komponente beschrieben.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Code Replika Generator Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$code_replica_generator$ Komponente.}
+        \label{TabCodeGen_Entity}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c  p{2cm} p{6cm}}
+        \toprule
+        Name                    & I/O  & Typ                               & Beschreibung \\
+        \midrule
+        \lstinline$i_clk$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
+        \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal. Bei \lstinline$i_reset='1'$ werden die LFSR \lstinline$g1$ und \lstinline$g2$ auf den Zustand \lstinline$\"1111111111\"$ zurückgesetzt.\\
+        \lstinline$i_nco$    & I         & \lstinline$std_logic$             & Ein \lstinline$record$ mit mehreren Clock Enable Signalen, die von \lstinline$code_nco$ Komponente erzeugt werden.\\
+        \lstinline$i_PRN$       & I         & \lstinline$unsigned (5 downto 0)$ & Wählt über die PRN Nummer die zu generierende Gold bzw. \gls{CA} Code Sequenz aus. Zulässige Werte sind im Bereich 1 bis 32.\\
+        \lstinline$o_chip$      & O         & \lstinline$t_codegen_out$             & Ein \lstinline$record$ mit den drei Code Kopien.\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+
+\FGimg[Entity/Architecture des Code Replika Generators]{UML_class_code_replica_generator.pdf}{Entity und Architecture welche die drei Code Kopien erzeugt.}{9.26cm}
+
+\paragraph{Implementierung (Architecture)}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Code Replika Generator interne Signale]{Interne Signale der \lstinline$code_replica_generator$ Komponente.}
+        \label{TabCodeGen_ArchSignals}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name      & Typ         & Beschreibung \\
+        \midrule
+        \lstinline$lfsr_out$  & \lstinline$std_logic$             & LFSR Ausgang\\
+        \lstinline$shiftregister$  & \lstinline$SLV(2 downto 0)$             &  Verzögerungsleitung realisiert als dreistufiges Schieberegister\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Die Architecture der \lstinline$code_replica_generator$ Komponente enthält eine Instanz der \lstinline$ca_lfsr$ Komponente. Der \lstinline$i_ClkEna$ Eingang ist mit \lstinline$i_nco.Ena_clk$ verbunden. Dieses Signal 
+und einen sequenziellen Prozess. Der Prozess realisiert ein dreistufiges Schieberegister, was seinen Inhalt bei \lstinline$i_nco.Ena_clk_x2='1'$ und einer steigenden Taktflanke nach rechts schiebt. 
+was als Verzögerungsleitung dient: Dazu wird am MSB der von \lstinline$ca_lfsr$ erzeugte Code eingeschoben. 

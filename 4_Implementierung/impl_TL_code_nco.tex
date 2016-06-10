@@ -1,0 +1,53 @@
+\subsubsection{Code NCO}
+Diese Komponente ist in  \lstinline$code_nco.vhd$ implementiert und erzeugt Steuersignale, die unter anderem von der \lstinline$code_replica_generator$ und der \lstinline$integrate_and_dump$ Komponente verwendet werden.
+
+\FGimg[Entity/Architecture des Code NCO]{UML_class_code_nco.pdf}{Entity und Architecture und darin definierte Typen der \lstinline$code_nco$ Komponente.}{7cm}
+
+
+\paragraph{Schnittstelle (Entity)}
+In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponente beschrieben.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Code NCO Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$code_nco$ Komponente}
+        \label{TabCodeNCO_Entity}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c  p{2cm} p{6cm}}
+        \toprule
+        Name                    & I/O  & Typ                               & Beschreibung \\
+        \midrule
+        \lstinline$i_clk$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
+        \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$) \\
+        \lstinline$i_fcw$    & I         & \lstinline$t_code_fcw$             & Frequency Control Word \\
+        \lstinline$o_nco$       & O         & \lstinline$t_code_nco_out$ & RECORD holding the Clock Enable signals. \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\paragraph{Implementierung (Architecture)}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Code NCO interne Signale]{Interne Signale der \lstinline$code_nco$ Komponente}
+        \label{TabCodeNCO_ArchSignals}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name      & Typ         & Beschreibung \\
+        \midrule
+        \lstinline$r$  & \lstinline$SLV(10 downto 1)$             & \gls{FSM} Zustandsregister\\
+        \lstinline$r_next$  & \lstinline$SLV(10 downto 1)$             & Signal für den zukünftigen Zustand der \gls{FSM}.\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Die Architecture enthält einen sequentiellen Prozess.
+
