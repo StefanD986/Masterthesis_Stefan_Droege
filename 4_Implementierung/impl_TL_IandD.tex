@@ -1,3 +1,73 @@
 \subsubsection{Korrelatoren und Integrate \& Dump}
 
 \FGimg[Entity/Architecture des Integrate and Dump Blocks]{UML_class_IandD.pdf}{Entity und Architecture des Integrate and Dump Blocks.}{6cm}
+
+Diese Komponente ist in \lstinline$integrate_and_dump_pkg.vhd$ implementiert und integriert das Signal an seinem Eingang \lstinline$i_data$, bis es über einen \lstinline$'1'$ Impuls an \lstinline$i_dump$ zurückgesetzt wird. Zum selben Zeitpunkt wird der Wert des Integrators in das Ausgangsregister kopiert, wo es während der sonstigen Zeit gehalten wird. Bei der Integration wird eine \lstinline$'1'$ als $+1$ und eine \lstinline$'0'$ als $-1$ interpretiert.
+
+\paragraph{Schnittstelle (Entity)}
+In \TR{TabIandD_Entity} ist die Schnittstelle der \lstinline$integrate_and_dump$ Komponente beschrieben. In \FR{UML_class_tracking_loop_pkg.pdf} ist der \lstinline$t_IandD_accu$ Typ definiert.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Carrier NCO Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$carrier_nco$ Komponente.}
+        \label{TabIandD_Entity}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c  p{2cm} p{6cm}}
+        \toprule
+        Name                    & I/O	& Typ				& Beschreibung \\
+        \midrule
+        \lstinline$i_clk$	& I	& \lstinline$std_logic$		& Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
+        \lstinline$i_reset$	& I	& \lstinline$std_logic$		& Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$) \\
+        \lstinline$i_dump$	& I	& \lstinline$std_logic$		& \emph{Dump} Impuls. Eine \lstinline$'1'$ an diesem Eingang kopiert den Integrator Wert in das Ausgangsregister und setzt den Integrator auf $0$ zurück.\\
+        \lstinline$i_data$	& I	& \lstinline$std_logic$		& Das Signal an diesem Eingang wird integriert, wobei eine \lstinline$'1'$ als $+1$ und eine \lstinline$'0'$ als $-1$ interpretiert wird.\\
+        \lstinline$o_IandD$	& O	& \lstinline$t_IandD_accu$	& Ausgangsregister. Enthält den Wert, des über den Zeitraum zwischen zwei \emph{Dump} Impulsen integrierten \lstinline$i_data$ Signals.\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+
+\paragraph{Implementierung (Architecture)}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Carrier NCO interne Signale]{Interne Signale der \lstinline$integrate_and_dump$ Komponente.}
+        \label{TabIandD_ArchSignals}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name      		& Typ         & Beschreibung \\
+        \midrule
+        \lstinline$r$		& t_iandd_reg & \\
+        \lstinline$r_next$	& t_iandd_reg & \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Typdefinition Code NCO Zustandsregister]{Beschreibung der Struktur des Integrate \& Dump Zustandsregisters (\lstinline$t_iandd_reg$ Typ).}
+        \label{Tab_t_iandd_reg_Type}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name				& Typ						& Beschreibung \\
+        \midrule
+        \lstinline$count$		& \lstinline$t_IandD_accu$	&  Akkumulator des Integrators. Abhängig vom Wert an \lstinline$i_data$ wird dieser Wert mit jeder steigenden Taktflanke inkrementiert, bzw. dekrementiert.\\
+        \lstinline$output$		& \lstinline$t_IandD_accu$	&  Ausgangsregister. Wenn \lstinline$i_dump='1'$ wird bei einer steigenden Taktflanke der Wert von \lstinline$count$ in dieses Register kopiert. \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Die Architecture implementiert den Integrator als einfachen Hoch/Runter Zähler: Bei einer steigenden Taktflanke an \lstinline$i_clk$ wird \lstinline$r.count$ abhängig von \lstinline$i_data$ inkrementiert (\lstinline$i_data='1'$) oder dekrementiert (\lstinline$i_data='0'$). Wenn \lstinline$i_dump='1'$ wird der Zählerstand in das Ausgangsregister \lstinline$r.output$ kopiert und der Zähler zurückgesetzt. Gleichzeitig wird durch das \emph{Dump} Signal bei dem MBlite Prozessor ein Interrupt ausgelöst, der daraufhin den Wert aus dem Ausgangsregister ausliest.

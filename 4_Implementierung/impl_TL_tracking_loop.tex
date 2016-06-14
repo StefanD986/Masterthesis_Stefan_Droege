@@ -1,6 +1,79 @@
 \subsubsection{tracking\_loop}
-Diese Komponente ist in \lstinline$tracking_loop.vhd$ beschrieben, und eine Übersicht ist in \FR{UML_class_tracking_loop.pdf} abgebildet. Für jeden Kanal wird eine Instanz dieser Komponente benötigt.
-
-Die Entity hat Schnittstellen zu dem MAX2769 GPS Frontend und zu dem MBlite Softcore. Die Architecture enthält zum einen sämtliche Steuerlogik die notwendig ist um mit dem MBlite Prozessor zu kommunizieren, aber auch um den Trackingloop zu starten. Außerdem ist sie die übergeordnete Einheit, die alle anderen Komponenten enthält.
+Diese Komponente ist in \lstinline$tracking_loop.vhd$ beschrieben, und eine Übersicht ist in \FR{UML_class_tracking_loop.pdf} abgebildet. Für jeden Kanal wird eine Instanz dieser Komponente benötigt. Zusammen mit dem Software Teil der im MBlite Prozessor läuft, übernimmt diese Komponente nach der Acquistion das Nachführen des Lokaloszillators und des Code Generators, so wie es in Abschnitt \ref{GrundlagenTracking} beschrieben wurde.
 
 \FGimg[Entity/Architecture Tracking Loop]{UML_class_tracking_loop.pdf}{Die übergeordnete Entity/Architecture des Tracking Loop}{10cm}
+
+\paragraph{Schnittstelle (Entity)}
+In \TR{Tab_tracking_loop_Entity} ist die Schnittstelle der \lstinline$tracking_loop$ Komponente beschrieben. Die Schnittstelle verbindet die Komponente mit dem MAX2769 GPS Frontend und dem MBlite Prozessor. Von dem GPS Frontend bekommt die Komponente die Daten und ein Taktsignal. Die gesamte Komponente arbeitet synchron zu dem ADC Taktsignal. Zum MBLite Prozessor besteht die Schnittstelle aus einem Daten- und Addressbus, und einigen Steuersignalen. Außerdem hat der Tracking Loop die Möglichkeit den Prozessor mit einem Interruptsignal über neue Daten zu informieren.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Carrier NCO Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$tracking_loop$ Komponente.}
+        \label{Tab_tracking_loop_Entity}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c  p{2cm} p{6cm}}
+        \toprule
+        Name                    & I/O	& Typ				& Beschreibung \\
+        \midrule
+        \lstinline$channel_num$	& I	& \lstinline$natural$		& Die Kanalnummer des Tracking Loop. Dies wird nur für die Simulation benötigt. \\
+        \lstinline$i_clk_ADC$	& I	& \lstinline$std_logic$		& Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
+        \lstinline$i_reset$	& I	& \lstinline$std_logic$		& Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$). \\
+        \lstinline$i_samples$	& I	& \lstinline$std_logic$		& ADC Samples \\
+        \lstinline$i_dmem$	& I	& \lstinline$dmem_out_type$	& Schnittstelle zum MBlite Prozessor. Steuerleitungen und Daten- und Adressbus. \\
+        \lstinline$o_dmem$	& O	& \lstinline$dmem_in_type$	& Datenbus zum MBlite Prozessor. \\
+        \lstinline$o_intr$	& O	& \lstinline$std_logic$		& Interruptausgang. \lstinline$'1'$ Impuls wenn Integration abgeschlossen (\emph{Dump} Signal).\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\paragraph{Implementierung (Architecture)}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Carrier NCO interne Signale]{Interne Signale der \lstinline$integrate_and_dump$ Komponente.}
+        \label{TabIandD_ArchSignals}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name      		& Typ         & Beschreibung \\
+        \midrule
+        \lstinline$r$		& t_iandd_reg & \\
+        \lstinline$r_next$	& t_iandd_reg & \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Die Architecture der Tracking Loop Komponente beinhaltet Code- und Carrier Mischer und alle in den vorherigen Abschnitten beschriebenen Blöcke. Außerdem beinhaltet die Architecture noch Steuerlogik in Form einer State Machine, die auf Schreib-/Lesezugriffe von der MBlite Schnittstelle reagiert. Weiterhin steuert die State Machine die Initialisierung des Tracking Loop Kanals.
+
+Wie bereits früher erwähnt, werden lediglich \SI{1}{\bit} Samples verwendet, wobei eine \lstinline$'0'$ als $+1$ interpretiert wird und eine \lstinline$'1'$ als $-1$\footnote{Dies ist genau umgekehrt zu der Interpretation in der Integrate \& Dump Komponente. Da allerdings ohnehin mit einer \SI{\pm180}{\degree} Unsicherheit gerechnet werden muss, ist dies nicht schlimm. Die nachfolgende Signalverarbeitung zur NAV Daten Extraktion invertiert das Signal, falls notwendig.}. Damit können die Mischer einfach als XOR Glieder realisiert werden:
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Exklusiv-Oder Glied]{Exklusiv-Oder (XOR) Glied.}
+        \label{TabXOR}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c c c c c c}
+        \toprule
+        $a$ 	& $b$ 	& $a\cdot b$ 	& & $A$	& $B$		& $A \textrm{XOR} B$ \\
+        \midrule
+        $+1$	& $+1$ 	& $+1$ 		& & \lstinline$'0'$	& \lstinline$'0'$ & \lstinline$'0'$\\
+        $+1$	& $-1$ 	& $-1$ 		& & \lstinline$'0'$	& \lstinline$'1'$ & \lstinline$'1'$\\
+        $-1$	& $+1$ 	& $-1$ 		& & \lstinline$'1'$	& \lstinline$'0'$ & \lstinline$'1'$\\
+        $-1$	& $-1$ 	& $+1$ 		& & \lstinline$'1'$	& \lstinline$'1'$ & \lstinline$'0'$\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Die innere Struktur der Architecture orientiert sich grob an dem Blockschaltbild in \FR{Trackingloop.png} wobei die grünen Blöcke, wie bereits erwähnt, in Software in MBlite Prozessor realisiert sind.

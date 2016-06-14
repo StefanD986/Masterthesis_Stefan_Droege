@@ -50,6 +50,8 @@ In \TR{TabCodeGen_Entity} ist die Schnittstelle der \lstinline$code_replica_gene
 }
 \end{table}
 
-Die Architecture der \lstinline$code_replica_generator$ Komponente enthält eine Instanz der \lstinline$ca_lfsr$ Komponente. Der \lstinline$i_ClkEna$ Eingang ist mit \lstinline$i_nco.Ena_clk$ verbunden. Dieses Signal 
-und einen sequenziellen Prozess. Der Prozess realisiert ein dreistufiges Schieberegister, was seinen Inhalt bei \lstinline$i_nco.Ena_clk_x2='1'$ und einer steigenden Taktflanke nach rechts schiebt. 
-was als Verzögerungsleitung dient: Dazu wird am MSB der von \lstinline$ca_lfsr$ erzeugte Code eingeschoben. 
+Die Architecture der \lstinline$code_replica_generator$ Komponente enthält eine Instanz der \lstinline$ca_lfsr$ Komponente. Dessen \lstinline$i_ClkEna$ Eingang ist mit \lstinline$i_nco.Ena_clk$ verbunden. Zur Erinnerung: Dieses Signal ist ein Impuls, der für genau eine Taktperiode \lstinline$'1'$ ist und sich etwa alle $1/\gpsTchip$ wiederholt. Damit wird mit jedem Impuls ein neuer Chip in dem \gls{LFSR} erzeugt.
+
+Weiterhin enhält die Architecture einen sequenziellen Prozess der ein dreistufiges Schieberegister realisiert, was seinen Inhalt bei \lstinline$i_nco.Ena_clk_x2='1'$ und einer steigenden Taktflanke nach rechts schiebt. Die Impulsfrequenz von \lstinline$i_nco.Ena_clk_x2$ ist doppelt so hoch wie die von \lstinline$i_nco.Ena_clk$, wodurch jede Stufe des Schieberegisters eine Verzögerung von $\gpsTchip /2$ ergibt.
+
+Der Ausgang der ersten Stufe ist \lstinline$o_chip.Early$ zugewiesen, der der zweiten Stufe \lstinline$o_chip.Prompt$, und der der dritten Stufe \lstinline$o_chip.Late$.

@@ -4,12 +4,12 @@ Diese Komponente ist in  \lstinline$carrier_nco.vhd$ implementiert und erzeugt d
 \begin{equation}
     FCW=f_{out}\cdot K_{0,carrier} =f_{out}\cdot  \frac{2^{N_{carrierNCO}}}{f_{clk}}
 \end{equation}
-mit der Frequenz $f_{clk}$ des Signals \lstinline$i_clk$. 
+mit der Frequenz $f_{clk}$ des Signals \lstinline$i_clk$.
 
 \FGimg[Entity/Architecture des Carrier NCO]{UML_class_carrier_nco.pdf}{Entity und Architecture welche die Trägerkopie erzeugt.}{10cm}
 
 \paragraph{Schnittstelle (Entity)}
-In \TR{TabCarrierNCO_Entity} ist die Schnittstelle der \lstinline$carrier_nco$ Komponente beschrieben.
+In \TR{TabCarrierNCO_Entity} ist die Schnittstelle der \lstinline$carrier_nco$ Komponente beschrieben. In \TR{Tab_t_carrier_nco_out} ist die Struktur des Typs des \lstinline$o_nco$ Ausgangssignals beschrieben.
 
 \begin{table}[htbp]
     \ttabbox
@@ -27,6 +27,25 @@ In \TR{TabCarrierNCO_Entity} ist die Schnittstelle der \lstinline$carrier_nco$ K
         \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$) \\
         \lstinline$i_deltaf$    & I         & \lstinline$t_carrier_fcw$             & Frequency Control Word \\
         \lstinline$o_nco$       & O         & \lstinline$t_carrier_nco_out$ & \lstinline$record$ der die beiden LO Signale (I und Q) enthält. \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Typdefinition Code NCO Ausgangssignal]{Beschreibung der Struktur des \lstinline$t_carrier_nco_out$ Typs. Der Typ ist in \lstinline$tracking_loop_pkg.vhd$ definiert.}
+        \label{Tab_t_carrier_nco_out}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name				& Typ                   & Beschreibung \\
+        \midrule
+        \lstinline$I$		& \lstinline$std_logic$	& \SI{1}{\bit} quantisiertes Sinus Signal mit Frequenz $f_{out}=f(FCW)$\\
+        \lstinline$Q$		& \lstinline$std_logic$	& \SI{1}{\bit} quantisiertes Cosinus Signal mit Frequenz $f_{out}=f(FCW)$ \\
         \bottomrule
     \end{tabular}
 }
@@ -57,10 +76,13 @@ In \TR{TabCarrierNCO_Entity} ist die Schnittstelle der \lstinline$carrier_nco$ K
 Der NCO besteht aus einem Phasenakkumulator, und einer \gls{LUT}, die eine Zuordnung von Amplitudenwerten $f(\phi)$ zu einem Phasenwert $\phi$ enthält. Da hier lediglich mit \SI{1}{\bit} Werten gearbeitet wird, gestaltet sich die \gls{LUT} sehr einfach: Für Werte von $\phi$ an denen $f(\phi)\geq 0$ ist, enthält sie eine \lstinline$'1'$. Für Werte von $\phi$ bei denen $f(\phi)<0$ ist, enthält sie eine \lstinline$'0'$. Hier ein Ausschnitt aus dem Code:
 
 \begin{lstlisting}
-    constant LUsin 	: std_logic_vector(3 DOWNTO 0):= "1100"; --! The `sin(x)` Look-up-table
-	constant LUcos 	: std_logic_vector(3 DOWNTO 0):= "1001"; --! The `cos(x)` Look-up-table
+constant LUsin 	: std_logic_vector(3 DOWNTO 0):= "1100"; --! The `sin(x)` Look-up-table
+constant LUcos 	: std_logic_vector(3 DOWNTO 0):= "1001"; --! The `cos(x)` Look-up-table
 \end{lstlisting}
 
-Der Phasenakkumulator ist in dieser Implementierung \SI{28}{\bit} weit, und ist als sequentieller Prozess realisiert. Mit jeder steigenden Taktflanke wird zu dem Phasenakkumulator der Wert an \lstinline$i_deltaf$ addiert. Die beiden MSB des Akkumulators werden dann zur Addressierung der \gls{LUT} verwendet, um die Amplitudenwerte zu erhalten. Damit wird auch klar woher das oben genannte NCO Gain $K_{0,carrier}=\frac{2^{N_{carrierNCO}}}{f_{clk}}$ kommt.
-Die Frequenz des Ausgangssignals ergibt sich damit 
+Der Phasenakkumulator ist in dieser Implementierung $N_carrier_nco=\SI{28}{\bit}$ weit, und ist als sequentieller Prozess realisiert. Mit jeder steigenden Taktflanke wird zu dem Phasenakkumulator der Wert an \lstinline$i_deltaf$ addiert. Die beiden MSB des Akkumulators werden dann zur Addressierung der \gls{LUT} verwendet, um die Amplitudenwerte zu erhalten. Damit wird auch klar woher das oben genannte NCO Gain $K_{0,carrier}=\frac{2^{N_{carrierNCO}}}{f_{clk}}$ kommt: Die Zeit zwischen zwei Akkumulator Überläufen ist die Periodendauer mit der die \gls{LUT} genau einmal durchlaufen wird. Die Zeit zwischen zwei Überläufen beträgt
+\begin{equation}
+    T=\frac{2^{N_{carrierNCO}}}{f_{clk}\cdot FCW}=\frac{1}{f_{out}}
+\end{equation}
+
 
