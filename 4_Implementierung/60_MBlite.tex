@@ -1,7 +1,3 @@
-\subsection{MBlite Prozessor}
-Wie bereits in Abschnitt \ref{SoftcoreAuswahl} erwähnt ist der  MBlite Prozessor eine Implementierung des Microblaze und hat somit eine \emph{Harvard Architektur} bei der Daten und Instruction Memory über zwei getrennte Adressbusse angesprochen werden.
-
-Für beide Speicher wird in dieser Arbeit der Dual Port Block RAM des FPGA genutzt. Dabei gibt es zwei Möglichkeiten die Speicher zu implementieren: Es können entweder zwei getrennte Block RAM Instanzen als Single Port RAM benutzt werden. Oder es wird die Dual Port Funktionalität genutzt und beide Speicher liegen in  einer gemeinsamen Block RAM Instanz. Von der Funktion unterscheiden sich beide Varianten nicht, aber erstere Variante verdeutlicht die Trennung zwischen Daten und Instruction Memory etwas besser, weshalb hier zwei Block RAM Instanzen verwendet werden.
 
 
 %Instruction und Data Memory. Addressmapping.
@@ -9,3 +5,5 @@ Für beide Speicher wird in dieser Arbeit der Dual Port Block RAM des FPGA genut
 \input{4_Implementierung/impl_CPU_interrupt_ctrl}
 
 \subsection{MBlite Firmware}
+% Adressoffset? Makefile?
+\label{MBliteFirmware}

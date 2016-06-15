@@ -1,0 +1,14 @@
+\subsection{Top Level Entity}
+Die Top Level Entity ist, wie der Name sagt, die übergeordnete Komponente die zum Einen Schnittstellen zu DSP, MAX2769, und Clock bereitstellt und zum Anderen in der dazugehörigen Architecture die anderen Komponenten enthält und verbindet.
+
+In \FR{UML_comp_structure_gps_top.pdf} ist der Aufbau der \lstinline$gps_top$ Komponente etwas vereinfacht dargestellt. Nicht dargestellt ist die in Abschnitt \ref{RohdatenFIFOSchnittstelle} beschriebene Rohdaten Schnittstelle zum DSP, die zu Anfang der Entwicklungsphase genutzt wurde um Rohdaten auf den DSP zu übertragen. Diese wird in einem eigenen Abschnitt beschrieben, da sie zu diesem Zeitpunkt aus den in Abschnitt \ref{UserIOSchnittstelle} genannten Gründen noch nicht mit dem derzeitigen Entwicklungsstand zusammengeführt wurde.
+
+\FGimg[Übersicht FPGA Firmware]{UML_comp_structure_gps_top.pdf}{Vereinfachte Struktur der Top Level Komponente \lstinline$gps_top$ und einige der verwendeten Typen.}{0.95\textwidth}
+
+Wie bereits in Abschnitt \ref{SoftcoreAuswahl} erwähnt ist der  MBlite Prozessor eine Implementierung des Microblaze und hat somit eine \emph{Harvard Architektur} bei der Data und Instruction Memory über zwei getrennte Busse angesprochen werden.
+
+Für beide Speicher wird in dieser Arbeit der Dual Port Block RAM des FPGA genutzt. Dabei gibt es zwei Möglichkeiten die Speicher zu implementieren: Es können entweder zwei getrennte Block RAM Instanzen als Single Port RAM benutzt werden. Oder es wird die Dual Port Funktionalität genutzt und beide Speicher liegen in  einer gemeinsamen Block RAM Instanz. Von der Funktion unterscheiden sich beide Varianten nicht, aber erstere Variante vereinfacht das Erstellen der Hexfiles etwas, weshalb hier zwei Block RAM Instanzen verwendet werden (siehe dazu auch Abschnitt \ref{MBliteFirmware}).
+
+Der MBlite Prozessorkern ist direkt über den ersten Bus mit dem Instruction Memory verbunden. Der zweite Bus geht an einen Address Decoder. Dieser wertet die Adresse aus und entscheidet anhand einer Memory Map (festgelegt in \lstinline$config_Pkg.vhd$) welche der an ihn angeschlossenen Komponenten Zugriff auf den Datenbus erhält.
+
+Die an den Address Decoder angeschlossenen Komponenten sind der Data Memory, die sechs Tracking Loop Kanäle und der Interrupt Controller. Die Komponenten werden in den weiteren Abschnitten einzeln beschrieben.

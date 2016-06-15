@@ -1,0 +1,32 @@
+\subsection{Interrupt Controller}
+Die sechs Tracking Loop Kanäle können unabhängig von einander Interrupt Signale liefern. Der MBlite Prozessor hat allerdings nur einen Interrupt Eingang. Daher wurde ein Interrupt Controller entwickelt, der eine beliebige Anzahl an Interrupts entgegennehmen kann und in geordneter Reihenfolge an den MBlite Prozessor weiterleitet. Diese Komponente ist in \lstinline$interrupt_ctrl.vhd$ implementiert. 
+
+\FGimg[Entity/Architecture des Interrupt Controllers]{UML_class_carrier_nco.pdf}{Entity und Architecture welche die Trägerkopie erzeugt.}{10cm}
+
+\paragraph{Schnittstelle (Entity)}
+In \TR{TabIRQCtrl_Entity} ist die Schnittstelle der \interrupt_ctrl Komponente beschrieben.
+
+
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Code Replika Generator Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$code_replica_generator$ Komponente.}
+        \label{TabIRQCtrl_Entity}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c  p{2cm} p{6cm}}
+        \toprule
+        Name                    & I/O  & Typ                               & Beschreibung \\
+        \midrule
+        \lstinline$n_intr$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
+        \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal. Bei \lstinline$i_reset='1'$ werden die LFSR \lstinline$g1$ und \lstinline$g2$ auf den Zustand \lstinline$\"1111111111\"$ zurückgesetzt.\\
+        \lstinline$i_nco$    & I         & \lstinline$std_logic$             & Ein \lstinline$record$ mit mehreren Clock Enable Signalen, die von \lstinline$code_nco$ Komponente erzeugt werden.\\
+        \lstinline$i_PRN$       & I         & \lstinline$unsigned (5 downto 0)$ & Wählt über die PRN Nummer die zu generierende Gold bzw. \gls{CA} Code Sequenz aus. Zulässige Werte sind im Bereich 1 bis 32.\\
+        \lstinline$o_chip$      & O         & \lstinline$t_codegen _out$             & Ein \lstinline$record$ mit den drei Code Kopien.\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
