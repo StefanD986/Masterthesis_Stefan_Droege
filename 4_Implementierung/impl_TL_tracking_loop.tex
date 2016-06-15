@@ -1,10 +1,27 @@
-\subsubsection{tracking\_loop}
-Diese Komponente ist in \lstinline$tracking_loop.vhd$ beschrieben, und eine Übersicht ist in \FR{UML_class_tracking_loop.pdf} abgebildet. Für jeden Kanal wird eine Instanz dieser Komponente benötigt. Zusammen mit dem Software Teil der im MBlite Prozessor läuft, übernimmt diese Komponente nach der Acquistion das Nachführen des Lokaloszillators und des Code Generators, so wie es in Abschnitt \ref{GrundlagenTracking} beschrieben wurde.
+\subsubsection{Tracking  Loop Komponente}
+Diese Komponente ist in \lstinline$tracking_loop.vhd$ beschrieben, und eine Übersicht ist in \FR{UML_class_tracking_loop.pdf} abgebildet. Sie entspricht der in \FR{GPS_UML_deployment1.png} dargestellten \emph{TrackingHW} Komponente. Für jeden Kanal wird eine Instanz dieser Komponente benötigt. Zusammen mit dem Software Teil der im MBlite Prozessor läuft, übernimmt diese Komponente nach der Acquistion das Nachführen des Lokaloszillators und des Code Generators, so wie es in Abschnitt \ref{GrundlagenTracking} beschrieben wurde.
+
+Die Funktion dieser Komponente ist eng verknüpft mit der \emph{TrackingSW} Komponente die im MBlite Prozessor läuft: Sie muss die \emph{TrackingHW} Komponente mit den Werten für Carrier FCW, Code FCW und initialer Codephase konfigurieren. Danach muss die TrackingSW Komponente das Startsignal geben. Während des Betriebs muss sie die Korrelator Ausgabewerte lesen, damit die neuen Werte für Carrier FCW und Code FCW berechnen und die neuen Werte an die TrackingHW Komponente übermitteln.
 
 \FGimg[Entity/Architecture Tracking Loop]{UML_class_tracking_loop.pdf}{Die übergeordnete Entity/Architecture des Tracking Loop}{10cm}
 
 \paragraph{Schnittstelle (Entity)}
+\label{ImplMemoryMapTrackingloop}
 In \TR{Tab_tracking_loop_Entity} ist die Schnittstelle der \lstinline$tracking_loop$ Komponente beschrieben. Die Schnittstelle verbindet die Komponente mit dem MAX2769 GPS Frontend und dem MBlite Prozessor. Von dem GPS Frontend bekommt die Komponente die Daten und ein Taktsignal. Die gesamte Komponente arbeitet synchron zu dem ADC Taktsignal. Zum MBLite Prozessor besteht die Schnittstelle aus einem Daten- und Addressbus, und einigen Steuersignalen. Außerdem hat der Tracking Loop die Möglichkeit den Prozessor mit einem Interruptsignal über neue Daten zu informieren.
+
+Eine Übersicht über das Memory Layout aus Sicht des MBlite Prozessors wurde bereits in Abschnitt \ref{SoftwareSchnittstelle_TL_MBlite} gegeben. In  \TR{Tab_tracking_loop_memory_map} ist eine detaillierte Beschreibung der Register gegeben. Die Registeradressen sind an \num{16} bzw. \SI{32}{\bit} Grenzen ausgerichtet und können somit vom Prozessor als \lstinline$int16_t$ bzw. \lstinline$int32_t$ Typen angesprochen werden. Trotzdem ist zu beachten, dass auf Tracking Loop Seite unter Umständen nicht alle Bits ausgewertet werden: Beispielsweise ist das Carrier FCW lediglich \SI{28}{\bit} lang. Bei Werten, die mehr als die vorgesehene Bitzahl benötigen, werden die oberen Bits abgeschnitten. Die genaue Größe der Register ist \FR{UML_class_tracking_loop_pkg.pdf} und dem Quellcode zu entnehmen.
+
+Um den Tracking Loop zu starten muss der MBlite Prozessor folgende Schritte durchführen:
+
+\begin{enumerate}
+    \item Tracking Loop Kanal zurücksetzten: Alle Flags auf \lstinline$'0'$ setzen.
+    \item Kanal aktivieren: \lstinline$enable$ Flag auf \lstinline$'1'$ setzen.
+    \item Samples für Acquisition anfangen aufzunehmen und gleichzeitig \lstinline$acq_started$ Flag auf \lstinline$'1'$ setzen.
+    \item Nach erfolgreicher Acquisition die Ergebnisse (Carrier FCW, Code FCW, Codephase und PRN) in die entsprechenden Register des Kanals schreiben.
+    \item Abschließend die \lstinline$config_done$ Flag auf \lstinline$'1'$ setzen.
+\end{enumerate}
+
+Daraufhin wird der Trackingloop sich mit der Codephase des Eingangssignals synchronisieren (siehe den Abschnitt \emph{Architecture} für Details). Sobald neue Werte an den Korrelatoren vorliegen wird der MBlite Prozessor über die \lstinline$o_intr$ Leitung informiert. Der Prozessor muss daraufhin zeitnah (\SI{<1}{\milli\second}) die neuen Werte für Code- und Carrier FCW berechnen und in die Kanal Register schreiben. Der Kanal nimmt automatisch an, dass die Werte in den Registern aktuell sind, es ist also kein erneutes setzen der \lstinline$config_done$ Flag notwendig.
 
 \begin{table}[htbp]
     \ttabbox
@@ -14,7 +31,7 @@ In \TR{Tab_tracking_loop_Entity} ist die Schnittstelle der \lstinline$tracking_l
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c c  p{2cm} p{6cm}}
+    \begin{tabular}{c c  p{1.5cm} p{6cm}}
         \toprule
         Name                    & I/O	& Typ				& Beschreibung \\
         \midrule
@@ -22,34 +39,63 @@ In \TR{Tab_tracking_loop_Entity} ist die Schnittstelle der \lstinline$tracking_l
         \lstinline$i_clk_ADC$	& I	& \lstinline$std_logic$		& Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
         \lstinline$i_reset$	& I	& \lstinline$std_logic$		& Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$). \\
         \lstinline$i_samples$	& I	& \lstinline$std_logic$		& ADC Samples \\
-        \lstinline$i_dmem$	& I	& \lstinline$dmem_out_type$	& Schnittstelle zum MBlite Prozessor. Steuerleitungen und Daten- und Adressbus. \\
-        \lstinline$o_dmem$	& O	& \lstinline$dmem_in_type$	& Datenbus zum MBlite Prozessor. \\
+        \lstinline$i_dmem$	& I	& \lstinline$dmem_out _type$	& Schnittstelle zum MBlite Prozessor. Steuerleitungen und Daten- und Adressbus. \\
+        \lstinline$o_dmem$	& O	& \lstinline$dmem_in _type$	& Datenbus zum MBlite Prozessor. \\
         \lstinline$o_intr$	& O	& \lstinline$std_logic$		& Interruptausgang. \lstinline$'1'$ Impuls wenn Integration abgeschlossen (\emph{Dump} Signal).\\
         \bottomrule
     \end{tabular}
 }
 \end{table}
 
-\paragraph{Implementierung (Architecture)}
-
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Carrier NCO interne Signale]{Interne Signale der \lstinline$integrate_and_dump$ Komponente.}
-        \label{TabIandD_ArchSignals}
+        \caption[Memory Map Tracking Loop]{Register Memory Map der \lstinline$tracking_loop$ Komponente.}
+        \label{Tab_tracking_loop_memory_map}
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c  p{2cm} p{6cm}}
+    \begin{tabular}{c c  p{1.5cm} p{5.5cm}}
         \toprule
-        Name      		& Typ         & Beschreibung \\
+        Name                    & R/W	& Address Offset    & Beschreibung \\
         \midrule
-        \lstinline$r$		& t_iandd_reg & \\
-        \lstinline$r_next$	& t_iandd_reg & \\
+        \lstinline$I_Early$	    & R	    & $0x00$              &  Ausgang des I Early Korrelators. \\
+        \lstinline$Q_Early$	    & R	    & $0x02$              &  Ausgang des Q Early Korrelators.\\
+        \lstinline$I_Prompt$    & R	    & $0x04$              &  Ausgang des I Prompt Korrelators.\\
+        \lstinline$Q_Prompt$    & R	    & $0x06$              &  Ausgang des Q Prompt Korrelators.\\
+        \lstinline$I_Late$	    & R	    & $0x08$              &  Ausgang des I Late Korrelators.\\
+        \lstinline$Q_Late$	    & R	    & $0x0A$              &  Ausgang des Q Late Korrelators.\\
+        \lstinline$code_fcw$    & RW    & $0x0C$              &  Code NCO Frequency Control Word.\\
+        \lstinline$carrier_fcw$ & RW    & $0x10$              &  Carrier NCO Frequency Control Word.\\
+        \lstinline$PRN$         & RW    & $0x14$              &  PRN des zu trackenden Satellitensignals.\\
+        \lstinline$codephase$   & RW    & $0x18$              &  Bei der Acquisiton festgestellte Codephase.\\
+        \lstinline$flags$       & RW    & $0x1C$              &  Flags (siehe auch \TR{Tab_TL_flags}).\\
         \bottomrule
     \end{tabular}
 }
 \end{table}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Tracking Loop Flag Register]{Bedeutung der Bits im \lstinline$flags$ Register der \lstinline$tracking_loop$ Komponente.}
+        \label{Tab_TL_flags}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c p{6cm}}
+        \toprule
+        Name                    & Bit Offset    & Beschreibung \\
+        \midrule
+        \lstinline$enable$	    & $0$             & Eine \lstinline$'1'$ aktiviert den Tracking Kanal. \\
+        \lstinline$acq_started$ & $1$             & Wenn angefangen wird Samples für die Acquisition aufzunehmen muss gleichzeitig dieses Bit auf \lstinline$'1'$ gesetzt werden. \\
+        \lstinline$config_done$ & $2$             & Wenn alle anderen Konfigurationswerte geschrieben wurden, startet eine \lstinline$'1'$ das Tracking. \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\paragraph{Implementierung (Architecture)}
 
 Die Architecture der Tracking Loop Komponente beinhaltet Code- und Carrier Mischer und alle in den vorherigen Abschnitten beschriebenen Blöcke. Außerdem beinhaltet die Architecture noch Steuerlogik in Form einer State Machine, die auf Schreib-/Lesezugriffe von der MBlite Schnittstelle reagiert. Weiterhin steuert die State Machine die Initialisierung des Tracking Loop Kanals.
 
@@ -58,14 +104,14 @@ Wie bereits früher erwähnt, werden lediglich \SI{1}{\bit} Samples verwendet, w
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Exklusiv-Oder Glied]{Exklusiv-Oder (XOR) Glied.}
+        \caption[Exklusiv-Oder Glied]{Vergleich Multiplikation und Exklusiv-Oder (XOR) Glied.}
         \label{TabXOR}
     }
     {
         \rowcolors{2}{light-gray}{White}
     \begin{tabular}{c c c c c c c}
         \toprule
-        $a$ 	& $b$ 	& $a\cdot b$ 	& & $A$	& $B$		& $A \textrm{XOR} B$ \\
+        $a$ 	& $b$ 	& $a\cdot b$ 	& & $A$	& $B$		& $A~ \textrm{XOR} ~B$ \\
         \midrule
         $+1$	& $+1$ 	& $+1$ 		& & \lstinline$'0'$	& \lstinline$'0'$ & \lstinline$'0'$\\
         $+1$	& $-1$ 	& $-1$ 		& & \lstinline$'0'$	& \lstinline$'1'$ & \lstinline$'1'$\\
@@ -77,3 +123,7 @@ Wie bereits früher erwähnt, werden lediglich \SI{1}{\bit} Samples verwendet, w
 \end{table}
 
 Die innere Struktur der Architecture orientiert sich grob an dem Blockschaltbild in \FR{Trackingloop.png} wobei die grünen Blöcke, wie bereits erwähnt, in Software in MBlite Prozessor realisiert sind.
+
+\subparagraph{Start Prozedur} In der Beschreibung der Schnittstelle wurden bereits die notwendigen Schritte zum Starten eines Tracking Loop Kanals beschrieben. Durch das Zurücksetzen des Trackingloop (Schritt 1), befinden sich die LFSR, die den \gls{CA} Code erzeugen, im Zustand \lstinline$"1111111111"$, was der Codephase $0$ entspricht. Auch nach Setzen der \lstinline$enable$ Flag in Schritt 2 bleiben die LFSR in diesem Zustand. 
+
+Durch das Setzen des \lstinline$acq_started$ Flag (Schritt 3) wird ein Zähler gestartet, der alle $N=\frac{\textrm{Samples}}{\textrm{Codewort}}$ überläuft. Nachdem die Acquisition und Konfiguration des Kanals abgeschlossen ist (Schritte 4 und 5), wartet die State Machine bis der Zählerstand das nächste Mal den Wert erreicht, der in das \lstinline$codephase$ Register geschrieben wurde und startet dann das LFSR. \lstinline$codephase$ wurde bei der Acquisition als der Wert bestimmt an dem die Codephase gleich Null ist und somit mit dem zurückgesetzten LFSR übereinstimmt. 
