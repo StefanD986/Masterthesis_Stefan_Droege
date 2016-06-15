@@ -1,5 +1,7 @@
 \section{FPGA Firmware}
-In diesem Abschnitt wird die im Rahmen dieser Arbeit entwickelte Implementierung auf FPGA Seite besprochen. Begonnen wird mit einem Überblick und einer Beschreibung der Top-Level Entity. Danach beschäftigt sich der größte Teil mit der Implementierung des Tracking Loop. Der MBlite Prozessor selbst wird hier nicht im Detail besprochen\footnote{Der MBlite Softcore ist in \cite{MBliteThesis} beschrieben.}, aber der Interrupt Controller der entwickelt wurde und die Schnittstelle zwischen MBlite und den Tracking Loop Instanzen.
+In diesem Abschnitt wird die im Rahmen dieser Arbeit entwickelte Implementierung auf FPGA Seite besprochen. Begonnen wird mit einem Überblick und einer Beschreibung der Top-Level Entity. Danach beschäftigt sich der größte Teil mit der Implementierung des Tracking Loop. Der MBlite Prozessor selbst wird hier nicht im Detail besprochen\footnote{Der MBlite Softcore ist in \cite{MBliteThesis} beschrieben.}, aber der Interrupt Controller der entwickelt wurde und die Schnittstelle zwischen MBlite und den Tracking Loop Instanzen. 
+
+Da die Dokumentation in dieser Arbeit nur den derzeitigen Entwicklungsstand wiederspiegelt sei an dieser Stelle auch auf die Doxygen Dokumentation\footnote{Die Doxygen Dokumentation ist im git Repository unter \lstinline$gps_fpga/doc$ zu finden.} verwiesen, die unter Umständen aktuellere Informationen enthält. 
 
 Im Folgenden wird von UML Klassendiagrammen Gebrauch gemacht um Beziehungen zwischen den Komponenten darzustellen. Deshalb soll kurz erklärt wie diese im Zusammenhang mit der Programmiersprache VHDL zu interpretieren sind: Die Hardwarebeschreibung in VHDL gliedert sich in \emph{Components}. Ein \emph{Component} ist die Instanz einer Einheit aus \emph{Entity} und  \emph{Architecture}. Eine \emph{Entity} beschreibt die Schnittstelle eines \emph{Component}, und die \emph{Architecture} den inneren Aufbau und Funktion des \emph{Component}. Die \emph{Architecture} Aufbau besteht dabei aus kombinatorischer oder sequentieller Logik, kann aber auch wiederum andere \emph{Components} enthalten.
 
@@ -9,6 +11,8 @@ In den UML Klassendiagrammen\footnote{In den Diagrammen wird der VHDL \lstinline
 
 \input{4_Implementierung/52_gps_top}
 
+\input{4_Implementierung/60_MBlite}
+
 % Synchronität
 \subsection{Schnittstellen}
 
@@ -16,4 +20,3 @@ In den UML Klassendiagrammen\footnote{In den Diagrammen wird der VHDL \lstinline
 
 \input{4_Implementierung/impl_rohdaten_schnittstelle}
 
-\input{4_Implementierung/60_MBlite}
