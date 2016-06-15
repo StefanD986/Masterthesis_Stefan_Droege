@@ -1,30 +1,48 @@
 \subsection{Interrupt Controller}
-Die sechs Tracking Loop Kanäle können unabhängig von einander Interrupt Signale liefern. Der MBlite Prozessor hat allerdings nur einen Interrupt Eingang. Daher wurde ein Interrupt Controller entwickelt, der eine beliebige Anzahl an Interrupts entgegennehmen kann und in geordneter Reihenfolge an den MBlite Prozessor weiterleitet. Diese Komponente ist in \lstinline$interrupt_ctrl.vhd$ implementiert. 
+Die sechs Tracking Loop Kanäle können unabhängig voneinander Interrupt Signale liefern. Der MBlite Prozessor hat allerdings nur einen Interrupt Eingang. Daher wurde ein Interrupt Controller entwickelt, der eine beliebige Anzahl an Interrupts entgegennehmen kann und an den MBlite Prozessor weiterleitet. Das besondere an dem hier entwickelten Interrupt Controller ist, dass die Signale in einem FIFO gespeichert werden und so sichergestellt wird, dass die Interrupts in der Eingangsreihenfolge der Ereignisse abgearbeitet werden. Dies ist wichtig um die Echtzeitanforderungen einzuhalten. Die Komponente ist in \lstinline$interrupt_ctrl.vhd$ implementiert. 
 
-\FGimg[Entity/Architecture des Interrupt Controllers]{UML_class_carrier_nco.pdf}{Entity und Architecture welche die Trägerkopie erzeugt.}{10cm}
+\FGimg[Entity/Architecture des Interrupt Controllers]{UML_class_IRQctrl.pdf}{Entity und Architecture des Interrupt Controllers.}{8cm}
 
 \paragraph{Schnittstelle (Entity)}
-In \TR{TabIRQCtrl_Entity} ist die Schnittstelle der \interrupt_ctrl Komponente beschrieben.
+In \TR{TabIRQCtrl_Entity} ist die Schnittstelle der \lstinline$interrupt_ctrl$ Komponente beschrieben.
 
+Die Anzahl der Interrupt Quellen und die maximal mögliche Länge der Warteschlange kann über die zwei \emph{Generics} \lstinline$n_intr$ bzw. \lstinline$max_pending$ konfiguriert werden. Das Interrupt Signal einer Quelle wird mit einem Element des Vektors \lstinline$i_intr$ verbunden. Der Index des Bits in dem Vektor ist gleichzeitig die Interruptnummer, d.h. dass eine Quelle die mit \lstinline$i_intr(3)$ verbunden ist die Nummer 3 zugewiesen bekommt.
 
+Der Signal \lstinline$o_intr$ wird mit dem Interrupt Eingang des MBlite Prozessors verbunden. 
+
+Ein Interrupt muss von den Quellen durch einen  \lstinline$'1'$ Impuls signalisiert werden, das heißt, dass die Leitung nur für eine Taktperiode auf  \lstinline$'1'$ gehalten werden soll und danach wieder auf  \lstinline$'0'$ gesetzt wird. Der Interrupt Controller wird daraufhin die Nummer des Interrupts in der FIFO Warteschlange speichern. Je Taktperiode kann ein Ereignis in die Warteschlange eingefügt werden. Bei mehreren gleichzeitig auftretenden Interrupt Ereignissen gehen die weiteren Ereignisse jedoch \emph{nicht} verloren, sondern werden während der darauf folgenden Taktperioden eingefügt. So lange sich Interrupts in der Warteschlange befinden, ist \lstinline$o_intr='1'$. 
+
+In der \gls{ISR} muss die CPU dann zuerst die Quelle des Interrupts abfragen. Dazu ist der Ausgang des FIFO über den Address Decoder an den Datenbus der CPU angeschlossen. Die Adresse unter der der Interrupt Controller zu finden ist wird über die Memory Map in \lstinline$config_Pkg.vhd$ festgelegt. Lesen von dieser Adresse liefert die Nummer der Interrupt Quelle. Anschließend muss die CPU den Interrupt bestätigen um ihn aus der Warteschlange zu löschen. Dazu wird auf die selbe Adresse ein Schreibvorgang ausgeführt. Dabei ist es unwichtig welcher Wert geschrieben wird, intern wertet die Interrupt Controller Komponente nur das \emph{Write Enable} Signal aus (\lstinline$i_dmem.we_o$).
+
+\subparagraph{Einschränkungen} Es gibt einige Einschränkungen die bei der Nutzung des Interrupt Controllers zu beachten sind:
+\begin{enumerate}
+    \item Im Falle von Interrupt Ereignissen die in der selben Taktperiode auftreten, werden die Ereignisse in den darauf folgenden Taktperioden nach ihrer Interrupt Nummer, in aufsteigender Reihenfolge in die Warteschlange eingefügt.
+    \item Wenn noch \emph{nicht} alle Ereignisse in die Warteschlange eingefügt wurden (siehe Punkt 1) und neue Ereignisse auftreten, so werden die neuen und alten Ereignisse in aufsteigender Reihenfolge in die Warteschlange eingefügt. Dadurch kann eventuell ein später aufgetretenes Ereignis mit niedriger Interruptnummer vor einem früheren Ereignis mit höherer Nummer in die Warteschlange eingefügt werden.
+    \item Bevor ein erneuter Interrupt von der selben Quelle verarbeitet werden kann, muss der frühere Interrupt in die Warteschlange eingefügt worden sein.
+\end{enumerate}
+
+In der Praxis sind diese Einschränkungen jedoch kein Problem, da sie lediglich zum tragen kommen wenn die Ereignisse in sehr kurzer Zeitabfolge (wenige Taktperioden) aufeinander folgen. Eine Änderung der Bearbeitungsreihenfolge ist in diesen Fällen nicht gravierend.
 
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Code Replika Generator Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$code_replica_generator$ Komponente.}
+        \caption[Code Replika Generator Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$interrupt_ctrl$ Komponente.}
         \label{TabIRQCtrl_Entity}
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c c  p{2cm} p{6cm}}
+    \begin{tabular}{p{1.5cm} c  p{2cm} p{5.5cm}}
         \toprule
-        Name                    & I/O  & Typ                               & Beschreibung \\
+        Name                        & I/O       & Typ                       & Beschreibung \\
         \midrule
-        \lstinline$n_intr$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
-        \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal. Bei \lstinline$i_reset='1'$ werden die LFSR \lstinline$g1$ und \lstinline$g2$ auf den Zustand \lstinline$\"1111111111\"$ zurückgesetzt.\\
-        \lstinline$i_nco$    & I         & \lstinline$std_logic$             & Ein \lstinline$record$ mit mehreren Clock Enable Signalen, die von \lstinline$code_nco$ Komponente erzeugt werden.\\
-        \lstinline$i_PRN$       & I         & \lstinline$unsigned (5 downto 0)$ & Wählt über die PRN Nummer die zu generierende Gold bzw. \gls{CA} Code Sequenz aus. Zulässige Werte sind im Bereich 1 bis 32.\\
-        \lstinline$o_chip$      & O         & \lstinline$t_codegen _out$             & Ein \lstinline$record$ mit den drei Code Kopien.\\
+        \lstinline$n_intr$          & I         & \lstinline$positive$      & \lstinline$generic$, dass die Anzahl der Interruptquellen festlegt.\\
+        \lstinline$max _pending$     & I         & \lstinline$positive$      & \lstinline$generic$, dass die maximale Anzahl von unbearbeiten Interrupts in der Warteschlange festlegt.\\
+        \lstinline$i_clk$           & I         & \lstinline$std_logic$     & Taktsignal das auch den MBlite Core antreibt.\\
+        \lstinline$i_reset$         & I         & \lstinline$std_logic$     & Asynchrones Reset Signal.\\
+        \lstinline$i_intr$          & I         & \lstinline$SLV(n_intr -1 DOWNTO 0)$    & Ein Vektor mit den Interruptsignalen der Interruptquellen. Eine \lstinline$'1'$ signalisiert einen Interrupt. Die Leitung sollte nur für eine Taktperiode auf \lstinline$'1'$ gehalten werden.\\
+        \lstinline$i_dmem$          & I         & \lstinline$dmem_out _type$            & Schnittstelle zum MBlite Prozessor. Steuerleitungen und Daten- und Adressbus.\\
+        \lstinline$o_dmem$          & O	        & \lstinline$dmem_in _type$	& Datenbus zum MBlite Prozessor. \\
+        \lstinline$o_intr$          & O         & \lstinline$std_logic$     & Interruptleitung zum MBlite Prozessor. \lstinline$'1'$ solange Interrupts in der Warteschlange stehen.\\
         \bottomrule
     \end{tabular}
 }
