@@ -30,7 +30,7 @@ In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponen
         \lstinline$i_clk$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
         \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$) \\
         \lstinline$i_fcw$    & I         & \lstinline$t_code_fcw$             & Frequency Control Word \\
-        \lstinline$o_nco$       & O         & \lstinline$t_code_nco_out$ & RECORD holding the Clock Enable signals. \\
+        \lstinline$o_nco$       & O         & \lstinline$t_code_ nco_out$ & RECORD holding the Clock Enable signals. \\
         \bottomrule
     \end{tabular}
 }
@@ -44,13 +44,13 @@ In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponen
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c  p{2cm} p{6cm}}
+    \begin{tabular}{p{2cm}  p{2cm} p{6cm}}
         \toprule
         Name				& Typ                   & Beschreibung \\
         \midrule
         \lstinline$Ena_clk$		& \lstinline$std_logic$	& Impuls, mit Abstand zwischen zwei Impulsen von etwa $\gpsTchip=1/\gpsfchip$\footnote{Wenn der Regelkreis eingeschwungen ist und unter Berücksichtigung der Dopplerverschiebung.} \\
         \lstinline$Ena_clk_x2$		& \lstinline$std_logic$	& Impuls, mit Impulsabstand von etwa $\gpsTchip/2$ \\
-        \lstinline$Ena_clk_div1023$	& \lstinline$std_logic$	& Impuls, mit Impulsabstand von etwa $1023\cdot \gpsTchip$ \\
+        \lstinline$Ena_clk_ div1023$	& \lstinline$std_logic$	& Impuls, mit Impulsabstand von etwa $1023\cdot \gpsTchip$ \\
         \bottomrule
     \end{tabular}
 }
@@ -67,7 +67,7 @@ In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponen
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c  p{2cm} p{6cm}}
+    \begin{tabular}{c  l p{5cm}}
         \toprule
         Name      & Typ         & Beschreibung \\
         \midrule
@@ -86,14 +86,14 @@ In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponen
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c  p{2cm} p{6cm}}
+    \begin{tabular}{p{2cm}  p{2cm} p{6cm}}
         \toprule
         Name				& Typ						& Beschreibung \\
         \midrule
         \lstinline$count$		& \lstinline$unsigned (N_code_nco-1 DOWNTO 0)$	& NCO Phasenakkumulator, mit dem \lstinline$o_nco.Ena_clk$ und \lstinline$o_nco.Ena_clk_x2$ generiert werden. \\
         \lstinline$count2$		& \lstinline$integer range 0 to 1023$		& Zähler (bzw. Taktteiler) mit dem \lstinline$o_nco.Ena_clk_div1023$ generiert wird. \\
         \lstinline$prev_count$		& \lstinline$unsigned (1 DOWNTO 0)$		& Register das der vorherigen Zustand der obersten zwei Bits des  \lstinline$count$  Registers speichert. Wird verwendet um Impuls Signale zu generieren, die nur für genau eine Taktperiode \lstinline$'1'$ sind. \\
-        \lstinline$nco_to_ca_codegen$	& \lstinline$t_code_nco_out$			& Register für die Ausgangssignale.\\
+        \lstinline$nco_to_ ca_codegen$	& \lstinline$t_code_ nco_out$			& Register für die Ausgangssignale.\\
         \bottomrule
     \end{tabular}
 }

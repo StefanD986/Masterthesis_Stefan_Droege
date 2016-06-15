@@ -20,7 +20,7 @@ In \TR{TabCodeGen_Entity} ist die Schnittstelle der \lstinline$code_replica_gene
         \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal. Bei \lstinline$i_reset='1'$ werden die LFSR \lstinline$g1$ und \lstinline$g2$ auf den Zustand \lstinline$\"1111111111\"$ zurückgesetzt.\\
         \lstinline$i_nco$    & I         & \lstinline$std_logic$             & Ein \lstinline$record$ mit mehreren Clock Enable Signalen, die von \lstinline$code_nco$ Komponente erzeugt werden.\\
         \lstinline$i_PRN$       & I         & \lstinline$unsigned (5 downto 0)$ & Wählt über die PRN Nummer die zu generierende Gold bzw. \gls{CA} Code Sequenz aus. Zulässige Werte sind im Bereich 1 bis 32.\\
-        \lstinline$o_chip$      & O         & \lstinline$t_codegen_out$             & Ein \lstinline$record$ mit den drei Code Kopien.\\
+        \lstinline$o_chip$      & O         & \lstinline$t_codegen _out$             & Ein \lstinline$record$ mit den drei Code Kopien.\\
         \bottomrule
     \end{tabular}
 }
@@ -50,7 +50,9 @@ In \TR{TabCodeGen_Entity} ist die Schnittstelle der \lstinline$code_replica_gene
 }
 \end{table}
 
+\begin{sloppypar}
 Die Architecture der \lstinline$code_replica_generator$ Komponente enthält eine Instanz der \lstinline$ca_lfsr$ Komponente. Dessen \lstinline$i_ClkEna$ Eingang ist mit \lstinline$i_nco.Ena_clk$ verbunden. Zur Erinnerung: Dieses Signal ist ein Impuls, der für genau eine Taktperiode \lstinline$'1'$ ist und sich etwa alle $1/\gpsTchip$ wiederholt. Damit wird mit jedem Impuls ein neuer Chip in dem \gls{LFSR} erzeugt.
+\end{sloppypar}
 
 Weiterhin enhält die Architecture einen sequenziellen Prozess der ein dreistufiges Schieberegister realisiert, was seinen Inhalt bei \lstinline$i_nco.Ena_clk_x2='1'$ und einer steigenden Taktflanke nach rechts schiebt. Die Impulsfrequenz von \lstinline$i_nco.Ena_clk_x2$ ist doppelt so hoch wie die von \lstinline$i_nco.Ena_clk$, wodurch jede Stufe des Schieberegisters eine Verzögerung von $\gpsTchip /2$ ergibt.
 

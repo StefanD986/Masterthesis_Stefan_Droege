@@ -1,4 +1,5 @@
 \subsubsection{Carrier NCO}
+\label{VCOimplementierung}
 Diese Komponente ist in  \lstinline$carrier_nco.vhd$ implementiert und erzeugt die zwei zueinander \SI{90}{\degree} verschobenen LO Signale, mit einer zur Laufzeit einstellbaren Frequenz. Die Frequenz wird durch das \gls{FCW} bestimmt, welches nicht \emph{gleich}, aber \emph{proportional} zu der Frequenz $f_{out}$ des Ausgangssignals ist:
 
 \begin{equation}
@@ -25,8 +26,8 @@ In \TR{TabCarrierNCO_Entity} ist die Schnittstelle der \lstinline$carrier_nco$ K
         \midrule
         \lstinline$i_clk$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
         \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$) \\
-        \lstinline$i_deltaf$    & I         & \lstinline$t_carrier_fcw$             & Frequency Control Word \\
-        \lstinline$o_nco$       & O         & \lstinline$t_carrier_nco_out$ & \lstinline$record$ der die beiden LO Signale (I und Q) enthält. \\
+        \lstinline$i_deltaf$    & I         & \lstinline$t_carrier _fcw$             & Frequency Control Word \\
+        \lstinline$o_nco$       & O         & \lstinline$t_carrier _nco_out$ & \lstinline$record$ der die beiden LO Signale (I und Q) enthält. \\
         \bottomrule
     \end{tabular}
 }
