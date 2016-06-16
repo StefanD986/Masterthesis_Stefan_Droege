@@ -6,7 +6,7 @@
 
 \subsection{MBlite Firmware}
 \label{MBliteFirmware}
-Ein im MBlite Prozessor laufendes Programm realisiert die \emph{TrackingSW} Komponente (\FR{GPS_UML_deployment1.png}). Diese realisiert die in \FR{Tracingloop.png} grün markierten Funktionsblöcke, also die Carrier und Code Loop Diskriminatoren und Filter. Die zeitkritische Neuberechnung der Werte ist vollständig Interrupt gesteuert, wodurch im Hauptprozess andere Aufgaben bearbeitet werden können, die weniger zeitkritisch sind. So würde beispielsweise die Initialisierung eines Tracking Loop Kanals oder die Kommunikation mit dem DSP im Hauptprozess ablaufen\footnote{Die Kommunikation mit dem DSP ist derzeit noch nicht implementiert.}.
+Ein im MBlite Prozessor laufendes Programm realisiert die \emph{TrackingSW} Komponente (\FR{GPS_UML_deployment1.png}). Diese realisiert die in \FR{Trackingloop.png} grün markierten Funktionsblöcke, also die Carrier und Code Loop Diskriminatoren und Filter. Die zeitkritische Neuberechnung der Werte ist vollständig Interrupt gesteuert, wodurch im Hauptprozess andere Aufgaben bearbeitet werden können, die weniger zeitkritisch sind. So würde beispielsweise die Initialisierung eines Tracking Loop Kanals oder die Kommunikation mit dem DSP im Hauptprozess ablaufen\footnote{Die Kommunikation mit dem DSP ist derzeit noch nicht implementiert.}.
 
 
 
