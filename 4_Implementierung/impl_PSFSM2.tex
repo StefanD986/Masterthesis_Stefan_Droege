@@ -1,0 +1,78 @@
+\subsubsection{EBIU Schnittstelle auf FPGA Seite}
+
+%\FGimg[Entity/Architecture des Integrate and Dump Blocks]{UML_class_IandD.pdf}{Entity und Architecture des Integrate and Dump Blocks.}{6cm}
+Auf der FPGA Seite muss ein Gegenstück zu dem Asynchronen Memory Interface des DSP implementiert werden. Diese Komponente ist in \lstinline$PSFSM2.vhd$ implementiert. Sie dient als Bindeglied zwischen dem EBIU Interface und dem Rohdaten FIFO.
+
+Die Herausforderung bei dem Asynchronen Memory Interface ist, wie der Name schon sagt, die Asynchronität der Signale zu dem Systemtakt des FPGA: Wenn die Setup \& Hold Zeiten der Flipflops nicht eingehalten werden, kann das FF in einen Metastabilen Zustand gelangen, der erst nach längerer, nicht vorhersagbarer Zeit verlassen wird\footnote{Einige weiterführende Informationen zu dem Thema sind in \cite{FPGAFAQMetastability} und \cite{ginosar2011metastability} zu finden. Eine umfangreiche Artikelsammlung zu dem Thema bietet \cite{MetastabilityBibliography}}. 
+Eine perfekte Lösung Metastabilität im ersten Flipflop, auf das das Eingangssignal trifft, zu verhindern existiert nicht. Es gibt lediglich die Möglichkeit durch das Einbauen von Wartezyklen die Wahrscheinlichkeit, dass der metastabile Zustand auch an nachfolgende Flipflop Stufen propagiert wird zu verringern. Damit lässt sich die \gls{MTBF} auf ein akzeptables Maß vergrößern. Genau dies wird auch bei dem Asynchronen Memory Interface der EBIU gemacht. Die Einstellung der Wartezeiten wurde in \TR{TabEBIUTimingConfig} gegeben.
+
+Die Signale der EBIU Schnittstelle (zusammengefasst im Typ \lstinline$t_EBIU_out$) steuern eine \gls{FSM}, die je nach Zustand die Lesezugriffe an den FIFO weiterleitet. Die \gls{FSM} mit dem Systemtakt des FPGAs getaktet, damit die Schnittstelle synchron zu dem Systemtakt der restlichen Komponenten im FPGA ist.
+
+\paragraph{Schnittstelle (Entity)}
+In \TR{TabPSFSM_Entity} ist die Schnittstelle der \lstinline$PSFSM2$ Komponente beschrieben. In \FR{UML_class_tracking_loop_pkg.pdf} ist der \lstinline$t_IandD_accu$ Typ definiert.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Carrier NCO Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$carrier_nco$ Komponente.}
+        \label{TabPSFSM_Entity}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c  p{2cm} p{6cm}}
+        \toprule
+        Name                & I/O	& Typ				                & Beschreibung \\
+        \midrule
+        \lstinline$clk$	    & I	    & \lstinline$std_logic$	        	& FPGA Systemtakt\\
+        \lstinline$reset$	& I	    & \lstinline$std_logic$	        	& Asynchrones Reset Signal (aktiv wenn \lstinline$reset='1'$) \\
+        \lstinline$i_EBIU$	& I	    & \lstinline$t_EBIU_out$	    	& EBIU Signale vom DSP zum FPGA\\
+        \lstinline$o_EBIU$	& O	    & \lstinline$t_EBIU_in$		        & EBIU Signale vom FPGA zum DSP\\
+        \lstinline$i_FIFO$	& I	    & \lstinline$t_fifo_ps_Read_out$	& Signale von PSFSM2 Komponente zum Rohdaten FIFO \\
+        \lstinline$o_FIFO$	& O	    & \lstinline$t_fifo_ps_Read_out$	& Signale vom Rohdaten FIFO zur PSFSM2 Komponente \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+
+\paragraph{Implementierung (Architecture)}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Carrier NCO interne Signale]{Interne Signale der \lstinline$integrate_and_dump$ Komponente.}
+        \label{TabIandD_ArchSignals}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name      		& Typ         & Beschreibung \\
+        \midrule
+        \lstinline$r$		& \lstinline$t_iandd_reg$ & \\
+        \lstinline$r_next$	& \lstinline$t_iandd_reg$ & \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Typdefinition Code NCO Zustandsregister]{Beschreibung der Struktur des Integrate \& Dump Zustandsregisters (\lstinline$t_iandd_reg$ Typ).}
+        \label{Tab_t_iandd_reg_Type}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  p{2cm} p{6cm}}
+        \toprule
+        Name				& Typ						& Beschreibung \\
+        \midrule
+        \lstinline$count$		& \lstinline$t_IandD_accu$	&  Akkumulator des Integrators. Abhängig vom Wert an \lstinline$i_data$ wird dieser Wert mit jeder steigenden Taktflanke inkrementiert, bzw. dekrementiert.\\
+        \lstinline$output$		& \lstinline$t_IandD_accu$	&  Ausgangsregister. Wenn \lstinline$i_dump='1'$ wird bei einer steigenden Taktflanke der Wert von \lstinline$count$ in dieses Register kopiert. \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Die Architecture implementiert den Integrator als einfachen Hoch/Runter Zähler: Bei einer steigenden Taktflanke an \lstinline$i_clk$ wird \lstinline$r.count$ abhängig von \lstinline$i_data$ inkrementiert (\lstinline$i_data='1'$) oder dekrementiert (\lstinline$i_data='0'$). Wenn \lstinline$i_dump='1'$ wird der Zählerstand in das Ausgangsregister \lstinline$r.output$ kopiert und der Zähler zurückgesetzt. Gleichzeitig wird durch das \emph{Dump} Signal bei dem MBlite Prozessor ein Interrupt ausgelöst, der daraufhin den Wert aus dem Ausgangsregister ausliest.

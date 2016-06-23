@@ -1,4 +1,5 @@
 \subsection{Interrupt Controller}
+\label{InterruptController}
 Die sechs Tracking Loop Kanäle können unabhängig voneinander Interrupt Signale liefern. Der MBlite Prozessor hat allerdings nur einen Interrupt Eingang. Daher wurde ein Interrupt Controller entwickelt, der eine beliebige Anzahl an Interrupts entgegennehmen kann und an den MBlite Prozessor weiterleitet. Das besondere an dem hier entwickelten Interrupt Controller ist, dass die Signale in einem FIFO gespeichert werden und so sichergestellt wird, dass die Interrupts in der Eingangsreihenfolge der Ereignisse abgearbeitet werden. Dies ist wichtig um die Echtzeitanforderungen einzuhalten. Die Komponente ist in \lstinline$interrupt_ctrl.vhd$ implementiert. 
 
 \FGimg[Entity/Architecture des Interrupt Controllers]{UML_class_IRQctrl.pdf}{Entity und Architecture des Interrupt Controllers.}{8cm}

@@ -78,9 +78,10 @@ Als Beispiel ist in \FR{EarlyLate_delayed.png} die Kreuzkorrelation zwischen ein
 
 Der im Blockschaltbild (\FR{EarlyLateBlockdiagram.png}) verwendete einfache Code Loop Diskriminator hat den Nachteil, dass er einen von der Signalstärke, Codelänge, und Abtastrate abhängigen Ausgangswert erzeugt \cite{borre2007software}. Deshalb wird in dieser Arbeit ein Diskriminator verwendet, der einen normalisierten Ausgangswert erzeugt:
 \begin{equation}
+ \label{EqnCodeDiscr}
     \phi_g = \frac{\sqrt{\tilde{y}_{I,E}^2+\tilde{y}_{Q,E}^2}-\sqrt{\tilde{y}_{I,L}^2+\tilde{y}_{Q,L}^2}}{\sqrt{\tilde{y}_{I,E}^2+\tilde{y}_{Q,E}^2}+\sqrt{\tilde{y}_{I,L}^2+\tilde{y}_{Q,L}^2}}
 \end{equation}
-Die Characteristik dieses Diskriminators ist in \FR{CodeDiskriminatorCharacteristic.png} dargestellt.
+Die Charakteristik dieses Diskriminators ist in \FR{CodeDiskriminatorCharacteristic.png} dargestellt.
 
 \FGimg[Normalisierender Code Loop Diskriminator]{CodeDiskriminatorCharacteristic.png}{Charakteristik des in dieser Arbeit verwendeten Code Loop Diskriminators}{0.8\textwidth}
 
