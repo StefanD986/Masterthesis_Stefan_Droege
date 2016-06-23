@@ -14,6 +14,7 @@ Eine Übersicht über das Memory Layout aus Sicht des MBlite Prozessors wurde be
 Um den Tracking Loop zu starten muss der MBlite Prozessor folgende Schritte durchführen:
 
 \begin{enumerate}
+ \label{TLStartProzedur}
     \item Tracking Loop Kanal zurücksetzten: Alle Flags auf \lstinline$'0'$ setzen.
     \item Kanal aktivieren: \lstinline$enable$ Flag auf \lstinline$'1'$ setzen.
     \item Samples für Acquisition anfangen aufzunehmen und gleichzeitig \lstinline$acq_started$ Flag auf \lstinline$'1'$ setzen.

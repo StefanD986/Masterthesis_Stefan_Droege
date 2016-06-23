@@ -1,32 +1,35 @@
 \subsection{Clock Synthesizer}
 In \FR{Eye_Diagram_MAX2769_output_color2.png} ist eine Oszilloskop Messung des vom GPS Frontend kommenden Daten- und Taktsignals dargestellt. Wie man sieht sind die Taktflanken stark abgerundet. Obwohl das Taktsignal innerhalb des FPGAs durch einen \lstinline$ibufg$ Buffer aufgefrischt wird, hat das schlechte Taktsignal bei der Implementierung zu einigen schwer zu findenden Fehlern geführt: Durch die abgerundeten Flanken reicht die Energie nicht immer aus um den Buffer zuverlässig zu treiben, was sich in fehlenden Taktflanken bemerkbar macht. Eine Messung die das Problem illustriert ist in \FR{ODDR_Buffer_Runt_Pulse_and_ADC_clock.png} zu sehen.
 
-Deshalb wird das Taktsignal im FPGA durch einen Clock Synthesizer aufgefrischt. Im \emph{XC6SLX9} FPGA stehen dazu verschiedene \glspl{Primitive} mit ähnlicher Funktionalität zur Verfügung: \lstinline$DCM_SP$, \lstinline$DCM_CLKGEN$, \lstinline$PLL_BASE$ und \lstinline$PLL_ADV$. Für den hier vorliegenden Anwendungsfall zeigte sich das \lstinline$DCM_CLKGEN$ Primitive als am besten geeignet, da es robust gegenüber unzuverlässigen Taktsignalen mit hohem Jitter und/oder Rauschen ist. Eine Auffrischung mit dem \lstinline$DCM_SP$ Primitive wurde ebenfalls ausprobiert, zeigte sich jedoch anfällig gegenüber dem schlechten Taktsignal. Eine genaue Beschreibung der Primitives ist in \cite{SP6Clock} zu finden.
+Deshalb wird das Taktsignal im FPGA durch einen Clock Synthesizer aufgefrischt. Im \emph{XC6SLX9} FPGA stehen dazu verschiedene \glspl{Primitive} zur Verfügung: \lstinline$DCM_SP$, \lstinline$DCM_CLKGEN$, \lstinline$PLL_BASE$ oder \lstinline$PLL_ADV$. Für den hier vorliegenden Fall zeigte sich das \lstinline$DCM_CLKGEN$ \gls{Primitive} als am besten geeignet, da es robust gegenüber unzuverlässigen Taktsignalen mit hohem Jitter und/oder Rauschen ist. Eine Auffrischung mit dem \lstinline$DCM_SP$ \gls{Primitive} wurde ebenfalls ausprobiert, zeigte sich jedoch anfällig gegenüber dem schlechten Taktsignal. Eine genaue Beschreibung der \glspl{Primitive} ist in \cite{SP6Clock} zu finden.
 
 \FGimg[MAX2769 Takt- und Ausgangssignal]{Eye_Diagram_MAX2769_output_color2.png}{Daten- (oben) und Taktsignal (unten) des MAX2769 GPS Frontend.}{0.8\textwidth}
 
-\FGimg[Fehlende Taktflanken]{ODDR_Buffer_Runt_Pulse_and_ADC_clock.png}{Taktsignal des GPS Fronted (unten) und das durch einen \lstinline$ibufg$ Buffer aufgefrischte Signal (oben). Für die Messung wurde das aufgefrischte Taktsignal über ein \lstinline$ODDR2$ \gls{Primitive} nach außen geführt.}{0.8\textwidth}
+\FGimg[Fehlende Taktflanken]{ODDR_Buffer_Runt_Pulse_and_ADC_clock.png}{Taktsignal des GPS Fronted (unten) und das durch einen \lstinline$ibufg$ Buffer aufgefrischte Signal (oben). Wie man sieht reicht die Energie des Taktsignals nicht immer aus den Clock Buffer zu treiben. Für die Messung wurde das aufgefrischte Taktsignal über ein \lstinline$ODDR2$ \gls{Primitive} nach außen geführt.}{0.8\textwidth}
 
-Die Clock Synthesizer Komponente (\FR{UML_class_phaseshift180.pdf}) hat den Namen \lstinline$phaseshift180$ und wurde mit dem Xilinx Core Generator erzeugt. Deshalb wird nur die Entity (Schnittstelle) beschrieben. Die Architecture besteht aus dem \lstinline$DCM_CLKGEN$ Hardware \gls{Primitive}.
+Die \lstinline$phaseshift180$ Entity (\FR{UML_class_phaseshift180.pdf}) ist die Schnittstelle zu dem dem \lstinline$DCM_CLKGEN$  Clock Synthesizer \gls{Primitive}. Die Entity wurde mit dem Xilinx Core Generator erzeugt und die einzelnen Signale der Schnittstelle sind in \TR{TabPhaseshift180_Entity} beschrieben.
 
-\FGimg[Clock Synthesizer Schnittstelle]{UML_class_phaseshift180.pdf}{Die \lstinline$phaseshift180$ Komponente ist die Schnittstelle zum \lstinline$DCM_CLKGEN$ Clock Synthesizer \gls{Primitive}.}{6cm}
+In \FR{Eye_Diagram_MAX2769_output_color2.png} ist zu sehen, dass das GPS Frontend die Daten auf der steigenden Taktflanke ändert. Damit die Daten von den weiteren Stufen im FPGA sicher eingelesen werden, werden die weiteren Stufen mit dem \SI{180}{\degree} verschobenen Taktsignal an \lstinline$o_clk_180$ getaktet. So ist sichergestellt, dass die Setup und Hold Zeiten der Flip Flops eingehalten werden.
+
+\FGimg[Clock Synthesizer Schnittstelle]{UML_class_phaseshift180.pdf}{Die \lstinline$phaseshift180$ Entity ist die Schnittstelle zum \lstinline$DCM_CLKGEN$ Clock Synthesizer \gls{Primitive}.}{4cm}
 
 \begin{table}[htbp]
     \ttabbox
     {
         \caption[Clock Synthesizer Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$phaseshift180$ Komponente.}
-        \label{TabCarrierNCO_Entity}
+        \label{TabPhaseshift180_Entity}
     }
     {
         \rowcolors{2}{light-gray}{White}
     \begin{tabular}{c c  p{2cm} p{6cm}}
         \toprule
-        Name                    & I/O  & Typ                               & Beschreibung \\
+        Name                    & I/O   & Typ                   & Beschreibung \\
         \midrule
-        \lstinline$i_clk$       & I         & \lstinline$std_logic$             & Taktsignal das auch die anderen Teile des Tracking Loop antreibt. Dies sollte das (aufgefrischte) Taktsignal des GPS Frontends sein.\\
-        \lstinline$i_reset$     & I         & \lstinline$std_logic$             & Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$) \\
-        \lstinline$i_deltaf$    & I         & \lstinline$t_carrier _fcw$             & Frequency Control Word \\
-        \lstinline$o_nco$       & O         & \lstinline$t_carrier _nco_out$ & \lstinline$record$ der die beiden LO Signale (I und Q) enthält. \\
+        \lstinline$i_clk$       & I     & \lstinline$std_logic$ & Eingang für das aufzufrischende GPS Frontend Taktsignal. \\
+        \lstinline$i_reset$     & I     & \lstinline$std_logic$ & Asynchrones Reset Signal (aktiv wenn \lstinline$i_reset='1'$). \\
+        \lstinline$o_clk_buf$   & O     & \lstinline$std_logic$ & Aufgefrischtes Taktsignal, synchron und Phasengleich zu \lstinline$i_clk$. \\
+        \lstinline$o_clk_180$   & O     & \lstinline$std_logic$ & Aufgefrischtes Taktsignal, \SI{180}{\degree} phasenverschoben aber sonst synchron zu \lstinline$i_clk$. \\
+        \lstinline$o_CLK_VALID$ & O     & \lstinline$std_logic$ & Statussignal, \lstinline$'1'$ wenn Clock Synthesizer eingerastet ist. Für Details zu diesem Signal siehe \cite{SP6Clock}.\\
         \bottomrule
     \end{tabular}
 }

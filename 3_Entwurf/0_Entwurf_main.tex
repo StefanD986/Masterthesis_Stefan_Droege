@@ -6,7 +6,7 @@ In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand de
 
 \subsection{Anzahl der Kanäle} Wie in Abschnitt \ref{positionsbestimmung} erläutert werden zur Positionsbestimmung die Daten von mindesten 4 GPS Satelliten benötigt. Daraus ergibt sich die Anforderung, dass der Empfänger mindestens 4 Kanäle zum Tracking der Signale haben muss. Weiterhin soll bei einem Verbindungsabbruch zu einem der Satelliten die Positionsbestimmung nicht abbrechen, weshalb $>4$ Kanäle erforderlich sind. Außerdem steigt die Genauigkeit der Positionsbestimmung mit mehr Satelliten. Deshalb soll der hier entwickelte GPS Empfänger mindestens 6 Kanäle umfassen.
 
-\subsection{Rohdatenpuffer}
+\subsection{Rohdatenpuffer}\label{DesignBuffersize}
 Voraussetzung für das Tracking ist die erfolgreiche Acquisition, wofür eine gewisse Menge Rohdaten benötigt werden. Aufgrund der Bitwechsel Problemetik (\ref{DatenmengeAcq}) beträgt die maximal sinnvolle Pufferlänge $2\times\SI{10}{\ms}$. Für den Entwurf wurde sich an der Implementierung in der Simulation in \cite{borre2007software} orientiert, wo ein \SI{10}{\ms} Segment in der zweiten Phase der Acquisition verwendet wird.
 
 \subsection{Komponenten und Schnittstellen des GPS Empfängers}
@@ -57,7 +57,7 @@ Stattdessen wurde als Softcore der MBlite Core von Tamar Kranenburg ausgewählt.
 
 Die Implementierung kann je nach Anforderung an Ressourcenverbrauch oder Leistungsfähigkeit angepasst werden. Für die Anwendung im GPS Empfänger ist zum Beispiel der Hardware Multiplizierer und Barrel Shifter vorteilhaft. Die Anbindung von Peripherie kann über Memory Mapped I/O geschehen, oder über den Wishbone Bus (ein Bus Standard zur Anbindung verschiedener Cores innerhalb von integrierten Schaltkreisen). Für die Anbindung der \emph{TrackingHW} Instanzen wurde die Anbindung mit Memory Mapped I/O gewählt. Weitere Informationen zum MBlite Prozessor sind in \cite{MBliteThesis} nachzulesen.
 
-\subsection{Frontend Parameter}
+\subsection{Frontend Parameter}\label{EntwurfFrontendParameter}
 Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL Parameter - die Einstellung des ZF Filters, und die Parameter des AD Wandlers. Die Dokumentation des MAX2769 Frontend ICs ist leider an vielen Stellen sehr lückenhaft. Daher mussten die optimalen Einstellungen teils durch Ausprobieren ermittelt werden.
 
 \begin{table}[htbp]
@@ -126,7 +126,7 @@ Trotzdem wurden einige Untersuchungen angestellt, welchen Vorteil höhere Quanti
     }
 \end{table}
 
-Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gpsftcxo/2$, $\gpsftcxo/4$, oder $2\times \gpsftcxo$ annehmen\footnote{Es gibt außerdem noch ein Fractional Clock Divider, über den noch andere Teilraten eingestellt werden können.}. Bei der Auswahl muss ein Kompromiss gemacht werden zwischen Genauigkeit der Pseudorange Schätzung (\ref{positionsbestimmung}) und dem Speicherverbrauch für den Rohdatenpuffer. Unter Berücksichtigung der oben festgelegten Größe des Rohdatenpuffers \SI{10}{\ms} wird die Samplingrate auf  $f_S=\gpsftcxo=\SI{16.368}{\MHz}$ festgelegt. Damit werden mit dem 1-bit Quantisierer mindestens \SI{163.68}{\kilo\bit} Speicher benötigt\footnote{Weil der Puffer als FIFO implementiert wird sind Speichergrößen von Zweierpotenzen vorteilhaft. Daher umfasst der Puffer \SI{262144}{\bit}, und damit etwa \SI{16}{\ms}}.
+Die Samplingrate kann über Teiler und Vervielfacher die Werte $\gpsftcxo$, $\gpsftcxo/2$, $\gpsftcxo/4$, oder $2\times \gpsftcxo$ annehmen\footnote{Es gibt außerdem noch ein Fractional Clock Divider, über den noch andere Teilraten eingestellt werden können.}. Bei der Auswahl muss ein Kompromiss gemacht werden zwischen Genauigkeit der Pseudorange Schätzung (\ref{positionsbestimmung}) und dem Speicherverbrauch für den Rohdatenpuffer. Unter Berücksichtigung der oben festgelegten Größe des Rohdatenpuffers \SI{10}{\ms} wird die Samplingrate auf  $f_S=\gpsftcxo=\SI{16.368}{\MHz}$ festgelegt. Damit werden mit dem 1-bit Quantisierer mindestens \SI{163.68}{\kilo\bit} Speicher benötigt\footnote{Weil der Puffer als FIFO implementiert wird sind Speichergrößen von Zweierpotenzen vorteilhaft. Daher umfasst der Puffer \SI{262144}{\bit}, und damit etwa \SI{16}{\ms}\label{FootnoteActualBufferSize}}.
 
 \paragraph{Andere Einstellungen} Neben den oben genannten Parametern bietet das MAX2769 Frontend noch viele weitere Einstellungen. Die meisten wurden dabei auf den Voreinstellungen belassen. Abweichend davon wurde beim Flugmodell die Phantomspeisung abgeschaltet und LNA1 ausgewählt, da dieser für passive Antennen ausgelegt ist wie sie im \dscubesat verwendet werden\footnote{Bei dem COM1 Board wurde währende der Entwicklung eine aktive Antenne und der dafür optimierte LNA2 verwendet.}. Die \gls{AGC} ist zwar aktiviert, dürfte aber bei 1-Bit Sampling keinen Einfluss haben. Der \emph{GAINREF} Parameter wurde auf 255 gesetzt. Weiterhin wurde durch ausprobieren herausgefunden, dass sich die Erfolgsrate der Acquisition leicht verbessert wenn der Hochpassfilter vor dem \gls{PGA} abgeschaltet wird (\emph{FHIPEN}$=0$).
 
@@ -205,6 +205,7 @@ Im folgenden ist noch eine Übersicht über die Schritte abgebildet. Die Meilens
 % Implementierung Acquisiton DSP
 
 \subsection{Schnittstelle zum Übertragen der Rohdaten}
+\label{EntwurfRohdatenschnittstelle}
 In diesem Abschnitt wird die Schnittstelle auf der Software Ebene aus Sicht des DSP beschrieben. Es wird schon einmal eine grobe Erklärung des Ablaufs auf Anwendungs-, Kernel- und Hardware Ebene gegeben. Weitere Details werden später noch im Kapitel \ref{Kerneltreiber} gegeben. Eine Anmerkung vorab: Die Beschreibung stellt den Stand zum Zeitpunkt der Entwicklungsphase dar und wurde für die Rohdatenübertragung auch so implementiert und funktioniert. Für die weitere Entwicklung ist jedoch ein Wechsel auf das \emph{Linux User I/O} Framework angedacht, da dies zukünftige Entwicklungsschritte vereinfachen wird. 
 %Einige Erklärungen dazu folgen im zweiten Unterabschnitt.
 
@@ -354,6 +355,7 @@ Dieses Problem tritt bei der DF1 nicht auf und ist deshalb auch die Filtertopolo
 Mit der Festlegung der Filtertopologie und den Rahmenbedingungen kann nun der Festkommaentwurf gemacht werden: 
 
 \subparagraph{Carrier Loop Filter}
+\label{FixedPointCarrierLoopFilterDesign}
 $x$ ist der Ausgang des Loop Diskriminators und kann Werte $[-\pi/2, \pi/2]$ annehmen. Weiterhin ist es ein Multiplikand, womit sich mit Bedingung B das Format Q1.14 ergibt. Die Filterkoeffizienten $b_{0,1}$ sind die dazugehörigen Multiplikatoren, womit, mit den Zahlenwerten aus \TR{TabFilterKoeff}, das Format Q8.7 resultiert. Als Produkt aus $x$ und $b_{0,1}$ haben $c$ und $d$ dann das Format Q9.21. 
 
 Um das Format für $y$ zu bestimmen muss der maximale Absolutwert von $y$ abgeschätzt werden: $y$ ist das Steuerwort \gpsfcw für den Carrier NCO, das proportional zu der LO Frequenz ist: $FCW=f_{LO} \cdot \frac{2^{N_{carr}}}{f_S}$. Die maximale LO Frequenz ist die nominale LO Frequenz $f_{ZF}=\SI{2.046}{\MHz}$ plus der maximalen Dopplerverschiebung, die in Kapitel \ref{Dopplereffekt} berechnet wurde. In der folgenden Berechnung wird bei außerdem noch ein Sicherheitsfaktor von \SI{400}{\percent} eingeplant: 
@@ -370,6 +372,7 @@ wofür $m=26$ Vorkommastellen benötigt werden. Damit kann das Format für $y$ z
 Unter der Voraussetzung, dass $y_{max}=\textrm{FCW}_{max}$ muss $g_{max}=y_{max}$ gelten und damit hat $g$ auch das Format Q26.5. Die selbe Überlegung gilt für $f$. Damit sind alle Formate der Variablen und Zwischenergebnisse bestimmt.
 
 \subparagraph{Code Loop Filter}
+\label{FixedPointCodeLoopFilterDesign}
 Für den Code Loop Filter können ähnliche Überlegungen angestellt werden. $x$ hat hier einen Wertebereich $[-1, 1]$, woraus sich aber das selbe Format ergibt. Die Dopplerverschiebung des Trägers geht mit einem Faktor von $1/1540$ auch in die vom Empfänger wahrgenommene Chippingrate ein (\cite{parkinsonGPS}, S. 374), womit sich die maximale Codefrequenz wie folgt ergibt (wieder mit \SI{400}{\percent} Sicherheitsfaktor):
 \begin{equation}
     f_{Chip,max} = \gpsfchip + 4 \cdot \frac{f_{d,max}}{1540}\approx \SI{1.024}{\MHz}

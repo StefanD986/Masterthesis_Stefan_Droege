@@ -1,0 +1,137 @@
+\section{DSP Software}
+Die DSP Software teilt sich auf in Kerneltreiber und User Space Software. Der Hauptteil der Arbeit hat sich mit der Entwicklung des Tracking Loop im FPGA beschäftigt, weshalb als DSP Software nur die in Abschnitt \ref{EntwurfRohdatenschnittstelle} beschriebene Rohdatenschnittstelle entwickelt wurde. Als Beispiel für die User Space Software wurde außerdem ein kleines Beispielprogramm entwickelt, welches die Rohdaten als Spektrum auf der Konsole graphisch darstellt. 
+
+\subsection{Linux Kerneltreiber}\label{Kerneltreiber}
+Der Kerneltreiber hat folgende Aufgaben zu erfüllen:
+\begin{enumerate}
+    \item Gerät im Linux Kernel registrieren und Gerätedatei erzeugen. % driver_init
+    \item Konfigurieren des GPS Frontends via SPI. % driver_open
+    \item Konfigurieren der EBIU Schnittstelle. % driver_read
+    \item Abfragen des Füllstands des Rohdaten FIFO. % driver_read
+    \item DMA Controller zum Auslesen der Rohdaten aus dem FIFO konfigurieren. % driver_read
+\end{enumerate}
+
+Im Folgenden werden die für die hier vorliegende Anwendung spezifischen Details besprochen. Die Erklärungen sollten zusammen mit dem Quellcode gelesen werden, der in \lstinline$gps/mini_DMA/minidma.c$ zu finden ist. Außerdem kann hier keine vollständige Erklärung zu Linux Kerneltreibern  gegeben werden. Für allgemeine  Informationen zur Kerneltreiberentwicklung sei z.B. auf \cite{LinuxDeviceDrivers}  und \cite{quade2015linux} verwiesen. Die Implementierung orientiert sich an den in \cite{quade2015linux} gegeben Beispielen. Einige Teile, wie z.B. die Routinen zum Zugriff auf das SPI Interface wurden aus einer früheren Version des Kerneltreibers von Kai Parow-Souchon übernommen.
+
+Der Kerneltreiber ist als ladbares Kernelmodul realisiert. Ein Kerneltreiber ist nicht notwendigerweise immer ein Kernelmodul, sondern kann auch fest in den Kernel einkompiliert werden. Für nicht ständig benötigte Funktionen ist jedoch ein dynamisch ladbares Modul zu bevorzugen.
+
+\paragraph{Gerät im Linux Kernel registrieren und Gerätedatei erzeugen:} Diese Aufgabe wird durch die Funktion \lstinline[language=C]$compass_gps_demo_init()$ implementiert. Mit dem Makro \lstinline[language=C]$module_init()$ wird dem Kernel gesagt, dass diese Funktion beim Laden des Kernelmoduls ausgeführt werden soll. 
+
+Innerhalb der Funktion werden zuerst eine Gerätenummer und Speicher für ein Character Device alloziert. Anschließend wird eine Geräteklasse erzeugt, mit der dem Kernel mitgeteilt wird welches Kernelmodul Anfragen an Geräte dieser Klasse bearbeitet (in diesem Fall das selbe Kernelmodul, was durch das Makro \lstinline[language=C]$THIS_MODULE$ identifiziert wird.)
+
+Anschließend wird mit \lstinline$device_create()$ ein Datei im \lstinline$sysfs$ in einem Unterverzeichnis von \lstinline$/sys/$ erzeugt. Dies ist nicht zu verwechseln mit der Gerätedatei über die User Space Programme auf das Gerät zugreifen. Eine Gerätedatei kann zum Beispiel manuell mit dem Kommando \lstinline$mknod$ auf der Linux Kommandozeile unter Angabe der Gerätenummer erzeugt werden. Allerdings stehen mit \emph{udev} oder \emph{mdev} auch bequemere Möglichkeiten zur Verfügung die Gerätedateien automatisch zu erzeugen. Bei dem auf dem \comboard installierten Buildroot Linux ist \emph{mdev} zur dynamischen Geräteverwaltung konfiguriert. Sobald \emph{mdev} die Datei im \lstinline$sysfs$ entdeckt erstellt es automatisch eine Gerätedatei \lstinline$/dev/compass_gps_dma$.
+
+Beim Entladen des Kernelmoduls müssen der Speicher und die Gerätenummern wieder freigegeben werden. Dies wird durch die Funktion \lstinline$compass_gps_demo_exit()$ übernommen die mit \lstinline$module_exit()$ als Clean-Up Handler registiert wird.
+
+\paragraph{Konfigurieren des GPS Frontends:}
+In Abschnitt \ref{EntwurfFrontendParameter} wurden die optimalen Parameter für das MAX2769 GPS Frontend bestimmt. Diese Parameter werden über eine SPI Schnittstelle an das Frontend gesendet. Die SPI Schnittstelle ist mit dem DSP verbunden, weshalb die Konfiguration als Teil des Kernelmoduls erfolgt.
+
+Es gibt verschiedene Stellen an denen dies geschehen kann: Sinnvolle Möglichkeiten sind z.B. beim Laden des Moduls (\lstinline[language=C]$compass_gps_demo_init()$) oder beim öffnen der Gerätedatei durch ein User Space Programm (\lstinline[language=C]$driver_open()$) oder auch nebenläufig zur Laufzeit, indem Konfigurationsdaten in eine spezielle Datei in \lstinline$sysfs$ geschrieben werden. Letztere Möglichkeit hätte den Vorteil, dass die Frontend Konfiguration geändert werden kann ohne das Kernel Modul neu zu kompilieren.
+
+Zur Zeit wird jedoch die zweite Variante verwendet, bei der mit jedem Öffnen der Gerätedatei die Konfiguration an das GPS Frontend gesendet wird. Die Variante wurde aus dem Grund der für den Anfang einfacheren Implementierung gewählt. Zukünftig sollte jedoch darüber nachgedacht werden die Konfiguration über \lstinline$sysfs$ vorzunehmen.
+
+Die Konfiguration des GPS Frontends wird über sieben \SI{32}{\bit} breite Register vorgenommen. Zuerst muss in der \lstinline[language=C]$driver_open()$ Funktion das SPI Interface konfiguriert werden. Anschließend werden die Konfigurationsworte an das GPS Frontend gesendet. Dazu wurde die Hilfsfunktion \lstinline$writeRegister()$ aus einer früheren Version des Kerneltreibers übernommen.
+
+
+\paragraph{Konfigurieren der EBIU Schnittstelle:}
+Das asynchrone Memory Interface der EBIU Schnittstelle bietet einige Konfigurationsmöglichkeiten, z.B. wie viele Taktzyklen Lese- und Schreibzugriffe dauern sollen. Eine Beispiel für eine Konfiguration ist in \FR{EBIU_readwrite.pdf} zu sehen. Weil die EBIU Schnittstelle theoretisch auch von anderen Kernelmodulen benutzt werden kann, die eventuell eine andere Konfiguration verwenden, müssen die EBIU Schnittstellen Parameter bei jedem Lesevorgang neu konfiguriert werden\footnote{Der Schreibzugriff ist derzeit nicht implementiert. Für die zukünftige Implementierung von Schreibzugriffen muss die Schnittstelle auch bei jedem Schreibzugriff konfiguriert werden.}. 
+
+Die Konfiguration erfolgt über zwei \SI{16}{\bit} Register, \lstinline$AMBCTL0$ und \lstinline$AMGCTL$. Die Werte des \lstinline$AMBCTL0$ Registers wurde aus dem Kerneltreiber für das Kamerainterface von Andrej Konforta übernommen der in \cite{DragsailAndrejMA} genaue Untersuchung zu der Performanz und Bitfehlerrate bei verschiedenen Konfigurationswerten unternommen hat. Die Konfiguration des \lstinline$AMGCTL$ wurde ebenfalls weitestgehend übernommen, lediglich der Taktausgang wurde abgeschaltet, da der EBIU Takt auf FPGA Seite nicht verwendet wird.
+
+
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[EBIU Timing Konfiguration]{Timing Konfiguration des Asynchronen Memory Interface für \lstinline[language=C]$AMBCTL0=0x2454$}
+        \label{TabEBIUTimingConfig}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{l c c}
+        \toprule
+        Parameter               & Wert   \\
+        \midrule
+        Write Access Time       & \SI{2}{Cycles} \\
+        Read Access Time        & \SI{4}{Cycles} \\
+        Hold Time               & \SI{1}{Cycles} \\
+        Setup Time              & \SI{1}{Cycles} \\
+        Bank Transition Time    & \SI{1}{Cycles} \\
+        ARDY                    & ARDY ignored \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+% EBIU Settings
+% GPS Frontend konfigurieren (% Verweis auf Swiftnav Header)
+
+\paragraph{Abfragen des Füllstands des Rohdaten FIFO:}
+\label{FuellstandFIFO}
+Ein Lesezugriff auf die Gerätedatei ruft die Funktion \lstinline[language=C]$driver_read()$ auf. Eine typischer Lesezugriff auf die Gerätedatei fragt eine bestimmt Menge an Daten an, beispielsweise \SI{4}{\kilo\byte}. Bevor der Treiber versucht die verlangte Menge aus dem FIFO auszulesen muss zuerst überprüft werden wie viele Daten überhaupt zur Verfügung stehen. 
+
+In Abschnitt \ref{RohdatenFIFOSchnittstelle} wurde bereits erklärt, dass der Füllstand des FIFOs aus einer zweiten Speicherzelle, dem FIFO Status Register, abgefragt werden kann. Das FIFO Status Register ist an der Adresse \lstinline$GPS_FIFO_STATUS_ADDR$. Der Füllstand ist in Bit 2-15 des Status Registers enthalten. Die untersten beiden Bits enthalten die \emph{Full} (Bit 1) bzw. \emph{Empty} (Bit 0) Flags des FIFOs.
+
+Das Auslesen des Statusregisters ist in die Funktion \lstinline$get_fifo_status()$ verpackt, die nach dem Konfigurieren der EBIU Schnittstelee innerhalb der Funktion \lstinline[language=C]$driver_read()$ aufgerufen wird. Zum Lesen des Status Registers wird in der Funktion ein einfacher Zugriff ohne DMA verwendet, da der Performanzvorteil von DMA erst bei größeren Datenmengen zum tragen kommt. Die Funktion gibt eine \lstinline$fifo_status$ Datenstruktur zurück, die den Füllstand und Full/Empty Status des FIFOs enthält.  
+
+\paragraph{Auslesen der Rohdaten mit DMA:}
+Aus Performanzgründen muss das Auslesen der eigentlich Rohdaten mit DMA erfolgen: Der Linux Kernel unterbricht die Ausführung anderer Programme (und Kerneltreiber) mindestens alle \SI{4}{\milli\second} aufgrund des Kernel Timer Interrupts. Weitere Unterbrechungen können durch andere laufende Programme verursacht werden. Der Datenpuffer wird aber auf FPGA Seite ständig nachgefüllt und puffert maximal \SI{16}{\milli\second}\footnote{Siehe \ref{FootnoteActualBufferSize} und \ref{DesignBuffersize}}. Um ein Überlaufen des FIFO zu verhindern ist es deshalb wichtig, dass keine Unterbrechung auftritt, die länger als \SI{16}{\milli\second} ist. Dies kann lediglich durch eine DMA Übertragung garantiert werden, die nebenläufig zu dem auf dem DSP laufenden Programm Speicherbereiche kopieren kann.
+
+Nachdem die maximale Anzahl möglicher Datenworte bestimmt wurde wird die Funktion \lstinline$FIFO_Read_DMA16()$ aufgerufen. Diese Funktion wurde geschrieben um einen DMA Lesevorgang zu vereinfachen und erwartet als Parameter die Adresse des zu lesenden FIFO, die Zieladresse des Buffer Arrays und die Anzahl der zu lesenden Datenworte. Die Funktion führt folgende Schritte aus:
+
+\begin{enumerate}
+    \item Anfragen eines Quell- und Ziel DMA Kanals.
+    \item Einstellen der DMA Parameter.
+    \item DMA Übertragung starten.
+    \item Deaktivieren und freigeben der DMA Ressourcen (nach Beendigung der Übertragung).
+    \item Markieren der Cache Region der Ziel-Speicherregion als ungültig.
+\end{enumerate}
+
+Punkt 1, 3 und 4 sind vermutlich selbst erklärend. Interessanter ist Punkt 2, die Einstellung der DMA Parameter: Der DMA Controller erwartet folgende Parameter: 
+\begin{itemize}
+    \item Die erste Quell- und Zieladresse.
+    \item Quell- und Ziel Anzahl zu kopierender Wörter
+    \item Quell- und Ziel Adress-Inkrement
+\end{itemize}
+
+\emph{Quell- und Zieladresse} wurden der \lstinline$FIFO_Read_DMA16()$ Funktion als Parameter übergeben. Die \emph{Anzahl} der zu kopierenden Wörter auf Quell- und Zielseite ist gleich und wurde ebenfalls als Parameter übergeben. Das \emph{Adress-Inkrement} ist auf Quellseite gleich null, weil immer aus der selben Speicherzelle (dem FIFO Ausgangsregister) gelesen wird. Auf Zielseite muss das Inkrement der Größe eines Datenwortes in Bytes entsprechen, was in diesem Fall \SI{16}{\bit} also \SI{2}{\byte} groß ist.
+
+Nachdem die DMA Übertragung gestartet wurde, transferiert der DMA Controller selbstständig die Daten. Währenddessen kann der Prozessor andere Arbeiten ausführen und der wartende Prozess kann über einen Interrupt benachrichtigt werden. Derzeit wird davon nicht Gebrauch gemacht, und es wird einfach nur eine Warteschleife ausgeführt in der das DMA Interrupt Bit manuell abgefragt wird.
+
+Punkt 4 ist ein weiterer wichtiger und erklärungsbedürftiger Punkt: Der verwendete Blackfin DSP verwendet eine mehrschichtige Speicherarchitektur: Ein sehr schneller aber kleiner L1 Cache ist gepaart mit einem sehr großen, aber langsameren SDRAM. Damit lassen sich Speicherzugriffe beschleunigen indem bald benötigte Speicherbereiche aus dem SRAM in den L1 Cache gespiegelt werden. Wenn allerdings Speicherbereiche mittels DMA kopiert werden, so wird lediglich der Inhalt des SDRAM verändert. Falls die Variable (oder Teile davon) auch im L1 Cache vorliegt, so wird der L1 Cache also veraltete, falsche Werte enthalten.
+
+Als letzter Schritt wird deshalb der Cache für die Ziel-Speicherregion als ungültig erklärt. Damit wird erzwungen bei einem Zugriff auf diese Speicherregion direkt aus dem SDRAM zu lesen.
+
+
+\subsection{Beispielprogramm}
+Das Kernelmodul wird wie andere Kernelmodule mit dem Befehl \lstinline$insmod$ geladen woraufhin die Gerätedatei \lstinline$/dev/compass_gps_dma$ erstellt wird. Zusätzlich muss auch die FPGA Firmware an den FPGA gesendet werden:
+\begin{lstlisting}[language=bash, deletekeywords={if}]
+root:/> insmod minidma.ko           # Kernelmodul laden
+root:/> fpgaloader -p 1             # FPGA einschalten
+root:/> fpgaloader -f gps_top.bit   # Bitstream an FPGA senden
+\end{lstlisting}
+
+\paragraph{Beispiel: Rohdaten speichern mit Standardtools}
+Da das Gerät ein einfaches Character Device ist, lassen sich die Rohdaten mit einfachen Standardtools wie \lstinline$dd$ lesen. Im folgenden ist ein Beispiel gegeben bei dem die Rohdaten in eine Datei \lstinline$./dump$ gespeichert werden: 
+
+\begin{lstlisting}[language=bash, deletekeywords={if}]
+root:/> dd if=/dev/compass_gps_dma of=./dump bs=32768 count=1000
+1+999 records in
+1+999 records out
+root:/> 
+\end{lstlisting}
+
+Die Blocksize (Parameter \lstinline$bs$) gibt an wie viele Daten \emph{maximal} in einem Block versucht werden zu lesen werden. Die Blocksize wird in Bytes angegeben. Die Blocksize sollte ein Vielfaches von 2 sein, weil der FIFO ein \SI{16}{\bit} Register ist und der Wert sollte die FIFO Größe von \SI{32768}{\byte} nicht überschreiten. Der Parameter \lstinline$count$ gibt die Anzahl der Blöcke an die gelesen werden sollen. Der Parameter \lstinline$skip=10$ verwirft die ersten 10 Blöcke.
+
+Es ist wichtig zu beachten, dass die Blocksize nur einen Maximalwert angibt. Wie oben in Abschnitt \ref{FuellstandFIFO} beschrieben werden nur die maximal so viele Datenworte gelesen wie im FIFO zur Verfügung stehen. Die Ausgabe des \lstinline$dd$ Befehls gibt Auskunft darüber wie wie viele vollständige und wie viele unvollständige Blöcke gelesen wurden. Im obigem Beispiel bedeutet die Ausgabe \lstinline$1+999 records in$, dass $1$ vollständiger \SI{32768}{\byte} Block gelesen wurde, und $999$ Blöcke mit \SI{<32768}{\byte} gelesen wurden.
+
+Es ist gewollt, dass ausschließlich unvollständige Blöcke gelesen werden: Ein vollständiger Block wird nur im Falle eines FIFO Überlaufs gelesen. Im obigen Beispiel ist der FIFO zu Anfang übergelaufen. Nach dem ersten Block liest \lstinline$dd$ den FIFO schneller aus als er gefüllt wird, sodass immer genug Pufferspeicher im FIFO ist und keine Samples verloren gehen. Deshalb sind die restlichen 999 Blöcke kürzer als \SI{32768}{\byte}.
+
+Damit der erste Block vor der weiteren Verarbeitung nicht manuell abgeschnitten werden muss, kann dem \lstinline$dd$ Befehl mit dem Parameter \lstinline$skip$ mitgeteilt werden zu Anfang eine bestimmte Anzahl Blöcke zu verwerfen:
+
+\begin{lstlisting}[language=bash, deletekeywords={if}]
+root:/> dd if=/dev/compass_gps_dma of=./dump bs=32768 count=1000 skip=10
+0+1000 records in
+0+1000 records out
+root:/> 
+\end{lstlisting}
