@@ -19,7 +19,7 @@ Die \emph{Acquisition} Komponente errechnet aus den Rohdaten die Loop Parameter 
 Die Trackingloops erhalten von dem Frontend Rohdaten und demodulieren das Signal. Aus dem demodulierten Signal extrahiert die Komponente \emph{NAV Daten Extraktion} die NAV Daten. Wie in Abschnitt \ref{positionsbestimmung} erklärt, reichen die NAV Daten alleine zu Positionsbestimmung nicht aus. Deshalb benötigt die Komponente \emph{Positionsbestimmung} zusätzlich Informationen über die Codephase von den Trackingloops.
 
 
-\FGimg[Komponentendiagramm GPS Empfänger]{GPS_UML_component1.pdf}{Die abstrahierten Komponenten des GPS Empfängers und die von ihnen benötigten bzw. bereitgestellten Daten.}{0.7\textwidth}
+\FGimg[Komponentendiagramm GPS Empfänger]{GPS_UML_component1.pdf}{Die abstrahierten Komponenten des GPS Empfängers und die von ihnen benötigten bzw. bereitgestellten Daten.}{0.7\imgmaxwidth}
 
 
 \subsection{Echtzeitanforderungen} \label{echtzeitanforderungen}
@@ -43,7 +43,7 @@ In \FR{GPS_UML_deployment1.png} ist die Verteilung der Komponenten auf die versc
 
 Im DSP soll die GPS Empfänger Anwendung laufen, die zum einen die Acquisition und zum anderen die weitere Signalverarbeitung zur NAV Daten Extraktion und Positionsbestimmung übernimmt. Auf der Hardware Ebene kommuniziert der DSP mit dem FPGA über die \gls{EBIU} Schnittstelle \cite{BlackfinHWReference}, die ein Interface für externen Speicher implementiert. 
 
-\FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.png}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.9\textwidth}
+\FGimg[Verteilungsdiagramm Dragsail GPS Empfänger]{GPS_UML_deployment1.png}{Verteilung der Komponenten auf die Rechenknoten des COM Boards}{0.9\imgmaxwidth}
 
 \subsection{Auswahl des Softcore Prozessors}
 \label{SoftcoreAuswahl}
@@ -83,7 +83,7 @@ Die wichtigsten Parameter des Frontend sind die ZF Frequenz - und damit die PLL 
     }
 \end{table}
 
-\FGimg[Vereinfachtes MAX2769 Blockschaltbild]{FrontendSimplified.png}{Vereinfachtes Blockschaltbild des MAX2769 GPS Frontends. Vor dem Mischer filtert ein externer Bandpass das GPS L1 Signal.}{0.9\textwidth}
+\FGimg[Vereinfachtes MAX2769 Blockschaltbild]{FrontendSimplified.png}{Vereinfachtes Blockschaltbild des MAX2769 GPS Frontends. Vor dem Mischer filtert ein externer Bandpass das GPS L1 Signal.}{0.9\imgmaxwidth}
 
 \paragraph{ZF und PLL Parameter}
 Bei der Erzeugung des LO Signals stehen im Frontend eine Integer PLL oder eine Fractional PLL zur Auswahl. Experimentell wurde bestimmt, dass die Integer PLL weniger Interferenzen verursacht, und die besten Ergebnisse bei einer ZF von etwa \SI{2}{\MHz} erreicht werden können. Bei der Auswahl der PLL Teilerfaktoren muss darauf geachtet werden, dass die geteilten Frequenzen in den im Datenblatt \cite{max2769} angegebenen Grenzen bleiben und $f_{comp}=f_{ref}/R$ muss zu dem Loop Filter der Frontend PLL passen. Das \comboard verwendet für den Loop Filter die Werte aus dem Datenblatt, wonach $f_{comp}=\SI{1.023}{\MHz}$ sein soll. Falls der komplexe Bandpass verwendet wird, muss außerdem die LO Frequenz unterhalb der Eingangsfrequenz liegen, da der komplexe Bandpass das untere Seitenband herausfiltert.
@@ -149,9 +149,10 @@ Als fünfter Meilenstein ist die Extraktion der NAV Daten zu implementieren. Auc
 
 Als finaler Meilenstein muss dann die Positionsbestimmung implementiert werden. Hier muss ebenfalls wieder die Kommunikation mit dem FPGA implementiert werden um die Codephase abzufragen. Mit den NAV Daten muss dann die Pseudorange berechnet werden. Weiterhin müssen aus den NAV Daten die Position der aussendenden Satelliten berechnet werden. Zu der Positionsbestimmung kann auch das Mitteln der Position gehören, oder die Berechnung eines Orbits des \dscubesat. Die Anforderungen hier sind noch nicht festgelegt.
 
-Im folgenden ist noch eine Übersicht über die Schritte abgebildet. Die Meilensteine 1 bis 3 sind zu diesem Zeitpunkt bisher implementiert worden.
+Im folgenden ist noch eine Übersicht über die Schritte abgebildet. Bis dato wurden die Meilensteine 1 bis 3 implementiert.
 
 \begin{enumerate}
+\label{ListeMeilensteine}
 \item Schnittstelle zum Übertragen der Rohdaten zum DSP
     \begin{enumerate}
     \item Linux Kerneltreiber
@@ -216,7 +217,7 @@ Unter Linux werden Hardware/Software Schnittstellen typischerweise über \emph{d
 
 \emph{Character Devices} liefern die Daten Zeichenweise aus, eine Positionierung innerhalb des Datenstroms ist dabei nicht möglich. Typische Beispiele sind Maus und Tastatur. Hier ist offensichtlich, dass wahlfreier Zugriff nicht möglich ist. Die Rohdatenschnittstelle verhält sich ähnlich, es können immer nur so viele Daten gelesen werden, wie zur Verfügung stehen, ein Wahlfreier Zugriff darüber hinaus ist nicht möglich. Deshalb soll die Schnittstelle als Character Device implementiert werden. Der Treiber erzeugt dann ein Character Device File, z.B. \lstinline$/dev/gps$. Damit können die Rohdaten auf Anwendungsseite mit einfachen Funktionen der C Standardbibliothek (\lstinline$fid=fopen("/dev/gps", "r")$ und \lstinline$fread(fid, ...)$ usw.) gelesen werden (\FR{GPS_UML_seq_FileIO.pdf}).
 
-\FGimg[Linux File I/O Sequenzdiagramm]{GPS_UML_seq_FileIO.pdf}{Ablauf eines Lesezugriffs auf das Character Device File}{0.9\textwidth}
+\FGimg[Linux File I/O Sequenzdiagramm]{GPS_UML_seq_FileIO.pdf}{Ablauf eines Lesezugriffs auf das Character Device File}{0.9\imgmaxwidth}
 
 \subsubsection{Treiberebene}
 Der Aufruf einer der oben genannten Funktionen (\lstinline$fopen$ und \lstinline$fread$ usw.) ruft einen System Call auf, beispielsweise  \lstinline$open$ oder \lstinline$read$. 
@@ -234,9 +235,9 @@ Eine bessere Variante ist die Daten in eine \gls{FIFO} Warteschlange zu schreibe
 \FR{GPS_UML_Rohdatenpuffer.pdf} zeigt noch ein bisschen mehr den internen Aufbau auf FPGA Seite. Der \emph{Slave EBIU Controller} ist hier das Gegenstück im FPGA zu dem EBIU Controller im DSP ( \FR{EBIU_blockdiagram.pdf}). Er sorgt dafür die externe Asynchrone Schnittstelle auf den internen synchronen Daten- und Adressbus umzusetzen. Der Adressdekoder wertet den Adressbus aus und selektiert die entsprechenden Komponente, die ihre Daten auf den Bus legen soll.
 
 
-\FGimg[Vergleich FIFO und RAM Block Puffer]{FIFO_vs_plain_memory.png}{Vergleich des FIFO Datenpuffers (\emph{A}) mit dem Speicherblock Puffer (\emph{B}). Der entscheidende Nachteil von \emph{B} ist, dass die Schreib- und Lesezeiger über die Schnittstellengrenze hinweg synchronisiert werden müssen.}{0.95\textwidth}
+\FGimg[Vergleich FIFO und RAM Block Puffer]{FIFO_vs_plain_memory.png}{Vergleich des FIFO Datenpuffers (\emph{A}) mit dem Speicherblock Puffer (\emph{B}). Der entscheidende Nachteil von \emph{B} ist, dass die Schreib- und Lesezeiger über die Schnittstellengrenze hinweg synchronisiert werden müssen.}{0.95\imgmaxwidth}
 
-\FGimg[Rohdatenschnittstelle auf Hardware Ebene]{GPS_UML_Rohdatenpuffer.pdf}{Rohdatenschnittstelle auf Hardware Ebene. Die Rohdaten werden in einen FIFO geschrieben. Der DSP kann auf den FIFO über das EBIU Interface wie auf einen Speicher zugreifen.}{0.6\textwidth}
+\FGimg[Rohdatenschnittstelle auf Hardware Ebene]{GPS_UML_Rohdatenpuffer.pdf}{Rohdatenschnittstelle auf Hardware Ebene. Die Rohdaten werden in einen FIFO geschrieben. Der DSP kann auf den FIFO über das EBIU Interface wie auf einen Speicher zugreifen.}{0.6\imgmaxwidth}
 
 \subsubsection{User I/O Schnittstelle}
 \label{UserIOSchnittstelle}
@@ -349,7 +350,7 @@ Bevor die Quantisierung der Filterkoeffizienten besprochen wird soll noch der Ei
 
 Dieses Problem tritt bei der DF1 nicht auf und ist deshalb auch die Filtertopologie die später in der Implementierung eingesetzt wird.
 
-\FGimg[Filtertopologien]{FilterTopology.png}{Topologien für digitale Filter. Die vermutlich bekanntesten Filtertopologien sind DF1 (oben) und DF2 (unten). Beide Formen haben Vor- und Nachteile. Für die Implementierung in dieser Arbeit ist die DF1 Topologie vorteilhaft.}{0.8\textwidth}
+\FGimg[Filtertopologien]{FilterTopology.png}{Topologien für digitale Filter. Die vermutlich bekanntesten Filtertopologien sind DF1 (oben) und DF2 (unten). Beide Formen haben Vor- und Nachteile. Für die Implementierung in dieser Arbeit ist die DF1 Topologie vorteilhaft.}{0.8\imgmaxwidth}
 
 \paragraph{Festkommaentwurf}
 Mit der Festlegung der Filtertopologie und den Rahmenbedingungen kann nun der Festkommaentwurf gemacht werden: 
@@ -426,7 +427,7 @@ Die in Software implementierten Teile sind in \FR{Trackingloop.png} grün markie
 
 Die Ein- und Ausgabeparameter werden über Register gelesen, bzw. geschrieben. Auf Hardware Ebene bildet der Adressdekoder der Softcore CPU die Register jedes Kanals auf einen Speicherbereich am Ende des adressierbaren Speichers ab  (\FR{TLMemoryLayout.pdf}). Auf Software Seite werden die Register durch ein C \lstinline$struct$ angesprochen. Weitere Details zu der Bedeutung der einzelnen Register folgen später noch im Kapitel \ref{ImplMemoryMapTrackingloop}
 
-\FGimg[Trackingloop Softcore CPU Memory Map]{TLMemoryLayout.pdf}{Memory Layout der Trackingloop Register im Speicher.}{0.95\textwidth}
+\FGimg[Trackingloop Softcore CPU Memory Map]{TLMemoryLayout.pdf}{Memory Layout der Trackingloop Register im Speicher.}{0.95\imgmaxwidth}
 	%t_iq Early; 		// Size: 4 byte --> Offset 0	(0x00)
 	%t_iq Prompt; 		// Size: 4 byte --> Offset 4	(0x04)
 	%t_iq Late; 		// Size: 4 byte --> Offset 8	(0x08)
@@ -451,7 +452,7 @@ In diesem Abschnitt soll kurz die Simulation in Matlab besprochen werden. Für d
 \paragraph{Simulink Simulation}
 Der oben beschriebene SoftGNSS Empfänger implementiert die Schritte anders als sie in der Hardware im FPGA implementiert werden: Beispielsweise werden die \gls{CA} Codes vorab mit einer Look-Up-Table generiert, statt in Echtzeit durch ein LFSR. Es wird außerdem mit Fließkommawerten gerechnet, wohingegen die FPGA Implementierung nur einzelne Bits, bzw. Festkommawerte verwendet. Bevor mit der FPGA Implementierung begonnen wurde, wurde deshalb eine eigene Simulink Simulation des Trackingloops entwickelt, mit der der Hardware Trackingloop im FPGA so gut wie möglich nachgebildet wird. Anhand dessen konnten dann z.B. die Auswirkungen  der Quantisierung der Filterkoeffizienten oder Verzögerungen bei der Berechnung der Loop Parameter getestet werden. 
 
-\FGimg[Tracking Loop Simulink Simulation]{Simulink_Trackingloop.png}{Simulink Blockdiagramm der Tracking Loop Simulation. Grün markiert sind die Teile des Tracking Loop, die in Realität mit \SI{1}{\milli\second} Abtastrate ausgeführt werden und Rot markiert die Teile die mit etwa \SI{61}{\nano\second} Abtastrate ausgeführt werden.}{1.1\textwidth}
+\FGimg[Tracking Loop Simulink Simulation]{Simulink_Trackingloop.png}{Simulink Blockdiagramm der Tracking Loop Simulation. Grün markiert sind die Teile des Tracking Loop, die in Realität mit \SI{1}{\milli\second} Abtastrate ausgeführt werden und Rot markiert die Teile die mit etwa \SI{61}{\nano\second} Abtastrate ausgeführt werden.}{1.1\imgmaxwidth}
 
 
 

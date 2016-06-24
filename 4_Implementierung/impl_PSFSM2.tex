@@ -1,26 +1,26 @@
 \subsubsection{EBIU Schnittstelle auf FPGA Seite}
 
-\FGimg[Entity/Architecture der EBIU Schnittstelle auf FPGA Seite]{UML_class_PSFSM2.pdf}{Entity und Architecture der \lstinline$PSFSM2$ Komponente, die das Bindeglied zwischen dem asynchronen Memory Interface des DSP und dem Rohdaten FIFO ist.}{0.9\textwidth}
+\FGimg[Entity/Architecture der EBIU Schnittstelle auf FPGA Seite]{UML_class_PSFSM2.pdf}{Entity und Architecture der \lstinline$PSFSM2$ Komponente, die das Bindeglied zwischen dem asynchronen Memory Interface des DSP und dem Rohdaten FIFO ist. Die in den \lstinline$t_EBIU_*$ Typen efinierten Signalen entsprechen der in \cite{BlackfinHWReference} definierten EBIU Schnittstelle.}{0.9\imgmaxwidth}
 
 Auf der FPGA Seite muss ein Gegenstück zu dem Asynchronen Memory Interface des DSP implementiert werden. Diese Komponente ist in \lstinline$PSFSM2.vhd$ implementiert. Sie dient als Bindeglied zwischen dem EBIU Interface und dem Rohdaten FIFO.
 
 Die Herausforderung bei dem Asynchronen Memory Interface ist, wie der Name schon sagt, die Asynchronität der Signale zu dem Systemtakt des FPGA: Wenn die Setup \& Hold Zeiten der Flipflops nicht eingehalten werden, kann das FF in einen Metastabilen Zustand gelangen, der erst nach längerer, nicht vorhersagbarer Zeit verlassen wird\footnote{Einige weiterführende Informationen zu dem Thema sind in \cite{FPGAFAQMetastability} und \cite{ginosar2011metastability} zu finden. Eine umfangreiche Artikelsammlung zu dem Thema bietet \cite{MetastabilityBibliography}}. 
-Eine perfekte Lösung Metastabilität im ersten Flipflop, auf das das Eingangssignal trifft, zu verhindern existiert nicht. Es gibt lediglich die Möglichkeit durch das Einbauen von Wartezyklen die Wahrscheinlichkeit, dass der metastabile Zustand auch an nachfolgende Flipflop Stufen propagiert wird zu verringern. Damit lässt sich die \gls{MTBF} auf ein akzeptables Maß vergrößern. Genau dies wird auch bei dem Asynchronen Memory Interface der EBIU gemacht. Die Einstellung der Wartezeiten wurde in \TR{TabEBIUTimingConfig} gegeben.
+Eine perfekte Lösung Metastabilität im ersten Flipflop, auf das das Eingangssignal trifft, zu verhindern existiert nicht. Es gibt lediglich die Möglichkeit durch das Einbauen von Wartezyklen die Wahrscheinlichkeit, dass der metastabile Zustand auch an nachfolgende Flipflop Stufen propagiert wird, zu verringern. Damit lässt sich die \gls{MTBF} auf ein akzeptables Maß vergrößern. Genau dies wird auch bei dem Asynchronen Memory Interface der EBIU gemacht. Die Einstellung der Wartezeiten wurde in \TR{TabEBIUTimingConfig} gegeben.
 
-Die Signale der EBIU Schnittstelle (zusammengefasst im Typ \lstinline$t_EBIU_out$) steuern eine \gls{FSM}, die je nach Zustand die Lesezugriffe an den FIFO weiterleitet. Die \gls{FSM} mit dem Systemtakt des FPGAs getaktet, damit die Schnittstelle synchron zu dem Systemtakt der restlichen Komponenten im FPGA ist.
+Außerdem wird durch die PSFSM2 die Memory Map festgelegt, also unter welcher Adresse der DSP den FIFO bzw. dessen Statusregister auslesen kann (\TR{Tab_RohdatenMemMap}).
 
 \paragraph{Schnittstelle (Entity)}
-In \TR{TabPSFSM_Entity} ist die Schnittstelle der \lstinline$PSFSM2$ Komponente beschrieben. In \FR{UML_class_PSFSM2.pdf} ist der \lstinline$t_IandD_accu$ Typ definiert.
+In \TR{TabPSFSM2_Entity} ist die Schnittstelle der \lstinline$PSFSM2$ Komponente beschrieben. In \FR{UML_class_PSFSM2.pdf} sind außerdem die von der Entity verwendeten Typen dargestellt.
 
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Carrier NCO Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$carrier_nco$ Komponente.}
-        \label{TabPSFSM_Entity}
+        \caption[PSFSM2 Schnittstelle]{Schnittstellenbeschreibung (Entity) der \lstinline$PSFSM2$ Komponente.}
+        \label{TabPSFSM2_Entity}
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c c  p{2cm} p{6cm}}
+    \begin{tabular}{c c  p{2.5cm} p{5.5cm}}
         \toprule
         Name                & I/O	& Typ				                & Beschreibung \\
         \midrule
@@ -41,8 +41,8 @@ In \TR{TabPSFSM_Entity} ist die Schnittstelle der \lstinline$PSFSM2$ Komponente 
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Carrier NCO interne Signale]{Interne Signale der \lstinline$integrate_and_dump$ Komponente.}
-        \label{TabIandD_ArchSignals}
+        \caption[Interne Signale der PSFSM2 Architecture]{Interne Signale der \lstinline$PSFSM2$ Komponente.}
+        \label{TabPSFSM2_ArchSignals}
     }
     {
         \rowcolors{2}{light-gray}{White}
@@ -50,8 +50,8 @@ In \TR{TabPSFSM_Entity} ist die Schnittstelle der \lstinline$PSFSM2$ Komponente 
         \toprule
         Name      		& Typ         & Beschreibung \\
         \midrule
-        \lstinline$r$		& \lstinline$t_iandd_reg$ & \\
-        \lstinline$r_next$	& \lstinline$t_iandd_reg$ & \\
+        \lstinline$r$		& \lstinline$reg_type$ & \gls{FSM} Zustandsregister.\\
+        \lstinline$r_next$	& \lstinline$reg_type$ & Signal für den zukünftigen Zustand der \gls{FSM}.\\
         \bottomrule
     \end{tabular}
 }
@@ -60,20 +60,49 @@ In \TR{TabPSFSM_Entity} ist die Schnittstelle der \lstinline$PSFSM2$ Komponente 
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Typdefinition Code NCO Zustandsregister]{Beschreibung der Struktur des Integrate \& Dump Zustandsregisters (\lstinline$t_iandd_reg$ Typ).}
-        \label{Tab_t_iandd_reg_Type}
+        \caption[Typdefinition PSFSM2 Zustandsregister]{Beschreibung der Struktur des Zustandsregisters der State Machine in der \lstinline$PSFSM2$ Komponente (\lstinline$reg_type$ Typ).}
+        \label{Tab_reg_typ}
     }
     {
         \rowcolors{2}{light-gray}{White}
     \begin{tabular}{c  p{2cm} p{6cm}}
         \toprule
-        Name				& Typ						& Beschreibung \\
+        Name				        & Typ						        & Beschreibung \\
         \midrule
-        \lstinline$count$		& \lstinline$t_IandD_accu$	&  Akkumulator des Integrators. Abhängig vom Wert an \lstinline$i_data$ wird dieser Wert mit jeder steigenden Taktflanke inkrementiert, bzw. dekrementiert.\\
-        \lstinline$output$		& \lstinline$t_IandD_accu$	&  Ausgangsregister. Wenn \lstinline$i_dump='1'$ wird bei einer steigenden Taktflanke der Wert von \lstinline$count$ in dieses Register kopiert. \\
+        \lstinline$state$		    & \lstinline$state_type$	        & \gls{FSM} Zustand.\\
+        \lstinline$psfsm_to_EBIU$	& \lstinline$t_EBIU_in$	            &  Ausgangsregister.\\
+        \lstinline$psfsm_to_fifo$   & \lstinline$t_fifo_ps_Read_in$     & Register für Steuersignale zum FIFO.\\
+        \lstinline$fifo_status$     & \lstinline$SLV(15 downto 0)$      & FIFO Füllstand und Full/Empty Flags\\
+	    \lstinline$readcount$       & \lstinline$SLV(15 downto 0)$      & Register für Testzwecke (siehe Architecture Beschreibung.)\\
         \bottomrule
     \end{tabular}
 }
 \end{table}
 
-Die Architecture implementiert den Integrator als einfachen Hoch/Runter Zähler: Bei einer steigenden Taktflanke an \lstinline$i_clk$ wird \lstinline$r.count$ abhängig von \lstinline$i_data$ inkrementiert (\lstinline$i_data='1'$) oder dekrementiert (\lstinline$i_data='0'$). Wenn \lstinline$i_dump='1'$ wird der Zählerstand in das Ausgangsregister \lstinline$r.output$ kopiert und der Zähler zurückgesetzt. Gleichzeitig wird durch das \emph{Dump} Signal bei dem MBlite Prozessor ein Interrupt ausgelöst, der daraufhin den Wert aus dem Ausgangsregister ausliest.
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Memory Map Rohdatenschnittstelle]{Die Register die über die EBIU Schnittstelle ausgelesen werden können. Alle Register sind \SI{16}{\bit} breit.}
+        \label{Tab_RohdatenMemMap}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c  l p{6cm}}
+        \toprule
+        Adresse				    & Bezeichnung			& Beschreibung \\
+        \midrule
+        \lstinline$0x20000000$  & \lstinline$status0$   & Enthält FIFO Füllstand (Bit 15-2) und Status Flags (Bit 1: Full; Bit 0: Empty).\\
+        \lstinline$0x20000020$  & \lstinline$test$      & Register um Datenübertragung zwischen FPGA und DSP zu testen (siehe auch Beschreibung im Text).\\
+	    \lstinline$0x20000040$  & \lstinline$fifo_read$ & FIFO Ausgangsregister\\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+%Die Signale der EBIU Schnittstelle (zusammengefasst im Typ \lstinline$t_EBIU_out$) steuern eine \gls{FSM}. Die \gls{FSM} mit dem Systemtakt des FPGAs getaktet, damit die Schnittstelle synchron zu dem Systemtakt der restlichen Komponenten im FPGA ist. Je nachdem von welcher Adresse der DSP Daten angefordert hat sorgt die \gls{FSM} dafür die Daten aus FIFO, Statusregister, oder Test Register auf den EBIU Datenbus zu legen.
+
+Das \lstinline$status0$ Register beinhaltet in den Bits 15 bis 2 den Füllstand des FIFOs. Dieser Wert ist immer garantiert kleiner oder gleich dem momentanen Füllstand. Dadurch ist sichergestellt, dass wenn der DSP diesen Wert abfragt und im nächsten Schritt genau so viele Daten aus dem FIFO ausliest, kein FIFO \emph{Unterlauf} auftritt. Die untersten beiden Bits enthalten die \emph{Full} bzw. \emph{Empty} Flags des FIFOs.
+
+Das \lstinline$fifo_read$ Register ist der Ausgang des Rohdatenpuffers. Nachdem ein Wort von dieser Adresse gelesen wird, wird es aus dem Puffer gelöscht und das nächste Wort steht bereit. So kann durch wiederholtes Lesen von der \lstinline$fifo_read$ Adresse nach und nach der gesamte Puffer ausgelesen werden.
+
+Das \lstinline$test$ Register erfüllt keinen für den Betrieb wichtigen Zweck, kann jedoch genutzt werden um die Übertragung zwischen FPGA und DSP zu testen. Mit jedem Lesevorgang auf dieses Register wird der Inhalt des Registers inkrementiert. Wenn keine Fehler bei der Übertragung auftreten sollte der DSP also eine lückenlose Sequenz von Zahlen in aufsteigender Reihenfolge empfangen (mit Ausnahme des Überlaufs von $2^{16}-1$ auf $0$).

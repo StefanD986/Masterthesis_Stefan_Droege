@@ -1,5 +1,5 @@
 \section{DSP Software}
-Die DSP Software teilt sich auf in Kerneltreiber und User Space Software. Der Hauptteil der Arbeit hat sich mit der Entwicklung des Tracking Loop im FPGA beschäftigt, weshalb als DSP Software nur die in Abschnitt \ref{EntwurfRohdatenschnittstelle} beschriebene Rohdatenschnittstelle entwickelt wurde. Als Beispiel für die User Space Software wurde außerdem ein kleines Beispielprogramm entwickelt, welches die Rohdaten als Spektrum auf der Konsole graphisch darstellt. 
+Die DSP Software teilt sich auf in Kerneltreiber und User Space Software. Der Hauptteil der Arbeit hat sich mit der Entwicklung des Tracking Loop im FPGA beschäftigt, weshalb als DSP Software nur die in Abschnitt \ref{EntwurfRohdatenschnittstelle} beschriebene Rohdatenschnittstelle entwickelt wurde. Zum Ende dieses Abschnitts wird ein Beispiel gezeigt, wie sich mit dem Kerneltreiber und der dazugehörigen FPGA Firmware Rohdaten mit dem \comboard aufgezeichnet werden können.
 
 \subsection{Linux Kerneltreiber}\label{Kerneltreiber}
 Der Kerneltreiber hat folgende Aufgaben zu erfüllen:
@@ -70,7 +70,7 @@ Die Konfiguration erfolgt über zwei \SI{16}{\bit} Register, \lstinline$AMBCTL0$
 \label{FuellstandFIFO}
 Ein Lesezugriff auf die Gerätedatei ruft die Funktion \lstinline[language=C]$driver_read()$ auf. Eine typischer Lesezugriff auf die Gerätedatei fragt eine bestimmt Menge an Daten an, beispielsweise \SI{4}{\kilo\byte}. Bevor der Treiber versucht die verlangte Menge aus dem FIFO auszulesen muss zuerst überprüft werden wie viele Daten überhaupt zur Verfügung stehen. 
 
-In Abschnitt \ref{RohdatenFIFOSchnittstelle} wurde bereits erklärt, dass der Füllstand des FIFOs aus einer zweiten Speicherzelle, dem FIFO Status Register, abgefragt werden kann. Das FIFO Status Register ist an der Adresse \lstinline$GPS_FIFO_STATUS_ADDR$. Der Füllstand ist in Bit 2-15 des Status Registers enthalten. Die untersten beiden Bits enthalten die \emph{Full} (Bit 1) bzw. \emph{Empty} (Bit 0) Flags des FIFOs.
+In Abschnitt \ref{RohdatenFIFOSchnittstelle} wurde bereits erklärt, dass der Füllstand des FIFOs aus einer zweiten Speicherzelle, dem FIFO Status Register, abgefragt werden kann. Das FIFO Status Register liegt an der Adresse \lstinline$GPS_FIFO_STATUS_ADDR$\footnote{Die Adresse von Statusregister und FIFO Ausgangsregister wird durch die \lstinline$PSFSM2$ Komponente im FPGA fesgelegt (siehe auch \TR{Tab_RohdatenMemMap}).}. Der Füllstand ist in Bit 2-15 des Status Registers enthalten. Die untersten beiden Bits enthalten die \emph{Full} (Bit $1$) bzw. \emph{Empty} (Bit $0$) Flags des FIFOs.
 
 Das Auslesen des Statusregisters ist in die Funktion \lstinline$get_fifo_status()$ verpackt, die nach dem Konfigurieren der EBIU Schnittstelee innerhalb der Funktion \lstinline[language=C]$driver_read()$ aufgerufen wird. Zum Lesen des Status Registers wird in der Funktion ein einfacher Zugriff ohne DMA verwendet, da der Performanzvorteil von DMA erst bei größeren Datenmengen zum tragen kommt. Die Funktion gibt eine \lstinline$fifo_status$ Datenstruktur zurück, die den Füllstand und Full/Empty Status des FIFOs enthält.  
 
@@ -103,7 +103,7 @@ Punkt 4 ist ein weiterer wichtiger und erklärungsbedürftiger Punkt: Der verwen
 Als letzter Schritt wird deshalb der Cache für die Ziel-Speicherregion als ungültig erklärt. Damit wird erzwungen bei einem Zugriff auf diese Speicherregion direkt aus dem SDRAM zu lesen.
 
 
-\subsection{Beispielprogramm}
+\subsection{Beispielprogramm}\label{BeispielRohdatenAufzeichnen}
 Das Kernelmodul wird wie andere Kernelmodule mit dem Befehl \lstinline$insmod$ geladen woraufhin die Gerätedatei \lstinline$/dev/compass_gps_dma$ erstellt wird. Zusätzlich muss auch die FPGA Firmware an den FPGA gesendet werden:
 \begin{lstlisting}[language=bash, deletekeywords={if}]
 root:/> insmod minidma.ko           # Kernelmodul laden

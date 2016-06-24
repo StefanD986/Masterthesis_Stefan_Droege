@@ -1,0 +1,14 @@
+\chapter{Ergebnisse}
+
+In diesem Kapitel werden einige Tests und Ergebnisse präsentiert. Bis dato wurden die Meilensteine\footnote{siehe Abschnitt \ref{ListeMeilensteine}, Seite \pageref{ListeMeilensteine}} 1 bis 3 erreicht: Zum einen können Rohdaten des GPS Frontends mit dem \comboard aufgezeichnet und anschließend in Matlab analysiert werden (Meilensteine 1\&2). Zum anderen kann für ein Satellitensignal, dessen Dopplershift und Codephase bekannt ist, auf dem \comboard das Tracking durchgeführt werden (Meilenstein 3). Es gibt jedoch noch keine Möglichkeit direkt auf den COM Board selbst die Acquisition durchzuführen und die Ergebnisse an den FPGA zum Zweck des Tracking weiterzugeben.
+
+Deshalb teilt sich die Präsentation der Ergebnisse in zwei Abschnitte: 
+
+\paragraph{Acquisition} Für den Meilensteine 1 wird demonstriert wie Rohdaten mit einer an das  \comboard angeschlossenen Antenne aufgezeichnet werden. Mit diesen Rohdaten wird für den Meilenstein 2 anschließend die Acquisiton und das Tracking in Matlab mit dem SoftGNSS Receiver durchgeführt.
+
+\paragraph{Tracking} Für den Meilenstein 3 wird ein künstlich erzeugtes Signal mit bekanntem SNR, Dopplerverschiebung und Codephase mit dem in VHDL geschriebenen Code getracked und demoduliert.
+
+
+\input{5_Ergebnisse/30_Acquisition_Ergebnis}
+
+\input{5_Ergebnisse/60_Tracking_Ergebnis}
