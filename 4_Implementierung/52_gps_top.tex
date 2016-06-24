@@ -3,7 +3,7 @@ Die Top Level Entity ist, wie der Name sagt, die übergeordnete Komponente die z
 
 In \FR{UML_comp_structure_gps_top.pdf} ist der Aufbau der \lstinline$gps_top$ Komponente etwas vereinfacht dargestellt. Nicht dargestellt ist die in Abschnitt \ref{RohdatenFIFOSchnittstelle} beschriebene Rohdaten Schnittstelle zum DSP, die zu Anfang der Entwicklungsphase genutzt wurde um Rohdaten auf den DSP zu übertragen. Diese wird in einem eigenen Abschnitt beschrieben, da sie zu diesem Zeitpunkt aus den in Abschnitt \ref{UserIOSchnittstelle} genannten Gründen noch nicht mit dem derzeitigen Entwicklungsstand zusammengeführt wurde. Aus Gründen der Übersicht ist in \FR{UML_comp_structure_gps_top.pdf} der Clock Synthesizer nicht abgebildet. Der Clock Synthesizer frischt das vom GPS Frontend kommende Taktsignal auf und versorgt mit dem aufgefrischten Signal die anderen Komponenten.
 
-\FGimg[Übersicht FPGA Firmware]{UML_comp_structure_gps_top.pdf}{Vereinfachte Struktur der Top Level Komponente \lstinline$gps_top$ und einige der verwendeten Typen.}{0.95\textwidth}
+\FGimg[Übersicht FPGA Firmware]{UML_comp_structure_gps_top.pdf}{Vereinfachte Struktur der Top Level Komponente \lstinline$gps_top$ und einige der verwendeten Typen.}{0.95\imgmaxwidth}
 
 Wie bereits in Abschnitt \ref{SoftcoreAuswahl} erwähnt ist der  MBlite Prozessor eine Implementierung des Microblaze und hat somit eine \emph{Harvard Architektur} bei der Data und Instruction Memory über zwei getrennte Busse angesprochen werden.
 
