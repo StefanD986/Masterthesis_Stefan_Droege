@@ -1,1 +1,9 @@
 \section{FPGA Tracking Loop}
+Da derzeit noch keine Möglichkeit besteht die Acquisition Ergebnisse an den Tracking Loop im FPGA weiterzugeben wurde für diesen Versuch die gesamte \lstinline$gps_top$ Komponente mit \emph{ghdl} simuliert. Da es sich um eine \gls{RTL} Simulation mit dem selben Code der auch auf dem FPGA ausgeführt wird handelt, unterscheidet sich das Ergebnis nicht von der tatsächlichen Ausführung im FPGA.
+
+Dazu wurde eine Testbench \lstinline$gps_top_tb$ erstellt, die die \lstinline$gps_top$ Komponente enthält und die Test-Stimuli erzeugt. Der Rohdaten Stimulus wird durch eine Unterkomponente \lstinline$samples_from_file$ erzeugt. Diese Komponente wurde geschrieben um die Rohdaten aus einer Datei zu lesen. Die \lstinline$samples_from_file$ Komponente gibt die Rohdaten über das MAX2769 Interface an die \lstinline$gps_top$ Komponente weiter, wirkt also quasi als MAX2769 \emph{Dummy}. Die Ausgaben der Korrelatoren und einiger anderer Kennwerte (z.B. Code/Carrier FCW) werden von der \lstinline$gps_top$ Komponente selbst in Dateien geschrieben. Einen Überblick über den Versuchsaufbau gibt \FR{Versuch_Tracking_Testbench.pdf}.
+%UML_comp_structure_gps_top.pdf  Section_gps_top_entity
+
+Um zu prüfen ob die durch den Tracking Loop demodulierten Daten auch den gesendeten NAV Daten entsprechen wurden für diesen Versuch künstlich erzeugte Rohdaten mit bekannter PRN, SNR, Codephase und Dopplerverschiebung erzeugt. 
+
+
