@@ -13,7 +13,9 @@ Zum Empfang wurden die passiven Antennen des \dscubesat verwendet. Diese sind au
 \subsection{Versuchsdurchführung}
 Mit den in Abschnitt \ref{BeispielRohdatenAufzeichnen} beschriebenen Befehlen wurden mehrere kurze, etwa \SI{600}{\milli\second} Segmente aufgezeichnet. Falls \lstinline$dd$ in der Ausgabe anzeigt, dass $\geq 1$ vollständiger Block übertragen wurde, so wurde die Messung verworfen. Vollständige Blöcke sind ein Indiz dafür, dass während der Messung der Pufferspeicher übergelaufen ist und somit Samples verloren gegangen sind.
 
-Die aufgezeichneten Daten wurden dann auf einen PC übertragen und in Matlab weiterverarbeitet: Der SoftGNSS Empfänge erwartet Daten mit $1\frac{\textrm{Sample}}{\textrm{Byte}}$. Die mit dem COM Board aufgezeichneten Daten liegen jedoch als $8\frac{\textrm{Sample}}{\textrm{Byte}}$ vor. Zur Umwandlung der Daten wurde ein kurzes Matlabskript \lstinline$Fileconvert.m$ geschrieben. Das Skript wurde im selben Verzeichnis wie der SoftGNSS Receiver hinterlegt.
+Die aufgezeichneten Daten wurden dann auf einen PC übertragen und in Matlab weiterverarbeitet. Der SoftGNSS Empfänger führt eine Acquisition aus und, falls die Suche erfolgreich war, auch das Tracking\footnote{Mit genug Daten von mindestens 4 Satelliten kann der SoftGNSS Empfänger auch die Positionsdaten berechnen. Dafür werden aber deutlich längere Daten Aufzeichnungen benötigt.}.
+
+Der SoftGNSS Empfänger erwartet Rohdaten im Format $1\frac{\textrm{Sample}}{\textrm{Byte}}$. Die mit dem COM Board aufgezeichneten Daten liegen jedoch gepackt als $8\frac{\textrm{Sample}}{\textrm{Byte}}$ vor. Zur Umwandlung der Daten wurde ein kurzes Matlabskript \lstinline$Fileconvert.m$ geschrieben. Das Skript wurde im selben Verzeichnis wie der SoftGNSS Receiver hinterlegt.
 
 Der SoftGNSS Empfänger wird über die Datei \lstinline$initSetting.m$ konfiguriert. Die meisten Einstellungen können auf den Vorgaben belassen werden. Die geänderten und einige andere wichtige Parameter sind in \TR{SoftGNSSConfig} aufgelistet.
 
@@ -35,7 +37,7 @@ Der SoftGNSS Empfänger wird über die Datei \lstinline$initSetting.m$ konfiguri
         \lstinline$dataType$            & \lstinline$'int8'$ \\
         \lstinline$IF$                  & \lstinline$2.046e6$ \\
         \lstinline$samplingFreq$        & \lstinline$16.368e6$ \\
-        \lstinline$acqThreshold$        & \lstinline$1.8$
+        \lstinline$acqThreshold$        & \lstinline$1.8$ \\
         \bottomrule
     \end{tabular}
 }
@@ -67,3 +69,6 @@ Mit dem aufgezeichneten Signal hat der SoftGNSS Empfänger einen Satelliten mit 
 }
 \end{table}
 
+\FR{Versuch_Flugmodell_SoftGNSS_Tracking.pdf} zeigt das Ergebnis des Tracking. Im Konstellationsdiagramm (oben links) lassen sich sehr gut die Konstellationspunkte der BPSK Modulation erkennen. Im oberen rechten Diagramm ist das Ausgangssignal des \emph{I Prompt} Korrelators dargestellt ($\gpspllout_{E,I}$ in \FR{Trackingloop.png}), der das demodulierte Signal ausgibt. Es sind sehr gut die Bits der NAV Daten erkennbar. Man sieht, dass am Anfang die Signalstärke etwas schwächer ist. Dies ist darauf zurückzuführen, dass zu beginn der Regelkreis noch nicht perfekt auf die korrekten Parameter eingeschwungen ist.
+
+\FGimg[Versuchsergebnis Flugmodell]{Versuch_Flugmodell_SoftGNSS_Tracking.pdf}{Demoduliertes Signal aus dem Versuch mit dem Flugmodell.}{10cm}
