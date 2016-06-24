@@ -1,9 +1,16 @@
 \section{FPGA Tracking Loop}
-Da derzeit noch keine Möglichkeit besteht die Acquisition Ergebnisse an den Tracking Loop im FPGA weiterzugeben wurde für diesen Versuch die gesamte \lstinline$gps_top$ Komponente mit \emph{ghdl} simuliert. Da es sich um eine \gls{RTL} Simulation mit dem selben Code der auch auf dem FPGA ausgeführt wird handelt, unterscheidet sich das Ergebnis nicht von der tatsächlichen Ausführung im FPGA.
+Da derzeit noch keine Möglichkeit besteht die Acquisition Ergebnisse an den Tracking Loop im FPGA weiterzugeben wurde für diesen Versuch die gesamte \lstinline$gps_top$ Komponente mittels \emph{ghdl} simuliert. Da es sich um eine \gls{RTL} Simulation mit dem selben Code der auch auf dem FPGA ausgeführt wird handelt, unterscheidet sich das Ergebnis nicht von der tatsächlichen Ausführung im FPGA.
 
 Dazu wurde eine Testbench \lstinline$gps_top_tb$ erstellt, die die \lstinline$gps_top$ Komponente enthält und die Test-Stimuli erzeugt. Der Rohdaten Stimulus wird durch eine Unterkomponente \lstinline$samples_from_file$ erzeugt. Diese Komponente wurde geschrieben um die Rohdaten aus einer Datei zu lesen. Die \lstinline$samples_from_file$ Komponente gibt die Rohdaten über das MAX2769 Interface an die \lstinline$gps_top$ Komponente weiter, wirkt also quasi als MAX2769 \emph{Dummy}. Die Ausgaben der Korrelatoren und einiger anderer Kennwerte (z.B. Code/Carrier FCW) werden von der \lstinline$gps_top$ Komponente selbst in Dateien geschrieben. Einen Überblick über den Versuchsaufbau gibt \FR{Versuch_Tracking_Testbench.pdf}.
-%UML_comp_structure_gps_top.pdf  Section_gps_top_entity
 
-Um zu prüfen ob die durch den Tracking Loop demodulierten Daten auch den gesendeten NAV Daten entsprechen wurden für diesen Versuch künstlich erzeugte Rohdaten mit bekannter PRN, SNR, Codephase und Dopplerverschiebung erzeugt. 
+\FGimg[Versuchsaufbau Tracking Loop]{Versuch_Tracking_Testbench.pdf}{Aufbau der Testbench mit der die Simulation des Tracking Loops durchgeführt wurde. Die Rohdaten werden der \lstinline$gps_top$ Komponente über das MAX2769 Interface zugeführt (siehe \FR{UML_comp_structure_gps_top.pdf}).}{12cm}
+
+Um zu prüfen ob die durch den Tracking Loop demodulierten Daten auch den gesendeten NAV Daten entsprechen, wurden für diesen Versuch künstlich erzeugte Rohdaten mit bekannter PRN, SNR, Codephase und Dopplerverschiebung erzeugt. 
+
+\subsection{Versuchsvorbereitung}
+\emph{ghdl} ist ein Compiler für VHDL, der aus dem VHDL Code eine ausführbare Datei erstellt. Es wird im folgenden vorausgesetzt, dass \emph{ghdl} installiert ist. Hier wurde die Version 0.33 verwendet.
+
+Beim kompilieren der Dateien muss auf die Reihenfolge und zuordnung der Quelldateien zu den richtigen Libraries geachtet werden. Um dies zu vereinfachen wurde ein \emph{Makefile} geschrieben, was in \lstinline$gps_fpga/sim$ zu finden ist. Das Makefile kompiliert außerdem automatisch die Firmware für den MBlite Softcore Prozessor. Mit dem Befehl \lstinline$make$ wird der VHDL Code kompiliert und die ausführbare Datei \lstinline$gps_top_tb$ erstellt. 
 
 
+\subsection{Versuchsdurchführung}
