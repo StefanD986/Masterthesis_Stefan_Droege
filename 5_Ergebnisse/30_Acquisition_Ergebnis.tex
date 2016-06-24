@@ -2,4 +2,68 @@
 In Abschnitt \ref{BeispielRohdatenAufzeichnen} wurde bereits gezeigt, wie sich mit dem Kerneltreiber und Linux Standard Tools Rohdaten aufzeichnen lassen. Für die im folgenden präsentierten Ergebnisse wurde dies mit dem Flugmodell des \dscubesat durchgeführt.
 
 \subsection{Versuchsaufbau}
-Der Versuch wurde im dem Labor des Compass Projekt am Fachbereich Luft- und Raumfahrt der FH Aachen durchgeführt. Dazu wurde das Flugmodell des \dscubesat in Fensternähe aufgestellt. Das Blickrichtung des Fensters ist etwa \SI{110}{\degree}. Das Compass Labor liegt im 2. OG und oberhalb des angrenzenden Gebäudes. 
+Der Versuch wurde im dem Labor des Compass Projekt am Fachbereich Luft- und Raumfahrt der FH Aachen durchgeführt. Dazu wurde das Flugmodell des \dscubesat in Fensternähe aufgestellt. Das Blickrichtung des Fensters ist etwa \SI{110}{\degree}. Das Compass Labor liegt im 2. OG und oberhalb des angrenzenden Gebäudes. Die Lage des Versuchsortes ist in \FR{Versuch_Flugmodell_Karte.png} illustriert.
+
+Zum Empfang wurden die passiven Antennen des \dscubesat verwendet. Diese sind auf 4 Seiten des Satelliten angebracht \FR{Versuch_Flugmodell_GPS_Antennen.jpg}. Die Signale der Antennen werden durch mehrere Wilkinson Leistungsteiler zusammengeführt und auf den LNA1 Eingang des MAX2769 geführt.
+
+\FGimg[Lage des Compass Labors]{Versuch_Flugmodell_Karte.png}{Der Anfang des Pfeils markiert in etwa das Fenster an dem das Flugmodell für den Versuch aufgestellt wurde. Der Pfeil markiert die Blickrichtung aus dem Fenster.}{10cm}
+
+\FGimg[GPS Antennen am \dscubesat]{Versuch_Flugmodell_GPS_Antennen.jpg}{Die Pfeile markieren die passiven GPS Antennen die auf der Hülle des \dscubesat angebracht sind. Auf den abgewandten Seiten sind zwei weitere Antennen angebracht.}{8cm}
+
+\subsection{Versuchsdurchführung}
+Mit den in Abschnitt \ref{BeispielRohdatenAufzeichnen} beschriebenen Befehlen wurden mehrere kurze, etwa \SI{600}{\milli\second} Segmente aufgezeichnet. Falls \lstinline$dd$ in der Ausgabe anzeigt, dass $\geq 1$ vollständiger Block übertragen wurde, so wurde die Messung verworfen. Vollständige Blöcke sind ein Indiz dafür, dass während der Messung der Pufferspeicher übergelaufen ist und somit Samples verloren gegangen sind.
+
+Die aufgezeichneten Daten wurden dann auf einen PC übertragen und in Matlab weiterverarbeitet: Der SoftGNSS Empfänge erwartet Daten mit $1\frac{\textrm{Sample}}{\textrm{Byte}}$. Die mit dem COM Board aufgezeichneten Daten liegen jedoch als $8\frac{\textrm{Sample}}{\textrm{Byte}}$ vor. Zur Umwandlung der Daten wurde ein kurzes Matlabskript \lstinline$Fileconvert.m$ geschrieben. Das Skript wurde im selben Verzeichnis wie der SoftGNSS Receiver hinterlegt.
+
+Der SoftGNSS Empfänger wird über die Datei \lstinline$initSetting.m$ konfiguriert. Die meisten Einstellungen können auf den Vorgaben belassen werden. Die geänderten und einige andere wichtige Parameter sind in \TR{SoftGNSSConfig} aufgelistet.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Konfiguration des SoftGNSS Empfängers]{Konfiguration des SoftGNSS Empfängers für den Versuch mit dem \dscubesat Flugmodell.}
+        \label{SoftGNSSConfig}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c p{6cm}}
+        \toprule
+        Parameter               & Wert \\
+        \midrule
+        \lstinline$msToProcess$         & \lstinline{600} \\
+        \lstinline$skipNumberOfBytes$   & \lstinline{0} \\
+        \lstinline$filename$            & Dateiname der umgewandelten Datei. \\
+        \lstinline$dataType$            & \lstinline$'int8'$ \\
+        \lstinline$IF$                  & \lstinline$2.046e6$ \\
+        \lstinline$samplingFreq$        & \lstinline$16.368e6$ \\
+        \lstinline$acqThreshold$        & \lstinline$1.8$
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+Eine genaue Beschreibung der Parameter ist dem kommentierten Quellcode der SoftGNSS Konfiguration zu entnehmen. Der Parameter \lstinline$acqThreshold$ legt die Schwelle fest ab der ein Satelliten Signal als \emph{vorhanden} gezählt wird. Diese wurde in der Entwurfsphase ursprünglich auf \num{2.5} festgelegt. Für den Versuch mit dem Flugmodell musste diese Schwelle jedoch etwas gesenkt werden, vermutlich aufgrund der passiven Antennen die ein schwächeres Signal liefern als die aktive Antenne, die in den Vorversuchen verwendet wurde.
+
+\subsection{Versuchsergebnisse}
+Mit dem aufgezeichneten Signal hat der SoftGNSS Empfänger einen Satelliten mit der PRN 30 gefunden. Die durch die Acquisition bestimmten Parameter sind in \TR{FlugmodellAcquisitionErgebnisse} aufgelistet
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Acquisition Ergebnis Flugmodell]{Acquisition Ergebnis des Versuchs mit dem Flugmodell.}
+        \label{FlugmodellAcquisitionErgebnisse}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c}
+        \toprule
+        Parameter               & Wert \\
+        \midrule
+        PRN	                    & \num{30} \\
+        Frequency               & \SI{2.04310}{MHz} \\
+        Dopplerverschiebung     & \SI{-2903}{Hz} \\
+        Codephase               & \SI{12493}{Samples} \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
+
