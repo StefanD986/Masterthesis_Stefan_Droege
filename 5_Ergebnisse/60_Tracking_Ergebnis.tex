@@ -3,14 +3,45 @@ Da derzeit noch keine Möglichkeit besteht die Acquisition Ergebnisse an den Tra
 
 Dazu wurde eine Testbench \lstinline$gps_top_tb$ erstellt, die die \lstinline$gps_top$ Komponente enthält und die Test-Stimuli erzeugt. Der Rohdaten Stimulus wird durch eine Unterkomponente \lstinline$samples_from_file$ erzeugt. Diese Komponente wurde geschrieben um die Rohdaten aus einer Datei zu lesen. Die \lstinline$samples_from_file$ Komponente gibt die Rohdaten über das MAX2769 Interface an die \lstinline$gps_top$ Komponente weiter, wirkt also quasi als MAX2769 \emph{Dummy}. Die Ausgaben der Korrelatoren und einiger anderer Kennwerte (z.B. Code/Carrier FCW) werden von der \lstinline$gps_top$ Komponente selbst in Dateien geschrieben. Einen Überblick über den Versuchsaufbau gibt \FR{Versuch_Tracking_Testbench.pdf}.
 
+Der Stimulus für den GPS Frontend Takt wurde für diesen Versuch auf \SI{16.369}{MHz} eingestellt. Dies entspricht dem Takt auf dem COM1 Board, was während der Entwicklung benutzt wurde. Das Flugmodell verwendet abweichend einen Takt von \SI{16.368}{MHz}. Die geänderte Taktfrequenz muss bei der Berechnung der Carrier und Code NCO Frequency Control Words beachtet werden, weil sich die ZF von \SI{2.046}{\mega\hertz} auf \SI{1.949875}{\mega\hertz} ändert.
+
 \FGimg[Versuchsaufbau Tracking Loop]{Versuch_Tracking_Testbench.pdf}{Aufbau der Testbench mit der die Simulation des Tracking Loops durchgeführt wurde. Die Rohdaten werden der \lstinline$gps_top$ Komponente über das MAX2769 Interface zugeführt (siehe \FR{UML_comp_structure_gps_top.pdf}).}{12cm}
 
-Um zu prüfen ob die durch den Tracking Loop demodulierten Daten auch den gesendeten NAV Daten entsprechen, wurden für diesen Versuch künstlich erzeugte Rohdaten mit bekannter PRN, SNR, Codephase und Dopplerverschiebung erzeugt. 
-
 \subsection{Versuchsvorbereitung}
-\emph{ghdl} ist ein Compiler für VHDL, der aus dem VHDL Code eine ausführbare Datei erstellt. Es wird im folgenden vorausgesetzt, dass \emph{ghdl} installiert ist. Hier wurde die Version 0.33 verwendet.
+\emph{ghdl} ist ein Compiler für VHDL, der aus dem VHDL Code eine ausführbare Datei erstellt. Es wird im folgenden vorausgesetzt, dass \emph{ghdl} installiert ist. Hier wurde die Version 0.34dev (20151126) mit LLVM Backend verwendet.
 
-Beim kompilieren der Dateien muss auf die Reihenfolge und zuordnung der Quelldateien zu den richtigen Libraries geachtet werden. Um dies zu vereinfachen wurde ein \emph{Makefile} geschrieben, was in \lstinline$gps_fpga/sim$ zu finden ist. Das Makefile kompiliert außerdem automatisch die Firmware für den MBlite Softcore Prozessor. Mit dem Befehl \lstinline$make$ wird der VHDL Code kompiliert und die ausführbare Datei \lstinline$gps_top_tb$ erstellt. 
+Beim Kompilieren der Dateien muss auf die Reihenfolge und Zuordnung der Quelldateien zu den richtigen Libraries geachtet werden. Um dies zu vereinfachen wurde ein \emph{Makefile} geschrieben, was in \lstinline$gps_fpga/sim$ zu finden ist. Das Makefile kompiliert außerdem automatisch die Firmware für den MBlite Softcore Prozessor. Mit dem Befehl \lstinline$make$ wird der VHDL Code kompiliert und die ausführbare Datei \lstinline$gps_top_tb$ erstellt.
+
+Dem resultierenden \lstinline$gps_top_tb$ Programm können auf der Kommandozeile einige Optionen übergeben werden, wie z.B. die Stop Zeit der Simulation. Eine detaillierte Beschreibung der Optionen ist der \emph{ghdl} Dokumentation zu entnehmen.
+
+Der Dateiname aus dem das Programm versucht die Rohdaten zu lesen ist in \lstinline$gps_top_tb.vhd$ über ein Generic auf \lstinline$./infile$ festgelegt. Dieser kann auf den korrekten Dateinamen angepasst werden. Für die folgende Simulation wurde aber einfach ein symbolischer Link auf die Datei mit den Rohdaten erstellt.
+
+Um zu prüfen ob die durch den Tracking Loop demodulierten Daten auch den gesendeten NAV Daten entsprechen, wurden für diesen Versuch künstlich erzeugte Rohdaten mit bekannter PRN, SNR, Codephase und Dopplerverschiebung erzeugt.
+Das erzeugte Signal trägt als \enquote{Nutzdaten} einfach eine zufällige Sequenz von Einsen und Nullen. Die Nutzdatenrate beträgt wie beim echten GPS Signal auf \SI{50}{\bit\per\second} festgelegt. Die Dopplerverschiebung des Signals ändert sich mit \SI{10}{\hertz\per\second} um einen langsamen Drift zu simulieren, dem der Tracking Loop folgen muss. Die weiteren Parameter sind in \TR{TrackingVersuchTestsignalParameter} zusammengefasst. Der Dateiname der Testdaten ist \lstinline$testdata_noisy_-30dBSNR_IF1M949875_PRN28_int8$.
+
+\begin{table}[htbp]
+    \ttabbox
+    {
+        \caption[Testsignal Parameter]{Parameter des Testsignals}
+        \label{TrackingVersuchTestsignalParameter}
+    }
+    {
+        \rowcolors{2}{light-gray}{White}
+    \begin{tabular}{c c}
+        \toprule
+        Parameter               & Wert \\
+        \midrule
+        PRN	                    & \num{28} \\
+        SNR               & \SI{-30}{\decibel} \\
+        Dopplerverschiebung     & \SI{0}{\hertz} + \SI{10}{\hertz\per\second}\\
+        Codephase               & \SI{0}{Samples} \\
+        \bottomrule
+    \end{tabular}
+}
+\end{table}
 
 
-\subsection{Versuchsdurchführung}
+\subsection{Versuchsergebnisse}
+Während die Simulation läuft, gibt das Programm Statusmeldungen zusammen mit der Simulationszeit aus, wenn die Register des Tracking Loops gelesen oder geschrieben werden. Damit lässt sich messen, wie lange die Routine zur Neuberechnung im Softcore Prozessor benötigt. Es wurden etwa \SI{91}{\micro\second} gemessen. Die Echtzeitanforderung ist, dass die Neuberechnung maximal \SI{1}{\milli\second} dauern darf. Das heißt, dass der mit \SI{16.369}{\mega\hertz} getaktete Prozessorkern etwa 10 Kanäle parallel bearbeiten kann.
+
+\FGimg[Tracking Loop Simulationsergebnisse]{Versuch_Tracking_Plot_Results.png}{Im oberen Teil ist das demodulierte Signal zu sehen, welches am Ausgang des I Prompt Korrelators anliegt. Unten ist die vom Trackingloop geregelte LO Frequenz zu sehen. Es ist gut erkennbar, dass der Regelkreis den langsamen Drift von \SI{10}{\hertz\per\second} nachregelt.}{11cm}
