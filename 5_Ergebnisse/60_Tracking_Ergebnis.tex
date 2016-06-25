@@ -16,8 +16,9 @@ Dem resultierenden \lstinline$gps_top_tb$ Programm können auf der Kommandozeile
 
 Der Dateiname aus dem das Programm versucht die Rohdaten zu lesen ist in \lstinline$gps_top_tb.vhd$ über ein Generic auf \lstinline$./infile$ festgelegt. Dieser kann auf den korrekten Dateinamen angepasst werden. Für die folgende Simulation wurde aber einfach ein symbolischer Link auf die Datei mit den Rohdaten erstellt.
 
-Um zu prüfen ob die durch den Tracking Loop demodulierten Daten auch den gesendeten NAV Daten entsprechen, wurden für diesen Versuch künstlich erzeugte Rohdaten mit bekannter PRN, SNR, Codephase und Dopplerverschiebung erzeugt.
-Das erzeugte Signal trägt als \enquote{Nutzdaten} einfach eine zufällige Sequenz von Einsen und Nullen. Die Nutzdatenrate beträgt wie beim echten GPS Signal auf \SI{50}{\bit\per\second} festgelegt. Die Dopplerverschiebung des Signals ändert sich mit \SI{10}{\hertz\per\second} um einen langsamen Drift zu simulieren, dem der Tracking Loop folgen muss. Die weiteren Parameter sind in \TR{TrackingVersuchTestsignalParameter} zusammengefasst. Der Dateiname der Testdaten ist \lstinline$testdata_noisy_-30dBSNR_IF1M949875_PRN28_int8$.
+Um zu prüfen ob die durch den Tracking Loop demodulierten Daten auch den gesendeten NAV Daten entsprechen, wurden für diesen Versuch künstlich erzeugte Rohdaten mit bekannter PRN, SNR, Codephase und Dopplerverschiebung erzeugt. Das erzeugte Signal trägt als \enquote{Nutzdaten} einfach eine zufällige Sequenz von Einsen und Nullen. Die Nutzdatenrate beträgt wie beim echten GPS Signal auf \SI{50}{\bit\per\second} festgelegt. Die Dopplerverschiebung des Signals ändert sich mit \SI{10}{\hertz\per\second} um einen langsamen Drift zu simulieren, dem der Tracking Loop folgen muss. Die weiteren Parameter sind in \TR{TrackingVersuchTestsignalParameter} zusammengefasst. Der Dateiname der Testdaten ist \lstinline$testdata_noisy_-30dBSNR_IF1M949875_PRN28_int8$.
+
+Die Tracking Loop Parameter werden zu Beginn der \lstinline$main()$ Funktion vom MBlite Softcore Prozessor an den Tracking Loop Kanal gesendet. Bis die Konfiguration des Tracking Loop Kanals abgeschlossen ist vergehen etwa 214 Taktzyklen, während denen das (Dummy-) GPS Frontend schon Rohdaten sendet. Deshalb muss die Codephase um diese 214 Taktzyklen angepasst werden.
 
 \begin{table}[htbp]
     \ttabbox
@@ -42,6 +43,8 @@ Das erzeugte Signal trägt als \enquote{Nutzdaten} einfach eine zufällige Seque
 
 
 \subsection{Versuchsergebnisse}
-Während die Simulation läuft, gibt das Programm Statusmeldungen zusammen mit der Simulationszeit aus, wenn die Register des Tracking Loops gelesen oder geschrieben werden. Damit lässt sich messen, wie lange die Routine zur Neuberechnung im Softcore Prozessor benötigt. Es wurden etwa \SI{91}{\micro\second} gemessen. Die Echtzeitanforderung ist, dass die Neuberechnung maximal \SI{1}{\milli\second} dauern darf. Das heißt, dass der mit \SI{16.369}{\mega\hertz} getaktete Prozessorkern etwa 10 Kanäle parallel bearbeiten kann.
+Während die Simulation läuft, gibt das Programm Statusmeldungen zusammen mit der Simulationszeit aus, wenn die Register des Tracking Loop gelesen oder geschrieben werden. Damit lässt sich messen, wie lange die Routine zur Neuberechnung im Softcore Prozessor benötigt. Es wurden etwa \SI{91}{\micro\second} gemessen. Die Echtzeitanforderung ist, dass die Neuberechnung maximal \SI{1}{\milli\second} dauern darf. Das heißt, dass der mit \SI{16.369}{\mega\hertz} getaktete Prozessorkern etwa 10 Kanäle parallel bearbeiten kann.
+
+In \FR{Versuch_Tracking_Plot_Results.png} sind einige Signale des Tracking Loop Kanals graphisch dargestellt. Auch hier sind im oberen Teil wieder sehr gut die demodulierten Datenbits erkennbar. Im unteren Bereich ist die LO Frequenz dargestellt (Diese wurde aus dem protokollierten Carrier FCW berechnet). Man kann sehr gut erkennen, wie der Regelkreis dem künstlich eingestellten Frequenzdrift von \SI{10}{\hertz\per\second} folgt.
 
 \FGimg[Tracking Loop Simulationsergebnisse]{Versuch_Tracking_Plot_Results.png}{Im oberen Teil ist das demodulierte Signal zu sehen, welches am Ausgang des I Prompt Korrelators anliegt. Unten ist die vom Trackingloop geregelte LO Frequenz zu sehen. Es ist gut erkennbar, dass der Regelkreis den langsamen Drift von \SI{10}{\hertz\per\second} nachregelt.}{11cm}
