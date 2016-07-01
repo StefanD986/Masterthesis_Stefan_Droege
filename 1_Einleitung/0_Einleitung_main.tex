@@ -1,10 +1,15 @@
 \chapter{Einleitung}
-TODO Eine Einleitung
-\cite{DragsailRalfMA}
-\cite{DragsailUweMAGroundDataHandling}, \cite{DragsailVolkerMACommstandard}, \cite{DragsailGeorgMAGroundSDR}, \cite{DragsailNeelamMAGroundDSP}
 
-\section{Motivation}
-TODO Etwas zur Motivation des Projekts
+Diese Arbeit beschreibt die Entwicklung eines Software Defined GPS Empfängers für den \dscubesat.
 
-\section{Abgrenzung}
-TODO Etwas über ähnliche Projekte 
+Der Hardware-Teil des GPS Empfängers wurde bereits in vergangen Arbeiten entwickelt. Die Entwicklung des Software-Teils und die Integration auf das COM Board des \dscubesat standen jedoch noch aus. Die Software des GPS Empfängers teilt sich auf den FPGA und den DSP des COM Board auf. Im DSP werden vor allem weniger zeitkritische, aber speicher- und rechenintensive Teile implementiert. Im FPGA werden zeitkritische, gut parallelisierbare Teile implementiert. In der programmierbaren Hardware des FPGA wurde außerdem ein Softcore Prozessor integriert, der Aufgaben erledigt, deren Implementierung in reiner programmierbarer Hardware sehr umständlich wäre.
+
+Die Arbeit gliedert sich in drei Teile. Nach einer kurzen Beschreibung zur Motivation des Projekts und einem Blick auf ähnliche Projekte werden im ersten Teil einige Grundlagen zum GPS Signal und GPS Empfängern besprochen. Ein wichtiger Parameter bei der Demodulation ist die Dopplerverschiebung des Signals, der durch die hohe Geschwindigkeit des \dscubesat im Orbit noch verstärkt wird. Deshalb wird eine Formel hergeleitet, mit der sich näherungsweise die maximale Dopplerverschiebung berechnen lässt. Ein weiterer Abschnitt gibt eine Übersicht über die für diese Arbeit relevanten Teile des COM Subsystem auf dem der GPS Empfänger implementiert wird.
+
+Im zweiten Teil wird zuerst der Entwurf des Empfängers besprochen. Danach werden die Teile des Entwurfs besprochen, die bisher realisiert wurden. Abschließend werden einige Versuchsergebnisse präsentiert.
+
+Ein wichtiger Teil der Entwurfsphase für die Software war die Umsetzung der Berechnungen in Festkomma Arithmetik. Im Appendix wird deshalb eine Einführung zu der hier verwendeten Notation und dem Festkommaentwurf gegeben.
+
+\input{1_Einleitung/30_Motivation}
+
+\input{1_Einleitung/60_Abgrenzung}

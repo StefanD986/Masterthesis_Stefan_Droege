@@ -22,7 +22,7 @@
 \usepackage[dvipsnames,usenames,table]{xcolor}
 \usepackage[unicode=true]{hyperref}
 \usepackage[linedheaders,parts,pdfspacing,dottedtoc]{classicthesis}
-\areaset[current]{436pt}{705pt} % Reduce margins
+%\areaset[current]{436pt}{705pt} % Reduce margins
 \usepackage[style=alphabetic, date=long, urldate=long, backend=biber]{biblatex}
 \addbibresource[]{./thesis.bib}
 \usepackage{amsmath}
@@ -35,7 +35,7 @@
 \usepackage[binary-units=true]{siunitx} % Einheiten in Formeln
 \usepackage{enumitem} % allows some customization of lists, e.g. vertical spacing
 
-\usepackage[nolist,style=long]{glossaries}
+\usepackage[nolist,style=clong]{glossaries}
 \usepackage{graphicx} % To insert figures  - for PDF-LaTeX: .pdf and .png (.jpg possible, but should be avoided)
 \usepackage{esvect}
 \input{0_Einstellungen}
@@ -54,10 +54,10 @@
 
 \input{0_title}
 
-
+\include{FrontBackMatter/Aufgabenstellung}
 \include{FrontBackMatter/abstract}
 \include{FrontBackMatter/dedication}
-\include{FrontBackMatter/acknowledgements}
+%\include{FrontBackMatter/acknowledgements}
 \include{FrontBackMatter/declaration}
 \include{FrontBackMatter/contents}
 

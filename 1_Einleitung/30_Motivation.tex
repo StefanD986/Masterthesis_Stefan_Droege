@@ -1,0 +1,13 @@
+\section{Motivation}
+Der \dscubesat ist ein kleiner \gls{LEO} Satellit, der im Rahmen mehrerer Abschlussarbeiten an der FH Aachen und der RWTH Aachen entstanden ist\footnote{Einige der vorangegangenen Arbeiten zum Kommunikations-Subsystem sind z.B. \cite{DragsailKaiMA}, \cite{DragsailRalfMA}, \cite{DragsailAndrejMA},
+\cite{DragsailUweMAGroundDataHandling}, \cite{DragsailVolkerMACommstandard}, \cite{DragsailGeorgMAGroundSDR}, \cite{DragsailNeelamMAGroundDSP} und weitere.}.
+
+Um \enquote{Weltraumschrott} zu vermeiden ist das Ziel, dass Cubesats nicht länger als 25 Jahre im Orbit verbleiben sollten. Die Verweildauer wird unter anderem durch die Höhe des Orbits festgelegt in dem die Satelliten ausgesetzt werden. Die Orbithöhe in der ein  Satellit von der Größe eines Cubesat maximal 25 Jahre bleibt wird von der NASA als etwa \SI{600}{\kilo\meter} angegeben \cite{NASAOrbitalDebris}.
+
+Cubesats werden üblicherweise als Beiladung beim Start kommerzieller Satelliten in den Weltraum geschickt. Daher ist der Orbit nicht beliebig frei wählbar, sondern hängt davon wo der kommerzielle Satellit ausgesetzt werden soll.
+
+Deshalb ist eines der Experimente an Board des Satelliten das Entfalten eines Segels am Ende der Lebenszeit des Satelliten um den Wiedereintritt zu beschleunigen und so die Verweildauer auch bei höheren Orbits zu begrenzen. Für das Experiment sind die Orbitdaten, bzw. die Änderung der Orbitdaten durch das Entfalten des Segels von Interesse. Die Orbitdaten werde durch Organisationen wie NORAD veröffentlicht. Die Genauigkeit dieser Orbitdaten für kleine Satelliten wurde in anderen Arbeiten untersucht, beispielsweise in \cite{TLEAccuracyKahr} oder \cite{TLEAccuracyDoyle}. Bedingt durch die geringe Größe ist sind diese Daten nicht immer sehr genau und weichen je nach Parameter um bis zu \SI{1.29}{\percent} oder \SI{370}{\percent} ab \cite{TLEAccuracyDoyle}.
+
+Da GPS Signale auch von \gls{LEO} Satelliten empfangen werden können, bietet es sich an, dass der Satellit selbst seine Position und damit seinen Orbit berechnet. Aufgrund von Waffenexportbeschränkungen funktionieren jedoch die wenigsten GPS Empfänger Chips im Weltraum. Für den \dscubesat musste deshalb ein alternativer Weg gegangen werden. Die Rechenleistung auf heutigen Embedded Systems wie dem COM Board des \dscubesat reicht aus, um GPS Empfänger vollständig in Software zu implementieren. Der benötigte Hardware Teil beschränkt sich damit auf ein HF Frontend, was ein digitalisiertes Basisband Signal liefert.
+
+Auf dem COM Board des \dscubesat wurde deshalb ein GPS Frontend Chip eingebaut, der ein digitalisiertes Rohdatensignal liefert. Die Signalverarbeitung bis zur Positionsbestimmung kann somit in Software auf dem FPGA und DSP geschehen.

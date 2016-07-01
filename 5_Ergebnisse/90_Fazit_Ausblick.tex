@@ -1,1 +1,16 @@
-\section{Fazit und Ausblick}
+\section{Fazit}
+In dieser Arbeit wurde der Grundstein für einen funktionsfähigen Software Defined GPS Receiver auf dem \dscubesat gelegt. Obwohl noch nicht alle Meilensteine erreicht wurden, konnte gezeigt werden, dass das in der Entwurfsphase festgelegte Konzept geeignet ist um GPS Daten zu empfangen.
+
+In den Grundlagen wurden Näherungen für die erwartete Dopplerverschiebung des GPS Signals für einen Satelliten in einer Umlaufbahn ermittelt. In der Matlab Simulation wurde verifiziert, dass der Tracking Loop auch mit diesen, im Vergleich zu einem Empfänger auf der Erde, erhöhten Anforderungen das GPS Signal erfolgreich tracken kann.
+
+Die Funktion der Schnittstelle zum GPS Frontend wurde mit einem praktischen Versuch mit dem \dscubesat Flugmodell demonstriert. Gleichzeitig wurde auch zum ersten Mal verifiziert, dass die passiven Antennen zusammen mit dem GPS Frontend unter realen Empfangsbedingungen ein Signal liefern, dass sich zur Positionsbestimmung eignet.
+
+Die Funktion der im FPGA realisierten Tracking Kanäle wurde durch eine \gls{RTL} Simulation verifiziert. Außerdem wurde mit der Simulation die Performanz der entworfenen Festkomma Berechnungen gemessen: In der derzeitigen Implementierung kann der GPS Empfänger bis zu 10 Kanäle gleichzeitig empfangen. Die maximale Anzahl ist hauptsächlich durch die Rechenleistung des Softcore Prozessors begrenzt. Mit wenigen Änderungen kann der Prozessor auch mit einer höheren Taktrate betrieben werden, um mehr als 10 Kanäle zu realisieren.
+
+\section{Ausblick}
+Ein noch ausstehender Punkt ist die in Abschnitt \ref{UserIOSchnittstelle} angedeutete Überarbeitung und Erweiterung des Entwurfs der Software Schnittstelle zwischen FPGA und DSP. Dies ist notwendig um die Acquisition Ergebnisse an die Tracking Kanäle im FPGA weiterzugeben und umgekehrt das demodulierte Signal aus den Tracking Kanälen zur Auswertung an den DSP zu senden. Dies wäre die Grundlage für die Implementierung der Acquisition, NAV Daten Extraktion und Positionsbestimmung auf dem DSP. 
+
+Als langfristige Ziele ergeben sich durch die Flexibilität des Software Defined GPS Empfängers interessante Möglichkeiten für weitergehende Untersuchungen: Zum Beispiel bietet die \SI{1}{\bit} Quantisierung die Möglichkeit die FFT Berechnung stark zu vereinfachen (\emph{Monobit FFT}). Auf der anderen Seite bietet das MAX2769 GPS Frontend auch höhere Quantisierungen an. In beiden Fällen wäre es interessant zu untersuchen welche Vorteile hinsichtlich Performanz und Ressourcenbedarf sich aus diesen beiden Weiterentwicklungen ergeben.
+
+Der Software Defined GPS Empfänger bietet außerdem Information über die Trägerphase, womit sich hoch-genaue Positionsbestimmungen mit Unsicherheiten von \SI{<1}{\meter} durchführen lassen.
+

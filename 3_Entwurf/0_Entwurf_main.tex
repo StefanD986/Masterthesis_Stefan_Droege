@@ -1,8 +1,8 @@
 \chapter{Entwurf}
-Einleitung zum Entwurf
+Dieses Kapitel beschreibt den Entwurf des GPS Empfängers. Im ersten Abschnitt werden zunächst die Anforderungen zusammengefasst, anhand derer sich die Arbeitspakete identifizieren lassen. Im zweiten Abschnitt wird dann der eigentliche Entwurf besprochen. Zum Schluss wird noch kurz auf die Matlab Simulation eingegangen, die sowohl bei der Voruntersuchungen, als auch während der Implementierungsphase genutzt wurde um Entwurf und Implementierung zu überprüfen. 
 
 \section{Anforderungen}
-In diesem Abschnitt sollen zunächst die Anforderungen genannt werden, anhand derer sich die Arbeitspakete identifizieren lassen. Das Ziel ist: Der \dscubesat soll in der Lage sein seine eigene Position mittels GPS zu bestimmen. Einige Anforderungen ergeben sich außerdem aus der Konfiguration des Frontends, weshalb auch diese hier besprochen wird.
+Das Ziel ist, dass der \dscubesat in der Lage sein soll, seine eigene Position mittels GPS zu bestimmen. Einige Anforderungen ergeben sich außerdem aus der Konfiguration des Frontends, weshalb auch diese hier besprochen wird.
 
 \subsection{Anzahl der Kanäle} Wie in Abschnitt \ref{positionsbestimmung} erläutert werden zur Positionsbestimmung die Daten von mindesten 4 GPS Satelliten benötigt. Daraus ergibt sich die Anforderung, dass der Empfänger mindestens 4 Kanäle zum Tracking der Signale haben muss. Weiterhin soll bei einem Verbindungsabbruch zu einem der Satelliten die Positionsbestimmung nicht abbrechen, weshalb $>4$ Kanäle erforderlich sind. Außerdem steigt die Genauigkeit der Positionsbestimmung mit mehr Satelliten. Deshalb soll der hier entwickelte GPS Empfänger mindestens 6 Kanäle umfassen.
 

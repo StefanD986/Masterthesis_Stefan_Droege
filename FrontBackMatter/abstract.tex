@@ -3,4 +3,10 @@
 %*******************************************************
 \chapter*{Abstract}
 
-Short summary of the contents of your thesis.
+This thesis documents the design and the implementation of a software-defined GPS receiver meant to be integrated on the \dscubesat. The implementation makes use of the FPGA and DSP onboard the satellite's COM subsystem.  Although not every task could be completed, several important milestones were reached and the feasability of the concept and implementation is proven with several experiments. 
+
+An approximate value for the maximum dopplershift of the GPS signal for Low-Earth-Orbit Satellites is derived. The function of the receiver under these conditions is verified with a Matlab Simulink simulation. 
+
+A Linux Kernel driver is developed to interface with the GPS Frontend chip. The function of the interface is then demonstrated with an experiment with the flight model of the \dscubesat. At the same time it was shown for the first time, that the passive antennas together with the GPS frontend deliver a signal that is suitable for position calculation.
+
+A \gls{RTL} simulation is used to verify the function of the tracking loop channels that were implemented in the FPGA. Additionally, the performance of the designed fixed point algorithms was measured. With the current implementation the GPS receiver supports up to 10 channels. The maximum number of channels is mostly dependent on the computational power of the softcore processor. Hence, with few changes, more channels can easily be realized.
