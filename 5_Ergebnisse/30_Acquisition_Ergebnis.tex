@@ -1,5 +1,5 @@
 \section{Rohdatenschnittstelle und Acquisition}
-In Abschnitt \ref{BeispielRohdatenAufzeichnen} wurde bereits gezeigt, wie sich mit dem Kerneltreiber und Linux Standard Tools Rohdaten aufzeichnen lassen. Für die im folgenden präsentierten Ergebnisse wurde dies mit dem Flugmodell des \dscubesat durchgeführt.
+In Abschnitt \ref{BeispielRohdatenAufzeichnen} wurde bereits gezeigt, wie sich mit dem Kerneltreiber und Linux Standard Tools Rohdaten aufzeichnen lassen. Für die im Folgenden präsentierten Ergebnisse wurde dies mit dem Flugmodell des \dscubesat durchgeführt.
 
 \subsection{Versuchsaufbau}
 Der Versuch wurde im Labor des Compass Projekt am Fachbereich Luft- und Raumfahrt der FH Aachen durchgeführt. Dazu wurde das Flugmodell des \dscubesat in Fensternähe aufgestellt. Das Blickrichtung des Fensters ist etwa \SI{110}{\degree}. Das Compass Labor liegt im 2. OG und oberhalb des angrenzenden Gebäudes. Die Lage des Versuchsortes ist in \FR{Versuch_Flugmodell_Karte.png} illustriert.
@@ -27,23 +27,23 @@ Der SoftGNSS Empfänger wird über die Datei \lstinline$initSetting.m$ konfiguri
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c p{3cm}}
+    \begin{tabular}{c p{3.5cm}}
         \toprule
         Parameter               & Wert \\
         \midrule
-        \lstinline$msToProcess$         & \lstinline{600} \\
-        \lstinline$skipNumberOfBytes$   & \lstinline{0} \\
+        \lstinline$msToProcess$         & \num{600} \\
+        \lstinline$skipNumberOfBytes$   & \num{0} \\
         \lstinline$filename$            & Dateiname der umgewandelten Datei. \\
         \lstinline$dataType$            & \lstinline$'int8'$ \\
-        \lstinline$IF$                  & \lstinline$2.046e6$ \\
-        \lstinline$samplingFreq$        & \lstinline$16.368e6$ \\
-        \lstinline$acqThreshold$        & \lstinline$1.8$ \\
+        \lstinline[language={}]$IF$   & \num{2.046E6} \\
+        \lstinline$samplingFreq$        & \num{16.368E6} \\
+        \lstinline$acqThreshold$        & \num{1.8} \\
         \bottomrule
     \end{tabular}
 }
 \end{table}
 
-Eine genaue Beschreibung der Parameter ist dem kommentierten Quellcode der SoftGNSS Konfiguration zu entnehmen. Der Parameter \lstinline$acqThreshold$ legt die Schwelle fest ab der ein Satelliten Signal als \emph{vorhanden} gezählt wird. Diese wurde in der Entwurfsphase ursprünglich auf \num{2.5} festgelegt. Für den Versuch mit dem Flugmodell musste diese Schwelle jedoch etwas gesenkt werden, vermutlich aufgrund der passiven Antennen die ein schwächeres Signal liefern als die aktive Antenne, die in den Vorversuchen verwendet wurde.
+Eine genaue Beschreibung der Parameter ist dem kommentierten Quellcode der SoftGNSS Konfiguration zu entnehmen. Der Parameter \lstinline$acqThreshold$ legt die Schwelle fest ab der ein Satelliten Signal als \enquote{vorhanden} gezählt wird. Diese wurde in der Entwurfsphase ursprünglich auf \num{2.5} festgelegt. Für den Versuch mit dem Flugmodell musste diese Schwelle jedoch etwas gesenkt werden, vermutlich aufgrund der passiven Antennen die ein schwächeres Signal liefern als die aktive Antenne, die in den Vorversuchen verwendet wurde.
 
 \subsection{Versuchsergebnisse}
 Mit dem aufgezeichneten Signal hat der SoftGNSS Empfänger einen Satelliten mit der PRN 30 gefunden. Die durch die Acquisition bestimmten Parameter sind in \TR{FlugmodellAcquisitionErgebnisse} aufgelistet
@@ -69,6 +69,6 @@ Mit dem aufgezeichneten Signal hat der SoftGNSS Empfänger einen Satelliten mit 
 }
 \end{table}
 
-\FR{Versuch_Flugmodell_SoftGNSS_Tracking.pdf} zeigt das Ergebnis des Tracking. Im Konstellationsdiagramm (oben links) lassen sich sehr gut die Konstellationspunkte der BPSK Modulation erkennen. Im oberen rechten Diagramm ist das Ausgangssignal des \emph{I Prompt} Korrelators dargestellt ($\gpspllout_{E,I}$ in \FR{Trackingloop.png}), der das demodulierte Signal ausgibt. Es sind sehr gut die Bits der NAV Daten erkennbar. Man sieht, dass am Anfang die Signalstärke etwas schwächer ist. Dies ist darauf zurückzuführen, dass zu beginn der Regelkreis noch nicht perfekt auf die korrekten Parameter eingeschwungen ist.
+\FR{Versuch_Flugmodell_SoftGNSS_Tracking.pdf} zeigt das Ergebnis des Tracking. Im Konstellationsdiagramm (oben links) lassen sich sehr gut die Konstellationspunkte der BPSK Modulation erkennen. Im oberen rechten Diagramm ist das Ausgangssignal des \emph{I Prompt} Korrelators dargestellt ($\gpspllout_{E,I}$ in \FR{Trackingloop.png}), der das demodulierte Signal ausgibt. Es sind sehr gut die Bits der NAV Daten erkennbar. Man sieht, dass am Anfang das \gls{SNR} etwas schlechter ist. Dies ist darauf zurückzuführen, dass zu Beginn der Regelkreis noch nicht perfekt auf die korrekten Parameter eingeschwungen ist.
 
 \FGimg[Versuchsergebnis Flugmodell]{Versuch_Flugmodell_SoftGNSS_Tracking.pdf}{Demoduliertes Signal aus dem Versuch mit dem Flugmodell.}{10cm}

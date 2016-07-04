@@ -2,13 +2,14 @@
 \documentclass[
   % Replace twoside with oneside if you are printing your thesis on a single side
   % of the paper, or for viewing on screen.
-  oneside,
-  %twoside, TODO anpassen
+  %oneside,
+  twoside, %TODO anpassen
   11pt, a4paper,
   footinclude=true,
   headinclude=true,
   cleardoublepage=empty,
-  parskip=half%,
+  parskip=half,
+  BCOR=15mm
   %DIV=40
 ]{scrbook}
 
@@ -32,8 +33,9 @@
 \usepackage[T1]{fontenc}
 \usepackage{csquotes} % has to come after inputenc
 \usepackage{textcomp} % fixes warning when using \micro in a siunitx unit
-\usepackage[binary-units=true]{siunitx} % Einheiten in Formeln
+\usepackage[binary-units=true, decimalsymbol=comma]{siunitx} % Einheiten in Formeln
 \usepackage{enumitem} % allows some customization of lists, e.g. vertical spacing
+\usepackage{xspace} % fixes spacing after "newcommand" textmacros.
 
 \usepackage[nolist,style=clong]{glossaries}
 \usepackage{graphicx} % To insert figures  - for PDF-LaTeX: .pdf and .png (.jpg possible, but should be avoided)

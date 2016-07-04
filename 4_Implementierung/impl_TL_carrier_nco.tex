@@ -36,7 +36,7 @@ In \TR{TabCarrierNCO_Entity} ist die Schnittstelle der \lstinline$carrier_nco$ K
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Typdefinition Code NCO Ausgangssignal]{Beschreibung der Struktur des \lstinline$t_carrier_nco_out$ Typs. Der Typ ist in \lstinline$tracking_loop_pkg.vhd$ definiert.}
+        \caption[Typdefinition \lstinline$t_carrier_nco_out$]{Beschreibung der Struktur des \lstinline$t_carrier_nco_out$ Typs. Der Typ ist in \lstinline$tracking_loop_pkg.vhd$ definiert.}
         \label{Tab_t_carrier_nco_out}
     }
     {
@@ -81,7 +81,7 @@ constant LUsin 	: std_logic_vector(3 DOWNTO 0):= "1100"; --! The `sin(x)` Look-u
 constant LUcos 	: std_logic_vector(3 DOWNTO 0):= "1001"; --! The `cos(x)` Look-up-table
 \end{lstlisting}
 
-Der Phasenakkumulator ist in dieser Implementierung $N_carrier_nco=\SI{28}{\bit}$ weit, und ist als sequentieller Prozess realisiert. Mit jeder steigenden Taktflanke wird zu dem Phasenakkumulator der Wert an \lstinline$i_deltaf$ addiert. Die beiden MSB des Akkumulators werden dann zur Addressierung der \gls{LUT} verwendet, um die Amplitudenwerte zu erhalten. Damit wird auch klar woher das oben genannte NCO Gain $K_{0,carrier}=\frac{2^{N_{carrierNCO}}}{f_{clk}}$ kommt: Die Zeit zwischen zwei Akkumulator Überläufen ist die Periodendauer mit der die \gls{LUT} genau einmal durchlaufen wird. Die Zeit zwischen zwei Überläufen beträgt
+Der Phasenakkumulator ist in dieser Implementierung $N_{carrierNCO}=\SI{28}{\bit}$ weit, und ist als sequentieller Prozess realisiert. Mit jeder steigenden Taktflanke wird zu dem Phasenakkumulator der Wert an \lstinline$i_deltaf$ addiert. Die beiden MSB des Akkumulators werden dann zur Addressierung der \gls{LUT} verwendet, um die Amplitudenwerte zu erhalten. Damit wird auch klar woher das oben genannte NCO Gain $K_{0,carrier}=\frac{2^{N_{carrierNCO}}}{f_{clk}}$ kommt: Die Zeit zwischen zwei Akkumulator Überläufen ist die Periodendauer mit der die \gls{LUT} genau einmal durchlaufen wird. Die Zeit zwischen zwei Überläufen beträgt
 \begin{equation}
     T=\frac{2^{N_{carrierNCO}}}{f_{clk}\cdot FCW}=\frac{1}{f_{out}}
 \end{equation}

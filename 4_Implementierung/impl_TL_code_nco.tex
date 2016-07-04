@@ -3,7 +3,7 @@ Diese Komponente ist in  \lstinline$code_nco.vhd$ implementiert und erzeugt drei
 
 Das keine \emph{Taktsignale}, sondern nur \emph{Steuersignale} generiert werden ist ein wichtiges Detail: Dadurch werden  nachfolgende Komponenten weiterhin mit dem Systemtakt getrieben und bleiben somit synchron zu den anderen Komponenten des Trackingloop und dem MBlite Prozessor. Andernfalls könnte dies Timingprobleme und somit Metastabilität verursachen.
 
-Die drei Ausgangssignale \lstinline$Ena_clk$, \lstinline$Ena_clk_x2$ und \lstinline$Ena_clk_div1023$ sind in dem \lstinline$record$ \lstinline$o_nco$ zusammengefasst \TR{TabCodeNCO_Type}. Die Ausgangssignale sind Impulse, d.h. sie sind nur genau für die Dauer $1/\gpsfsamp$ \lstinline$'1'$ und sonst \lstinline$'0'$. Die Frequenz, mit der sich die Impulse wiederholen, ist abhängig von dem Wert an \lstinline$i_fcw$. Genau wie bei dem Carrier NCO ist die Frequenz proportional aber nicht gleich zu dem \gls{FCW}:
+Die drei Ausgangssignale \lstinline$Ena_clk$, \lstinline$Ena_clk_x2$ und \lstinline$Ena_clk_div1023$ sind in dem \lstinline$record$ \lstinline$o_nco$ zusammengefasst (\TR{TabCodeNCO_Type}). Die Ausgangssignale sind Impulse, d.h. sie sind nur genau für die Dauer $1/\gpsfsamp$ gleich \lstinline$'1'$ und sonst \lstinline$'0'$. Die Frequenz, mit der sich die Impulse wiederholen, ist abhängig von dem Wert an \lstinline$i_fcw$. Genau wie bei dem Carrier NCO ist die Frequenz \emph{proportional} aber \emph{nicht gleich}  zu dem \gls{FCW}:
 
 \begin{equation}
     FCW=f_{out}\cdot K_{0,code} =f_{out}\cdot  \frac{2^{N_{codeNCO}}}{f_{clk}}
@@ -39,7 +39,7 @@ In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponen
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Typdefinition Code NCO Ausgangssignal]{Beschreibung der Struktur des \lstinline$t_code_nco_out$ Typs. Der Typ ist in \lstinline$tracking_loop_pkg.vhd$ definiert.}
+        \caption[Typdefinition \lstinline$t_code_nco_out$]{Beschreibung der Struktur des \lstinline$t_code_nco_out$ Typs. Der Typ ist in \lstinline$tracking_loop_pkg.vhd$ definiert.}
         \label{TabCodeNCO_Type}
     }
     {
@@ -81,7 +81,7 @@ In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponen
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Typdefinition Code NCO Zustandsregister]{Beschreibung der Struktur des Code NCO Zustandsregisters (\lstinline$t_code_nco_out$ Typ).}
+        \caption[Typdefinition \lstinline$t_code_nco_out$]{Beschreibung der Struktur des Code NCO Zustandsregisters (\lstinline$t_code_nco_out$ Typ).}
         \label{Tab_t_code_nco_reg_Type}
     }
     {
@@ -99,7 +99,7 @@ In \TR{TabCALFSR_Entity} ist die Schnittstelle der \lstinline$code_nco$ Komponen
 }
 \end{table}
 
-Wie die Architecture des Carrier NCO enthält auch die Code NCO Archtiecture einen Phasenakkumulator. Im Gegensatz zu dem Carrier NCO wird zur Erzeugung des Ausgangssignals aber keine \gls{LUT} verwendet. Stattdessen wird eine Logik eingesetzt, die das MSB des Akkumulators überwacht und \lstinline$Ena_clk$ für genau eine Taktperiode auf \lstinline$'1'$ setzt. Dazu wird ein zweites Register \lstinline$prev_count$ benutzt, dass den vorherigen Zustand des MSB speichert und \lstinline$Ena_clk$ nur auf \lstinline$'1'$ setzt, wenn das MSB den Zustand \emph{gewechselt} hat. Alternativ hätte auch der Akkumulatorwert mit $2^N_{codeNCO}-1$ verglichen werden können. In diesem Fall müssten aber $N_{codeNCO}$ Bits verglichen werden, wofür mehr Logikressourcen benötigt werden. Daher wurde die zuvor erklärte Logik verwendet, die lediglich ein Flip Flop und einen \SI{1}{\bit} Vergleicher benötigt.
+Wie die Architecture des Carrier NCO enthält auch die Code NCO Archtiecture einen Phasenakkumulator. Im Gegensatz zu dem Carrier NCO wird zur Erzeugung des Ausgangssignals aber keine \gls{LUT} verwendet. Stattdessen wird eine Logik eingesetzt, die das MSB des Akkumulators überwacht und \lstinline$Ena_clk$ für genau eine Taktperiode auf \lstinline$'1'$ setzt. Dazu wird ein zweites Register \lstinline$prev_count$ benutzt, dass den vorherigen Zustand des MSB speichert und \lstinline$Ena_clk$ nur auf \lstinline$'1'$ setzt, wenn das MSB den Zustand \emph{gewechselt} hat. Alternativ hätte auch der Akkumulatorwert mit $2^N_{codeNCO}-1$ verglichen werden können. In diesem Fall müssten aber $N_{codeNCO}$ Bits verglichen werden, wofür mehr Logikressourcen benötigt werden. Daher wurde die zuvor erklärte Logik verwendet, die lediglich ein Flipflop und einen \SI{1}{\bit} Vergleicher benötigt.
 
 Ähnliche Logik wird für die Generierung des Signals \lstinline$Ena_clk_x2$ eingesetzt, hier wird aber stattdessen das zweihöchste Bit überwacht.
 

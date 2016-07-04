@@ -16,7 +16,7 @@ Ein im MBlite Prozessor laufendes Programm realisiert die \emph{TrackingSW} Komp
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Typdefinition Tracking Kanal in MBlite Firmware ]{Der \lstinline$t_channel$ Typ fasst alle Attribute eines Trackingloop Kanals zusammen. Der Typ ist in \lstinline$trackingloop.h$ definiert.}
+        \caption[Typdefinition \lstinline$t_channel$]{Der \lstinline$t_channel$ Typ fasst alle Attribute eines Trackingloop Kanals zusammen. Der Typ ist in \lstinline$trackingloop.h$ definiert.}
         \label{Tab_t_channel}
     }
     {
@@ -39,7 +39,7 @@ Ein im MBlite Prozessor laufendes Programm realisiert die \emph{TrackingSW} Komp
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Typdefinition Hardwareregister in MBlite Firmware ]{Der \lstinline$t_hw_regs$ Typ spiegelt das Memory Layout der Register der \emph{TrackingHW} Komponente wieder (siehe auch \FR{TLMemoryLayout.pdf} und \TR{Tab_tracking_loop_memory_map}). Der Typ ist in \lstinline$trackingloop.h$ definiert.}
+        \caption[Typdefinition \lstinline$t_hw_regs$]{Der \lstinline$t_hw_regs$ Typ spiegelt das Memory Layout der Register der \emph{TrackingHW} Komponente wieder (siehe auch \FR{TLMemoryLayout.pdf} und \TR{Tab_tracking_loop_memory_map}). Der Typ ist in \lstinline$trackingloop.h$ definiert.}
         \label{Tab_t_hw_regs}
     }
     {
@@ -64,7 +64,7 @@ Ein im MBlite Prozessor laufendes Programm realisiert die \emph{TrackingSW} Komp
 \begin{table}[htbp]
     \ttabbox
     {
-        \caption[Typdefinition IQ Korrelatoren in MBlite Firmware ]{Der \lstinline$t_iq$ Typ fasst I und Q Integrate \& Dump Register des Early, Prompt oder Late Zweigs zusammen (siehe auch \FR{TLMemoryLayout.pdf} und \TR{Tab_tracking_loop_memory_map}). Der Typ ist in \lstinline$trackingloop.h$ definiert.}
+        \caption[Typdefinition \lstinline$t_iq$]{Der \lstinline$t_iq$ Typ fasst I und Q Integrate \& Dump Register des Early, Prompt oder Late Zweigs zusammen (siehe auch \FR{TLMemoryLayout.pdf} und \TR{Tab_tracking_loop_memory_map}). Der Typ ist in \lstinline$trackingloop.h$ definiert.}
         \label{Tab_t_iq}
     }
     {
@@ -86,7 +86,7 @@ Berechnet Betrag $r$ und/oder Phase $\phi$ der komplexen Zahl, die durch \lstinl
 Anschaulich betrachtet funktioniert der \emph{CORDIC} Algorithmus indem die komplexe Zahl als Zeiger betrachtet wird, den es gilt so zu drehen, dass er auf der $x$-Achse liegt. Dies geschieht mit inkrementellen Schritten, wobei die Drehung durch Skalieren der $x$ und $y$ Komponenten des Zeigers realisiert wird. Die Drehwinkel sind dabei so gewählt, dass der Skalierungsfaktor eine Potenz von 2 ist\footnote{Zum besseren Verständnis sei auch auf den Quellcode verwiesen. Außerdem wurde in \lstinline$doc/CORDIC.ggb$ ein interaktives \emph{GeoGebra} Applet erstellt, mit dem die Funktion des \emph{CORDIC} Algorithmus graphisch dargestellt ist.}. Damit kann das Skalieren durch einfache Schiebe- und Additionsoperationen und völlig ohne Multiplikationen oder Divisionen realisiert werden. Dadurch kann der \emph{CORDIC} Algorithmus sehr schnell und mit einer vorab bekannten Anzahl an Schritten, Betrag und Phase berechnen.
 
 \lstinline[language=C]$int16_t dll_discriminator(t_channel* ch_x)$ 
-Berechnet den Code Diskriminator Wert für Kanal \lstinline[language=C]$ch_x$. Der Rückgabewert ist eine Festkommazahl im Format $Q1.14$. Die Berechnung erfolgt nach der Formel \ref{EqnCodeDiscr}. Zur Berechnung der Beträge ($\sqrt{\tilde{y}_{I}^2+\tilde{y}_{Q}^2}$) wird der \emph{CORDIC} Algorithmus verwendet der in \lstinline[language=C]$cart2polar()$ implementiert ist. Wie bei der Beschreibung der \lstinline$cart2polar()$ Funktion erwähnt, gibt die Funktion den mit dem Faktor $k \approx 1.644$ skalierten Betrag ($k\cdot \sqrt{\tilde{y}_{I}^2+\tilde{y}_{Q}^2}$) zurück. Dies hat jedoch auf das Ergebnis keinen Einfluss, da wenn man Formel \ref{EqnCodeDiscr} betrachtet der Faktor $k$ in Zähler und Nenner vorkommt und sich somit heraus kürzt.
+Berechnet den Code Diskriminator Wert für Kanal \lstinline[language=C]$ch_x$. Der Rückgabewert ist eine Festkommazahl im Format $Q1.14$. Die Berechnung erfolgt nach Formel \ref{EqnCodeDiscr}. Zur Berechnung der Beträge ($\sqrt{\tilde{y}_{I}^2+\tilde{y}_{Q}^2}$) wird der \emph{CORDIC} Algorithmus verwendet der in \lstinline[language=C]$cart2polar()$ implementiert ist. Wie bei der Beschreibung der \lstinline$cart2polar()$ Funktion erwähnt, gibt die Funktion den mit dem Faktor $k \approx 1.644$ skalierten Betrag ($k\cdot \sqrt{\tilde{y}_{I}^2+\tilde{y}_{Q}^2}$) zurück. Dies hat jedoch auf das Ergebnis keinen Einfluss, da wenn man Formel \ref{EqnCodeDiscr} betrachtet, der Faktor $k$ in Zähler und Nenner vorkommt und sich somit herauskürzt.
 
 
 \lstinline[language=C]$void pll(t_channel* ch_x)$
@@ -120,7 +120,7 @@ In den weiteren Zeilen wird dann überprüft, ob es sich um eine zulässige Inte
 In der \lstinline[language=C]$main()$ Funktion werden die Tracking Loop Kanäle konfiguriert. Dazu muss die in Abschnitt \ref{TLStartProzedur} beschriebene Startprozedur eingehalten werden. Außerdem ist vorgesehen, aber bisher noch nicht implementiert, dass in der \lstinline[language=C]$main()$ Funktion die Kommunikation mit dem DSP abläuft. 
 
 
-\subsubsection{Kompilieren der Firmware und erzeugen der Speicherabbilder}
+\subsubsection{Kompilieren der Firmware und Generieren der Speicherabbilder}
 % Adressoffset? Makefile?
 Im Unterschied zu einem Anwendungsprogramm für einen \enquote{normalen} Mikrocontroller oder einem Programm für einen PC sind beim Kompilieren und Erzeugen des ausführbaren Programms für den MBlite Softcore einige Besonderheiten zu beachten.
 
@@ -141,7 +141,7 @@ All diese Schritte sind in einem \lstinline$Makefile$ zusammengefasst\footnote{D
 Weil der MBlite Prozessor über optionale Funktionen  (z.B. Hardware Multiplizierer oder Barrel Shifter) verfügt, muss dem Compiler für Schritt 1 mitgeteilt werden welche Instruktionen in Hardware realisiert werden können und welche mit anderen Instruktionen emuliert werden müssen. Die entsprechenden Optionen sind in dem \lstinline$Makefile$ in der Variable \lstinline$XILFLAGS$ zusammengefasst.
 
 \paragraph{Schritt 2: Linken der Object Files}
-In Schritt 2 wird das Memory Layout des Programms festgelegt, wie z.B. bei welcher Adresse die Datensektionen beginnen oder wie groß Stack und Heap sind. Die erste Sektion des Data Memories ist die \lstinline$.ctors$ Sektion. Die Startadresse dieser Sektion wurde auf $0x10000000$ (Variable \lstinline$DMEM_OFFSET$) festgelegt. Dies bedeutet nicht das das Binary \SI{>268}{\mega\byte} groß ist: Die Adressen sind \emph{virtuelle Adressen}. Der Adressdekoder sorgt dafür, dass Zugriffe auf diese virtuellen Adressen dem richtigen Speicher bzw. Peripheriegerät zugeordnet werden\footnote{Die Memory Map ist in der Datei \lstinline$gps_fpga/rtl/vhdl/config_Pkg.vhd$ festgelegt.}.
+In Schritt 2 wird das Memory Layout des Programms festgelegt, wie z.B. bei welcher Adresse die Datensektionen beginnen oder wie groß Stack und Heap sind. Die erste Sektion des Data Memories ist die \lstinline$.ctors$ Sektion. Die Startadresse dieser Sektion wurde auf $0x10000000$ (Variable \lstinline$DMEM_OFFSET$) festgelegt. Dies bedeutet nicht, dass das Binary \SI{>268}{\mega\byte} groß ist: Die Adressen sind \emph{virtuelle Adressen}. Der Adressdekoder sorgt dafür, dass Zugriffe auf diese virtuellen Adressen dem richtigen Speicher bzw. Peripheriegerät zugeordnet werden\footnote{Die Memory Map ist in der Datei \lstinline$gps_fpga/rtl/vhdl/config_Pkg.vhd$ festgelegt.}.
 
 In dem Programm wird lediglich wenig Stack- bzw. Heap Speicher benötigt. Deshalb wird über Linker Optionen die Heap- und Stack Größe gegenüber dem Standardwert auf je \SI{4}{\kilo\byte} verkleinert. 
 
@@ -154,7 +154,7 @@ Mit dem Kommando\footref{MBBinutils} \lstinline$objdump$ werden dann aus dem \gl
 
 \paragraph{Schritt 5:}
 Die Programme\footnote{Die Programme kommen als Teil des MBlite Quellcodes und sind unter \lstinline$gps_fpga/firmware/util$ zu finden.} \lstinline$bin2vhd_4x8$ bzw. \lstinline$bin2vhd_32b$ konvertieren die \lstinline$.bin$ Memory Dumps in VHDL Komponenten die den Speicherinhalt als VHDL Array enthalten. 
-Der Grund weshalb zwei verschiedene Programme verwendet werden liegt in den unterschiedlichen Anforderungen für Instruction und Data Memory: Während für den Instruction Memory immer nur auf ganze \SI{32}{\bit} Worte zugegriffen werden muss, soll bei dem Data Memory auch auf \SI{16}{\bit}, \SI{8}{\bit} Worte zugegriffen werden können. 
+Der Grund weshalb zwei verschiedene Programme verwendet werden liegt in den unterschiedlichen Anforderungen für Instruction und Data Memory: Während für den Instruction Memory immer nur auf ganze \SI{32}{\bit} Worte zugegriffen werden muss, soll bei dem Data Memory auch auf \SI{16}{\bit} und \SI{8}{\bit} Worte zugegriffen werden können. 
 
 Als zweiten Parameter erwarten die beiden Programme die Größe des Speichers. Die minimal notwendige Größe lässt sich mit dem Kommando\footref{MBBinutils} \lstinline$size$ bestimmen. Der Instruction Memory muss mindestest so groß sein wie die Sektion \lstinline$.text$. Der Data Memory muss mindestens so groß sein wie die Sektionen \lstinline$.data$ und \lstinline$.bss$ zusammen. Zu beachten ist herbei, dass \lstinline$size$ die Größe in \emph{Bytes} ausgibt, \lstinline$bin2vhd_*$ aber die Anzahl der 32 Bit Speicherworte als Potenz von 2 erwartet. Wenn also als Parameter eine \lstinline$10$ angegeben wird, so wird ein Speicher erzeugt, der $2^{10}\times \SI{4}{\byte}=\SI{4}{\kilo\byte}$ umfasst.
 

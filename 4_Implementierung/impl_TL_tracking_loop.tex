@@ -1,7 +1,7 @@
 \subsubsection{Tracking  Loop Komponente}
 Diese Komponente ist in \lstinline$tracking_loop.vhd$ beschrieben, und eine Übersicht ist in \FR{UML_class_tracking_loop.pdf} abgebildet. Sie entspricht der in \FR{GPS_UML_deployment1.png} dargestellten \emph{TrackingHW} Komponente. Für jeden Kanal wird eine Instanz dieser Komponente benötigt. Zusammen mit dem Software Teil der im MBlite Prozessor läuft, übernimmt diese Komponente nach der Acquistion das Nachführen des Lokaloszillators und des Code Generators, so wie es in Abschnitt \ref{GrundlagenTracking} beschrieben wurde.
 
-Die Funktion dieser Komponente ist eng verknüpft mit der \emph{TrackingSW} Komponente die im MBlite Prozessor läuft: Sie muss die \emph{TrackingHW} Komponente mit den Werten für Carrier FCW, Code FCW und initialer Codephase konfigurieren. Danach muss die TrackingSW Komponente das Startsignal geben. Während des Betriebs muss sie die Korrelator Ausgabewerte lesen, damit die neuen Werte für Carrier FCW und Code FCW berechnen und die neuen Werte an die TrackingHW Komponente übermitteln.
+Die Funktion dieser Komponente ist eng verknüpft mit der \emph{TrackingSW} Komponente die im MBlite Prozessor läuft: Sie muss die \emph{TrackingHW} Komponente mit den Werten für Carrier FCW, Code FCW und initialer Codephase konfigurieren. Danach muss die \emph{TrackingSW} Komponente das Startsignal geben. Während des Betriebs muss die \emph{TrackingSW} Komponente die Korrelator Ausgabewerte lesen, damit die neuen Werte für Carrier FCW und Code FCW berechnen und die neuen Werte an die \emph{TrackingHW} Komponente übermitteln.
 
 \FGimg[Entity/Architecture Tracking Loop]{UML_class_tracking_loop.pdf}{Die übergeordnete Entity/Architecture des Tracking Loop}{10cm}
 
@@ -102,10 +102,10 @@ Die Architecture der Tracking Loop Komponente beinhaltet Code- und Carrier Misch
 
 Wie bereits früher erwähnt, werden lediglich \SI{1}{\bit} Samples verwendet, wobei eine \lstinline$'0'$ als $+1$ interpretiert wird und eine \lstinline$'1'$ als $-1$\footnote{Dies ist genau umgekehrt zu der Interpretation in der Integrate \& Dump Komponente. Da allerdings ohnehin mit einer \SI{\pm180}{\degree} Unsicherheit gerechnet werden muss, ist dies nicht schlimm. Die nachfolgende Signalverarbeitung zur NAV Daten Extraktion invertiert das Signal, falls notwendig.}. Damit können die Mischer einfach als XOR Glieder realisiert werden:
 
-\begin{table}[htbp]
+\begin{table}[H]
     \ttabbox
     {
-        \caption[Exklusiv-Oder Glied]{Vergleich Multiplikation und Exklusiv-Oder (XOR) Glied.}
+        \caption[Exklusiv-Oder Glied vs. Multiplikation]{Vergleich Multiplikation und Exklusiv-Oder (XOR) Glied.}
         \label{TabXOR}
     }
     {
@@ -123,7 +123,7 @@ Wie bereits früher erwähnt, werden lediglich \SI{1}{\bit} Samples verwendet, w
 }
 \end{table}
 
-Die innere Struktur der Architecture orientiert sich grob an dem Blockschaltbild in \FR{Trackingloop.png} wobei die grünen Blöcke, wie bereits erwähnt, in Software in MBlite Prozessor realisiert sind.
+Die innere Struktur der Architecture orientiert sich grob an dem Blockschaltbild aus \FR{Trackingloop.png}, wobei die grünen Blöcke, wie bereits erwähnt, in Software in MBlite Prozessor realisiert sind.
 
 \subparagraph{Start Prozedur} In der Beschreibung der Schnittstelle wurden bereits die notwendigen Schritte zum Starten eines Tracking Loop Kanals beschrieben. Durch das Zurücksetzen des Trackingloop (Schritt 1), befinden sich die LFSR, die den \gls{CA} Code erzeugen, im Zustand \lstinline$"1111111111"$, was der Codephase $0$ entspricht. Auch nach Setzen der \lstinline$enable$ Flag in Schritt 2 bleiben die LFSR in diesem Zustand. 
 

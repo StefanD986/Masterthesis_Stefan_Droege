@@ -1,12 +1,22 @@
 %*******************************************************
 % Abstract
 %*******************************************************
-\chapter*{Abstract}
+\chapter*{Abstract (de)}
+Diese Arbeit dokumentiert den Entwurf und die Implementierung eines Software-Defined GPS Empfängers, der auf dem \dscubesat integriert wird. Die Implementierung nutzt sowohl den FPGA als auch den DSP des COM Subsystems des Satelliten. Auch wenn noch nicht alle Teilaufgaben erreicht wurden, konnten mehrere wichtige Meilensteine erreicht werden. Durch mehrere Experimente wurde die Umsetzbarkeit des Entwurfs und der Implementierung gezeigt.
 
-This thesis documents the design and the implementation of a software-defined GPS receiver meant to be integrated on the \dscubesat. The implementation makes use of the FPGA and DSP onboard the satellite's COM subsystem.  Although not every task could be completed, several important milestones were reached and the feasability of the concept and implementation is proven with several experiments. 
+Es wurde eine Näherungsformel für die maximal auftretende Dopplerverschiebung des GPS Signals für Low-Earth-Orbit Satelliten hergeleitet. Die Funktion des entworfenen Empfängers unter diesen Bedingungen wurde mit einer Matlab Simulink Simulation verifiziert.
 
-An approximate value for the maximum dopplershift of the GPS signal for Low-Earth-Orbit Satellites is derived. The function of the receiver under these conditions is verified with a Matlab Simulink simulation. 
+Ein Linux Kernel Treiber wurde für die Schnittstelle zum GPS Frontend entwickelt. Die GPS Tracking Loops wurden in programmierbarer Hardware im FPGA und in Software in einem Softcore Prozessor realisiert. Die Funktion der Schnittstelle wurde mit einem Experiment mit dem Flugmodell des \dscubesat demonstriert. Im Zuge dieses Experiments wurde auch zum ersten Mal der vollständige Signalpfad von Antenne bis zum DSP verifiziert.
 
-A Linux Kernel driver is developed to interface with the GPS Frontend chip. The function of the interface is then demonstrated with an experiment with the flight model of the \dscubesat. At the same time it was shown for the first time, that the passive antennas together with the GPS frontend deliver a signal that is suitable for position calculation.
+Eine \gls{RTL} Simulation wurde durchgeführt um die Funktion, der im FPGA implementierten Tracking Loop Kanäle zu verifizieren. Weiterhin wurde damit die Performance der implementierten Festkommaalgorithmen gemessen. Mit der derzeitigen Implementierung unterstützt der GPS Empfänger bis zu 10 Kanäle (mindestens 4 Kanäle sind für eine Positionsbestimmung nötig). Mit kleinen Änderungen ließen sich auch mehr Kanäle realisieren, da die maximale Anzahl vor allem durch die Rechenleistung des Softcore Prozessors begrenzt ist.
 
-A \gls{RTL} simulation is used to verify the function of the tracking loop channels that were implemented in the FPGA. Additionally, the performance of the designed fixed point algorithms was measured. With the current implementation the GPS receiver supports up to 10 channels. The maximum number of channels is mostly dependent on the computational power of the softcore processor. Hence, with few changes, more channels can easily be realized.
+
+\chapter*{Abstract (en)}
+
+This thesis documents the design and the implementation of a software-defined GPS receiver meant to be integrated on the \dscubesat. The implementation makes use of both FPGA and DSP onboard the satellite's COM subsystem. Although not every task could be completed during the course of this thesis, several important milestones were reached and by means of several experiments, the feasibility of the concept and implementation has been proven.
+
+An approximate value for the maximum Doppler shift of the GPS signal for Low-Earth-Orbit Satellites has been derived. The function of the receiver under these conditions were verified with a Matlab Simulink simulation.
+
+A Linux Kernel driver was developed to interface with the GPS Frontend chip and tracking loops were realized in programmable hardware and in software in a Softcore CPU. The function of the interface has been demonstrated using the flight model of the \dscubesat. As part of the experiments the function of the entire signal path from antenna to the DSP was verified for the first time.
+
+A \gls{RTL} simulation was used to verify the function of the tracking loop channels that were implemented in the FPGA. Additionally, the performance of the designed fixed point algorithms has been measured. The current implementation the GPS receiver supports up to 10 channels, which would be sufficient to acquire a position fix. With few changes however, more channels can easily be realized since the maximum number of channels is mostly dependent on the computational power of the softcore processor.

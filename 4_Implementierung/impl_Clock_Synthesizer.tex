@@ -7,9 +7,9 @@ Deshalb wird das Taktsignal im FPGA durch einen Clock Synthesizer aufgefrischt. 
 
 \FGimg[Fehlende Taktflanken]{ODDR_Buffer_Runt_Pulse_and_ADC_clock.png}{Taktsignal des GPS Fronted (unten) und das durch einen \lstinline$ibufg$ Buffer aufgefrischte Signal (oben). Wie man sieht reicht die Energie des Taktsignals nicht immer aus den Clock Buffer zu treiben. Für die Messung wurde das aufgefrischte Taktsignal über ein \lstinline$ODDR2$ \gls{Primitive} nach außen geführt.}{0.8\imgmaxwidth}
 
-Die \lstinline$phaseshift180$ Entity (\FR{UML_class_phaseshift180.pdf}) ist die Schnittstelle zu dem dem \lstinline$DCM_CLKGEN$  Clock Synthesizer \gls{Primitive}. Die Entity wurde mit dem Xilinx Core Generator erzeugt und die einzelnen Signale der Schnittstelle sind in \TR{TabPhaseshift180_Entity} beschrieben.
+Die \lstinline$phaseshift180$ Entity (\FR{UML_class_phaseshift180.pdf}) ist die Schnittstelle zu dem \lstinline$DCM_CLKGEN$  Clock Synthesizer \gls{Primitive}. Die Entity wurde mit dem Xilinx Core Generator erzeugt und die einzelnen Signale der Schnittstelle sind in \TR{TabPhaseshift180_Entity} beschrieben.
 
-In \FR{Eye_Diagram_MAX2769_output_color2.png} ist zu sehen, dass das GPS Frontend die Daten auf der steigenden Taktflanke ändert. Damit die Daten von den weiteren Stufen im FPGA sicher eingelesen werden, werden die weiteren Stufen mit dem \SI{180}{\degree} verschobenen Taktsignal an \lstinline$o_clk_180$ getaktet. So ist sichergestellt, dass die Setup und Hold Zeiten der Flip Flops eingehalten werden.
+In \FR{Eye_Diagram_MAX2769_output_color2.png} ist zu sehen, dass das GPS Frontend die Daten auf der steigenden Taktflanke ändert. Damit die Daten von den weiteren Stufen im FPGA sicher eingelesen werden, werden die weiteren Stufen mit dem \SI{180}{\degree} verschobenen Taktsignal \lstinline$o_clk_180$ getaktet. So ist sichergestellt, dass die Setup und Hold Zeiten der Flipflops eingehalten werden.
 
 \FGimg[Clock Synthesizer Schnittstelle]{UML_class_phaseshift180.pdf}{Die \lstinline$phaseshift180$ Entity ist die Schnittstelle zum \lstinline$DCM_CLKGEN$ Clock Synthesizer \gls{Primitive}.}{4cm}
 
@@ -21,7 +21,7 @@ In \FR{Eye_Diagram_MAX2769_output_color2.png} ist zu sehen, dass das GPS Fronten
     }
     {
         \rowcolors{2}{light-gray}{White}
-    \begin{tabular}{c c  l p{5.5cm}}
+    \begin{tabular}{c c  l p{5.8cm}}
         \toprule
         Name                    & I/O   & Typ                   & Beschreibung \\
         \midrule

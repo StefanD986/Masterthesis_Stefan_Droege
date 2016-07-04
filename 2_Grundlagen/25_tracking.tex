@@ -1,20 +1,20 @@
 \subsection{Tracking}
 \label{GrundlagenTracking}
-Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird lediglich durchgeführt, wenn neue GPS Satelliten gesucht werden, beispielsweise nach dem Systemstart, oder wenn das Signal verloren wird. Sobald die Parameter (PRN, Codephase, Dopplershift) durch die Acquisition bestimmt wurden, werden diese an den eigentlichen Demodulator, den Trackingloop, weitergegeben. Der Begriff Trackingloop kommt daher, dass die bei der Acquisition bestimmte Codephase bzw. Dopplershift jeweils nur Momentaufnahmen sind. Dopplershift und Codephase ändern sich ständig und auch Ungenauigkeiten der Takterzeugung beim Empfänger müssen ausgeglichen werden. Der Trackingloop hat die Aufgabe die in der Acquisitonphase bestimmten Werte mittels eines Regelkreises (\emph{control loop}) nachzuführen (\emph{to track}).
+Die Acquisition ist wie beschrieben ein relativ aufwändiger Prozess, und wird lediglich durchgeführt, wenn neue GPS Satelliten gesucht werden, beispielsweise nach dem Systemstart, oder wenn das Signal verloren wird. Sobald die Parameter (PRN, Codephase, Dopplershift) durch die Acquisition bestimmt wurden, werden diese an den eigentlichen Demodulator, den Tracking Loop, weitergegeben. Der Begriff \emph{Tracking Loop} kommt daher, dass die bei der Acquisition bestimmte Codephase bzw. Dopplershift jeweils nur Momentaufnahmen sind. Dopplershift und Codephase ändern sich ständig und auch Ungenauigkeiten der Takterzeugung beim Empfänger müssen ausgeglichen werden. Der Tracking Loop hat die Aufgabe die in der Acquisitonphase bestimmten Werte mittels eines Regelkreises (\emph{control loop}) nachzuführen (\emph{to track}).
 
-\FGimg[Blockschaltbild GPS Trackingloop]{Trackingloop.png}{Blockschaltbild des GPS Trackingloops. Der Trackingloop besteht aus zwei Regelkreisen, die die LO-Frequenz bzw. die Codefrequenz nachführen. Grün markierte Blöcke haben weniger kritische Echtzeitanforderungen (\ref{echtzeitanforderungen}).}{0.9\imgmaxwidth}
+\FGimg[Blockschaltbild GPS Tracking Loop]{Trackingloop.png}{Blockschaltbild des GPS Tracking Loop. Der Tracking Loop besteht aus zwei Regelkreisen, die die LO-Frequenz bzw. die Codefrequenz nachführen. Grün markierte Blöcke haben weniger kritische Echtzeitanforderungen (\ref{echtzeitanforderungen}).}{0.9\imgmaxwidth}
 
-\FR{Trackingloop.png} zeigt ein Blockschaltbild des Trackingloops. Im Folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Anschließend wird ein Überblick über die Funktion des gesamten Trackingloops gegeben. Eine detaillierte Beschreibung des ist in \cite{borre2007software} zu finden.
+\FR{Trackingloop.png} zeigt ein Blockschaltbild des Tracking Loop. Im Folgenden werden kurz die Funktionen der einzelnen Blöcke erklärt. Anschließend wird ein Überblick über die Funktion des gesamten Tracking Loop gegeben. Eine detaillierte Beschreibung des Tracking Loop ist in \cite{borre2007software} zu finden.
 
 \paragraph{Carrier NCO} Der Carrier \gls{NCO} generiert eine lokale Kopie des (ZF-)Trägers (unter Berücksichtigung der Dopplerverschiebung). Die Frequenz des NCOs ist digital einstellbar.
 
 \paragraph{Carrier Mischer} Die zwei Carrier Mischer mischen das Eingangssignal $\gpsin$ mit dem von dem NCO erzeugten \gls{LO} Signal $\gpslo_I$ bzw. $\gpslo_Q$. Bei korrekter Einstellung des NCO wird das Eingangssignal von  $f_{ZF}+f_{Doppler}$ herunter auf \SI{0}{\Hz} gemischt.
 
-\paragraph{Carrier Loop Diskriminator} Der Carrier Loop Diskriminator analysiert das heruntergemischte Signal, und generiert ein Signal, dass den Phasenfehler angibt.
+\paragraph{Carrier Loop Diskriminator} Der Carrier Loop Diskriminator analysiert das heruntergemischte Signal, und generiert ein Signal, dass die Phasendifferenz zwischen Eingangssignal und LO Signal angibt.
 
-\paragraph{Carrier Loop Filter} Der Carrier Loop Filter wirkt als \emph{PI-Regler} (\emph{Proportional, Integral}) in dem Regelkreis. Wenn der Wert an seinem Eingang $\neq 0$ ist, integriert er diesen so lange, bis die Frequenz auf einen Wert angestiegen bzw. abgesunken ist, dass der Fehler null wird.
+\paragraph{Carrier Loop Filter} Der Carrier Loop Filter wirkt als \emph{PI-Regler} (\emph{Proportional, Integral}) in dem Regelkreis. Wenn der Wert an seinem Eingang $\neq 0$ ist, integriert er diesen so lange, bis die Frequenz auf einen Wert angestiegen bzw. abgesunken ist, bei dem der Fehler null wird.
 
-\paragraph{C/A Code Generator} Der \gls{CA} Code Generator erzeugt eine drei Kopien des Codes. Dabei ist die Codefrequenz, also die Geschwindigkeit mit der die Codesequenz \enquote{abgespielt} wird, digital einstellbar. Vereinfacht gesagt  funktioniert der C/A Code Generator intern als \gls{NCO} der ein Taktsignal für die erzeugenden \gls{LFSR} generiert. Die drei Kopien unterscheiden sich leicht in der Codephase, üblicherweise um die Dauer eines $\frac{1}{2}$ Chips. Deshalb werden die Kopien mit \emph{Early}, \emph{Prompt} und \emph{Late} bezeichnet. Der Zweck dieser drei Pfade wird in Abschnitt \ref{EarlyLateGate} erläutert.
+\paragraph{C/A Code Generator} Der \gls{CA} Code Generator erzeugt drei Kopien des Codes. Dabei ist die Codefrequenz, also die Geschwindigkeit mit der die Codesequenz \enquote{abgespielt} wird, digital einstellbar. Vereinfacht gesagt  funktioniert der C/A Code Generator intern als \gls{NCO} der ein Taktsignal für die erzeugenden \gls{LFSR} generiert. Die drei Kopien unterscheiden sich leicht in der Codephase, üblicherweise um die Dauer eines $\frac{1}{2}$ Chips. Deshalb werden die Kopien mit \emph{Early}, \emph{Prompt} und \emph{Late} bezeichnet. Der Zweck dieser drei Pfade wird in Abschnitt \ref{EarlyLateGate} erläutert.
 
 \paragraph{Code Mischer} Nach der Mischung mit dem LO Signal wird das Signal $\gpsmx_I$ bzw. $\gpsmx_Q$ mit den Kopien des Codes gemischt. Nach der Mischung mit dem Code entspricht das Signal $\gpsxc_{I,P}$ theoretisch bereits wieder dem Datensignal $\gpsdat$. Zusammen mit den \emph{Integrate \& Dump} Blöcken (s.u.) bilden sie die Korrelatoren, die die Kreuzkorrelation zwischen Eingangssignal und lokaler Codekopie berechnen.
 
@@ -35,7 +35,7 @@ Zum Synchronisieren der LO Frequenz mit der Trägerfrequenz des Empfangssignals 
 
 \FGimg[Blockschaltbild Costas Loop]{Costasloop.png}{Der Costas Loop ist eine PLL Variante, die \gls{BPSK} modulierte Signale demodulieren kann.}{0.8\imgmaxwidth}
 
-Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} verschoben sind: $\gpslo_I=\cos(\omega_{f} t)$ und  $\gpslo_Q=\sin(\omega_{f} t)$. Das Eingangssignal $\gpsin=\gpsdat \cdot \cos(\omega_{ZF} \cdot t)$ wird im jeweiligen Arm mit dem $I$ bzw $Q$ Träger gemischt und tiefpassgefiltert:
+Dazu erzeugt der LO zwei Kopien des Trägers, die zueinander \SI{90}{\degree} verschoben sind: $\gpslo_I=\cos(\omega_{f} t)$ und  $\gpslo_Q=\sin(\omega_{f} t)$. Das Eingangssignal $\gpsin=\gpsdat \cdot \cos(\omega_{ZF} \cdot t)$ wird im jeweiligen Arm mit dem $I$ bzw. $Q$ Träger gemischt und tiefpassgefiltert:
 \begin{eqnarray}
 	\gpsmx_I &=& \gpsin \cdot \cos(\omega_{f} t)\\
 		    &=& \gpsdat \cdot \cos(\omega_{ZF} \cdot t) \cdot \cos(\omega_{f} t)\\
@@ -63,7 +63,7 @@ Der Code Tracking Loop ist dafür zuständig die Phase des Codegenerators so anz
 
 \paragraph{Early Late Gate} \label{EarlyLateGate} In \FR{EarlyLateBlockdiagram.png} ist ein vereinfachtes Blockschaltbild des Early Late Gate Synchronisierers dargestellt. Für das Early Late Gate werden zwei Kopien des \emph{pünktlichen} Codes $\gpsca_P$ erzeugt, \emph{Early} ($\gpsca_E$) und \emph{Late} $\gpsca_L$, die $\gpsca_P$ jeweils  um $\Delta t$ voreilen ($\gpsca_E$), bzw. nacheilen ($\gpsca_L$). $\Delta t$ wird dabei üblicherweise als $\frac{1}{2} \gpsTchip$ gewählt.\footnote{Damit Verschiebungen $0<k<\gpsTchip$ möglich sind, muss das Signal über-abgetastet sein. Dies ist aber üblicherweise ohnehin der Fall um Aliasing zu verhindern.}
 
-Das vom Carrier Mischer kommende Signal $\gpsmx$ wird dann mit den beiden Codekopien $\gpsca_E$ und $\gpsca_L$ korreliert. Bei perfekter Synchronisation werden die \emph{Early} und \emph{Late} Korrelatoren einen gleichgroßen Wert liefern (\FR{EarlyLate_punctual.png}). Falls die Codekopie voreilt oder nacheilt wird sich dagegen das Gewicht zum Early bzw Late Korrelator verschieben.
+Das vom Carrier Mischer kommende Signal $\gpsmx$ wird dann mit den beiden Codekopien $\gpsca_E$ und $\gpsca_L$ korreliert. Bei perfekter Synchronisation werden die \emph{Early} und \emph{Late} Korrelatoren einen gleichgroßen Wert liefern (\FR{EarlyLate_punctual.png}). Falls die Codekopie voreilt oder nacheilt wird sich dagegen das Gewicht zum Early bzw. Late Korrelator verschieben.
 
 \FGimg[Korrelator Charakteristik]{CorrelatorCharacteristic.png}{Ausgang der drei Korrelatoren in Abhängigkeit von $k$, der Verschiebung  des Eingangssignals zur pünktlichen Codekopie.}{0.8\imgmaxwidth}
 
@@ -107,7 +107,7 @@ Zusammen ergibt sich damit die Übertragungsfunktion des geschlossenen Regelkrei
          &= \frac{K_0 ~K_d \cdot (\tau_2 ~s + 1)}{\tau_1 ~s^2 + K_0 ~K_d~\tau_2~s+K_0~K_d}\\
          &= \frac{2  ~ \zeta  ~ \omega_n ~ s + \omega_n^2}{s^2 + 2 ~\zeta~\omega_n~s + \omega_n}
 \end{align}
-Der geschlossene Regelkreis hat damit die Form eines \emph{PDT2-Glieds}. Im letzten Schritt wurden deshalb die für \emph{PDT2-Glieder} üblichen Parameter $\omega_n$, die Eigenfrequenz und $\zeta$, die Dämpfung eingeführt \cite{gardner2005phaselock}.
+Der geschlossene Regelkreis hat damit die Form eines \emph{PDT2-Glieds}. Im letzten Schritt wurden deshalb die für \emph{PDT2-Glieder} üblichen Parameter Eigenfrequenz $\omega_n$ und Dämpfung $\zeta$ eingeführt \cite{gardner2005phaselock}.
 \begin{align}
     \omega_n &=\sqrt{\frac{K_0~K_d}{\tau_1}} \label{Eq:omegaN}\\
     \zeta &=\frac{\tau_2~\omega_n}{2} \label{Eq:zeta}
@@ -118,7 +118,7 @@ In \cite{parkinsonGPS} wurde darüber hinaus der Zusammenhang zur Rauschbandbrei
 \end{equation}
 
 \paragraph{Zeitdiskretes Filter}
-Die bisherige Erklärung bezog sich lediglich auf einen zeitkontiniuierlichen Regelkreis. Im GPS Empfänger wird das Signal allerdings abgetastet, es kommt daher ein digitales Loop Filter zum Einsatz. Das digitale Filter kann aus \eqref{Eq:analogloopfilter} mit Bilinearer Tranformation\footnote{Bilineare Tranformation: $s=\frac{2\cdot(z-1)}{T\cdot(z+1)}$ mit $T$ dem Kehrwert der Abtastrate.} gewonnen werden:
+Die bisherige Erklärung bezog sich lediglich auf einen zeitkontiniuierlichen Regelkreis. Im GPS Empfänger wird das Signal allerdings abgetastet, es kommt daher ein digitales Loop Filter zum Einsatz. Das digitale Filter kann aus \eqref{Eq:analogloopfilter} mit bilinearer Transformation\footnote{Bilineare Transformation: $s=\frac{2\cdot(z-1)}{T\cdot(z+1)}$ mit $T$ dem Kehrwert der Abtastrate.} gewonnen werden:
 \begin{align}
     F(z) &= \frac{b_0+b_1 \cdot z^{-1}}{a_0 + a_1 z^{-1}}\\
          &= \frac{\frac{T+2\tau_2}{2 \tau_1}+\frac{T+2\tau_2}{2 \tau_1} \cdot z^{-1}}{1-z^{-1}}

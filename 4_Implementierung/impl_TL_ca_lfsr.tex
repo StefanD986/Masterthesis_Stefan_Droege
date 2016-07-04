@@ -1,5 +1,5 @@
 \subsubsection{Gold Code LFSR}
-Diese Komponente ist in  \lstinline$ca_lfsr_pkg.vhd$ implementiert und generiert die \gls{CA} Code Sequenz zu einer PRN. Bei \lstinline$i_ClkEna='1'$ und einer steigenden Taktflanke an \lstinline$i_clk$ wird an \lstinline$o_chip$ ein neuer Chip ausgegeben. Bei \lstinline$i_reset='1'$ wird das interne Schieberegister auf \lstinline$"1111111111"$ zurückgesetzt. In allen anderen Fällen wird der vorherige Zustand gehalten.
+Diese Komponente ist in  \lstinline$ca_lfsr_pkg.vhd$ implementiert und generiert die \gls{CA} Code Sequenz für eine gegebenen PRN. Bei \lstinline$i_ClkEna='1'$ und einer steigenden Taktflanke an \lstinline$i_clk$ wird an \lstinline$o_chip$ ein neuer Chip ausgegeben. Bei \lstinline$i_reset='1'$ wird das interne Schieberegister auf \lstinline$"1111111111"$ zurückgesetzt. In allen anderen Fällen wird der vorherige Zustand gehalten.
 
 \FGimg[Entity/Architecture des Gold Code LFSR]{UML_class_LFSR.pdf}{Entity und Architecture des \gls{LFSR}, das die Gold Code Sequenz erzeugt.}{8cm}
 
